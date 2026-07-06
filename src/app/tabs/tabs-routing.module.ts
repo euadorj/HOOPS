@@ -33,7 +33,7 @@ const routes: Routes = [
   },
   {
     path: 'tab4',
-    loadChildren: () => import('./BENEDICT/tab4.module').then( m => m.Tab4PageModule)
+    loadChildren: () => import('../BENEDICT/tab4.module').then( m => m.Tab4PageModule)
   }
 ];
 

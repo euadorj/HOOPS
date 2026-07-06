@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.game-page {
+  --background: #eff2ff;
+  padding: 16px;
+}
+
+.game-intro {
+  margin: 24px 0 16px;
+}
+
+.game-intro h2 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+
+.game-intro p {
+  margin: 0;
+  color: #475569;
+}
+
+ion-card {
+  border-radius: 22px;
+}
+
+ion-card-content {
+  display: grid;
+  gap: 16px;
+}
