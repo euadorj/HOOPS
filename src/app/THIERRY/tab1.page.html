@@ -1,0 +1,69 @@
+<ion-content [fullscreen]="true" class="home-page">
+  <div class="top-shell">
+    <div class="top-bar">
+      <div class="user-profile">
+        <ion-avatar class="profile-avatar">
+          <span>{{ userInitial }}</span>
+        </ion-avatar>
+        <div class="profile-text">
+          <p class="greeting">Hi, {{ userName }}</p>
+        </div>
+      </div>
+
+      <button class="notification-button" aria-label="Notifications">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <ion-badge color="danger">3</ion-badge>
+      </button>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-heading">
+        <h1>Saving Goals</h1>
+      </div>
+      <div class="hero-body">
+        <div class="hero-summary">
+          <p class="summary-label">Total Saved</p>
+          <h2>{{ totalSaved | currency:'USD':'symbol':'1.0-0' }}</h2>
+        </div>
+        <div class="goal-metrics">
+          <div class="goal-row" *ngFor="let goal of savingGoals">
+            <div class="goal-meta">
+              <p>{{ goal.name }}</p>
+              <span>{{ goal.amount }}</span>
+            </div>
+            <div class="goal-progress">
+              <ion-progress-bar [value]="goal.value" [color]="goal.color"></ion-progress-bar>
+              <span class="goal-percent">{{ goal.percent }}% complete</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="account-card">
+    <div class="account-heading">
+      <h2>Account</h2>
+    </div>
+    <div class="account-row">
+      <span>Net worth</span>
+      <strong>{{ netWorth | currency:'USD':'symbol':'1.0-0' }}</strong>
+    </div>
+    <div class="account-row">
+      <span>Balance</span>
+      <strong>{{ balance | currency:'USD':'symbol':'1.0-0' }}</strong>
+    </div>
+  </div>
+
+  <div class="actions-grid">
+    <button
+      class="action-card"
+      *ngFor="let action of actions"
+      [routerLink]="action.route"
+      routerDirection="forward"
+    >
+      <ion-icon [name]="action.icon"></ion-icon>
+      <span>{{ action.title }}</span>
+    </button>
+  </div>
+</ion-content>

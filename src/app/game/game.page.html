@@ -1,0 +1,25 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Games</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="game-page" fullscreen>
+  <div class="game-intro">
+    <h2>Welcome to Games</h2>
+    <p>Play quick challenges or explore rewards tied to your spending goals.</p>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Featured game</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>Start a round of trivia or spin the wheel to earn points toward your savings goals.</p>
+      <ion-button expand="block" routerLink="/tabs/tab1">Start game</ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
