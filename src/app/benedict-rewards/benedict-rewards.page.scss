@@ -1,0 +1,226 @@
+.top-toggle {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0 14px 0;
+
+  .toggle-btn {
+    flex: 1;
+    --border-radius: 12px;
+    height: 40px;
+    font-weight: 800;
+    letter-spacing: 0.1px;
+  }
+
+  .toggle-btn.active {
+    --background: #4f46e5; /* purple */
+    --background-activated: #4338ca;
+    --background-hover: #5b4be6;
+  }
+}
+
+.profile-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #9aa9c0;
+  color: #fff;
+
+  .profile-header {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+
+    .profile-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .profile-meta {
+      flex: 1;
+
+      .profile-name {
+        font-size: 18px;
+        font-weight: 900;
+      }
+
+      .profile-tier {
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0.95;
+      }
+
+      .profile-saving {
+        margin-top: 10px;
+
+        .label {
+          font-size: 12px;
+          opacity: 0.9;
+          font-weight: 700;
+        }
+
+        .value {
+          margin-top: 2px;
+          font-size: 14px;
+          font-weight: 900;
+        }
+      }
+    }
+  }
+
+  .points-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 14px 10px 14px;
+
+    .points-pill {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-width: 120px;
+
+      .big {
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .small {
+        font-size: 11px;
+        font-weight: 700;
+        opacity: 0.9;
+        margin-top: 3px;
+      }
+    }
+  }
+
+  .tier-progress {
+    padding: 0 14px 14px 14px;
+
+    .progress-bar {
+      --background: rgba(255, 255, 255, 0.25);
+      --buffer-background: rgba(255, 255, 255, 0.1);
+      --progress-background: #ffffff;
+      height: 10px;
+      border-radius: 99px;
+    }
+
+    .tier-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+
+      .tier-label {
+        font-size: 10px;
+        font-weight: 800;
+        opacity: 0.95;
+      }
+    }
+  }
+}
+
+.action-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  ion-button {
+    border-radius: 14px;
+    height: 82px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding: 14px 14px;
+
+    .action-title {
+      font-weight: 900;
+      font-size: 13px;
+      color: #2b2f3a;
+    }
+
+    .action-sub {
+      font-weight: 900;
+      font-size: 18px;
+      margin-top: 6px;
+      color: #2b2f3a;
+    }
+  }
+
+  .action-btn {
+    --background: #f7dede; /* light pink-ish */
+    --color: #2b2f3a;
+  }
+  .dangerish {
+    --background: #f4bfc1;
+  }
+  .neutral {
+    grid-column: 1 / -1;
+    --background: #f2f2f6;
+  }
+}
+
+.promo-card {
+  margin-top: 14px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #ffffff;
+
+  .promo-title {
+    padding: 14px 14px 0 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+
+    .promo-badge {
+      background: #2f7bff20;
+      color: #2f7bff;
+      border: 1px solid #2f7bff33;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    .promo-text {
+      font-weight: 900;
+      color: #2b2f3a;
+      font-size: 13px;
+    }
+  }
+
+  .promo-stats {
+    padding: 12px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+
+    .stat {
+      font-weight: 900;
+    }
+
+    .big {
+      font-size: 22px;
+      color: #0f172a;
+    }
+
+    .mult,
+    .small {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    .result {
+      font-size: 18px;
+      color: #4f46e5;
+      margin-left: 8px;
+    }
+  }
+
+  .promo-image {
+    height: 80px;
+    background: linear-gradient(135deg, #dbeafe, #fce7f3);
+  }
+}

@@ -1,0 +1,213 @@
+/* tab4.page.scss */
+
+:host {
+  --ion-background-color: #f4f6fb;
+}
+
+/* Card + header */
+.earnings-card {
+  margin: 0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(18, 19, 64, 0.08);
+  overflow: hidden;
+
+  ion-card-header {
+    padding: 16px 16px 10px 16px;
+  }
+}
+
+.earnings-title {
+  font-size: 14px;
+  color: #666b7a;
+  font-weight: 600;
+}
+
+.earnings-amount {
+  margin-top: 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1b1f2a;
+}
+
+/* Segmented control */
+.cashback-segment {
+  margin: 12px 10px 14px 10px;
+  background: #f2f4ff;
+  border-radius: 14px;
+
+  ion-segment-button {
+    --indicator-color: #4f46e5; /* purple */
+    --indicator-color-2: #4f46e5;
+    --background: transparent;
+
+    height: 38px;
+    border-radius: 14px;
+
+    ion-icon {
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+
+    div {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.1px;
+    }
+  }
+}
+
+/* List spacing */
+.list-container {
+  margin-top: 14px;
+}
+
+ion-item-divider {
+  --background: transparent;
+  padding: 10px 4px 6px 12px;
+}
+
+.divider-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #7a7f93;
+}
+
+/* Rows */
+.cashback-row {
+  --background: transparent;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border-radius: 14px;
+  margin: 0 6px 8px 6px;
+
+  ion-label {
+    margin: 0;
+  }
+
+  .row-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 16px;
+      color: #fff;
+    }
+  }
+
+  .row-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1b1f2a;
+    line-height: 1.2;
+  }
+
+  .row-subtitle {
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .row-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 90px;
+  }
+
+  .row-amount {
+    font-size: 13px;
+    font-weight: 900;
+    color: #1b1f2a;
+  }
+
+}
+
+/* Tones (icon backgrounds) */
+ion-icon.tone-primary {
+  background: #4f46e5;
+  color: #fff;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+ion-icon.tone-warning {
+  background: #f59e0b;
+  color: #fff;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+ion-icon.tone-danger {
+  background: #ef4444;
+  color: #fff;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+ion-icon.tone-success {
+  background: #10b981;
+  color: #fff;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+ion-icon.tone-medium {
+  background: #6b7280;
+  color: #fff;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+/* Tones (subtitle colors) */
+.sub-primary {
+  color: #4f46e5;
+}
+
+.sub-warning {
+  color: #f59e0b;
+}
+
+.sub-danger {
+  color: #ef4444;
+}
+
+.sub-success {
+  color: #10b981;
+}
+
+.sub-medium {
+  color: #6b7280;
+}
+
+/* Red warning triangle */
+.danger-triangle {
+  color: #ef4444;
+  font-size: 18px;
+  margin-left: 6px;
+}
+
+/* Make list feel like screenshot */
+ion-item.cashback-row {
+  --border-radius: 14px;
+}
+.toggle-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+
+  ion-button {
+    border-radius: 12px;
+    margin-top: 8px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+}

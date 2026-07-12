@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
+    </ion-buttons>
+    <ion-title>BENEDICT_DATA_INSIGHTS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Blue account card -->
+  <ion-card class="top-card">
+    <div class="card-top">
+      <div class="card-title">{{ name }}</div>
+      <div class="card-chip">
+        <ion-icon name="card-outline"></ion-icon>
+        <span class="chip-text">VISA</span>
+      </div>
+    </div>
+
+    <div class="card-mid">
+      <div class="card-name">{{ accountTitle }}</div>
+      <div class="card-mask">{{ masked }}</div>
+      <div class="card-balance"> ${{ balanceUSD.toFixed(2) }}</div>
+    </div>
+
+    <div class="card-bottom">
+      <div class="btn-pill">
+        <div class="label">Balance</div>
+        <div class="value">{{ 1000 }} USD</div>
+      </div>
+    </div>
+  </ion-card>
+
+  <!-- Bar chart area -->
+  <ion-card class="chart-card">
+    <div class="chart-bars-wrap">
+      <div class="chart-bars" role="list" aria-label="Expenses split by month">
+        <button
+          *ngFor="let m of months; let i = index"
+          class="month-bar-btn"
+          (click)="onMonthClick(i)"
+          role="listitem"
+          [style.opacity]="getMonthOpacity(i)"
+        >
+          <!-- Single color mode (left screenshot) -->
+          <div
+            *ngIf="!isExpandedMonth(i)"
+            class="bar-single"
+            [style.height.%]="monthTotals[i]"
+          ></div>
+
+          <!-- Split categories mode (right screenshot) -->
+          <div
+            *ngIf="isExpandedMonth(i)"
+            class="bar-stack"
+            aria-hidden="true"
+          >
+            <div
+              *ngFor="let seg of getStackSegments(i)"
+              class="seg"
+              [style.height.%]="seg.percent"
+              [style.backgroundColor]="seg.color"
+            ></div>
+          </div>
+
+          <div class="bar-label">{{ m }}</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <div class="today-label">Today</div>
+    </div>
+
+    <!-- Transaction list -->
+    <div class="tx">
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="dot"></div>
+          <div class="tx-text">
+            <div class="tx-title">{{ todayBadge }}</div>
+            <div class="tx-sub">{{ todayStatus }}</div>
+          </div>
+        </div>
+        <div class="tx-amt danger">{{ fmtInt(todayAmount) }}</div>
+      </div>
+
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="square"></div>
+          <div class="tx-text">
+            <div class="tx-title">{{ yesterdayTitle }}</div>
+            <div class="tx-sub">Yesterday</div>
+          </div>
+        </div>
+        <div class="tx-amt success">{{ fmtInt(yesterdayAmount) }}</div>
+      </div>
+    </div>
+  </ion-card>
+</ion-content>

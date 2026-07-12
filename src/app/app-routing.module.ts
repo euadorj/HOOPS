@@ -9,7 +9,15 @@ const routes: Routes = [
   {
     path: 'game',
     loadChildren: () => import('./game/game.module').then(m => m.GamePageModule)
-  }
+  },
+  {
+    path: 'benedict-data-insights',
+    loadChildren: () => import('./benedict-data-insights/benedict-data-insights.module').then( m => m.BENEDICTDATAINSIGHTSPageModule)
+  },
+  {
+    path: 'benedict-rewards',
+    loadChildren: () => import('./benedict-rewards/benedict-rewards.module').then( m => m.BENEDICTREWARDSPageModule)
+  },
 ];
 @NgModule({
   imports: [

@@ -1,0 +1,103 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
+    </ion-buttons>
+    <ion-title>BENEDICT_REWARDS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Account & Rewards toggle (regular buttons) -->
+  <div class="top-toggle">
+    <ion-button
+      fill="outline"
+      class="toggle-btn"
+      routerLink="/BENEDICT_DATA_INSIGHTS"
+    >
+      DATA_INSIGHTS
+    </ion-button>
+
+    <ion-button
+      fill="solid"
+      class="toggle-btn active"
+      routerLink="/BENEDICT_REWARDS"
+    >
+      Rewards
+    </ion-button>
+  </div>
+
+  <!-- Profile card -->
+  <ion-card class="profile-card">
+    <div class="profile-header">
+      <div class="profile-avatar"></div>
+
+      <div class="profile-meta">
+        <div class="profile-name">{{ name }}</div>
+        <div class="profile-tier">{{ tier }}</div>
+
+        <div class="profile-saving">
+          <div class="label">Total savings:</div>
+          <div class="value">${{ totalSavings.toFixed(2) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Points row -->
+    <div class="points-row">
+      <div class="points-pill">
+        <div class="big">{{ points.toFixed(2) }}</div>
+        <div class="small">Blue</div>
+      </div>
+
+      <div class="points-pill">
+        <div class="big">{{ pointsGold.toFixed(2) }}</div>
+        <div class="small">Gold</div>
+      </div>
+    </div>
+
+    <!-- Tier progress -->
+    <div class="tier-progress">
+      <ion-progress-bar [value]="tierPercent / 100" class="progress-bar"></ion-progress-bar>
+      <div class="tier-labels">
+        <div *ngFor="let t of tiers" class="tier-label">{{ t }}</div>
+      </div>
+    </div>
+  </ion-card>
+
+  <!-- Action buttons -->
+  <div class="action-grid">
+    <ion-button class="action-btn" expand="block" fill="solid" routerLink="/account-rewards/vouchers">
+      <div class="action-title">My Coupons</div>
+      <div class="action-sub">4</div>
+    </ion-button>
+
+    <ion-button class="action-btn dangerish" expand="block">
+      <div class="action-title">Credits</div>
+      <div class="action-sub">Badge</div>
+    </ion-button>
+
+    <ion-button class="action-btn neutral" expand="block">
+      <div class="action-title">Badges</div>
+      <div class="action-sub">—</div>
+    </ion-button>
+  </div>
+
+  <!-- Promo / carousel card (simple) -->
+  <ion-card class="promo-card">
+    <div class="promo-title">
+      <div class="promo-badge">New</div>
+      <div class="promo-text">Join our Telegram Challenge!</div>
+    </div>
+
+    <div class="promo-stats">
+      <div class="stat big">{{ promoCount }}</div>
+      <div class="stat mult">×</div>
+      <div class="stat big">{{ promoMult }}</div>
+      <div class="stat small">=</div>
+      <div class="stat result">1522</div>
+    </div>
+
+    <div class="promo-image"></div>
+  </ion-card>
+</ion-content>
