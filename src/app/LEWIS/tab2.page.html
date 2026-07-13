@@ -1,74 +1,67 @@
-<ion-header [translucent]="true" class="header-grad">
+<ion-header [translucent]="true" class="split-header">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
     </ion-buttons>
-    <ion-title>Bill Splitting</ion-title>
-    <div class="subtitle">Split bills with friends</div>
+    <div class="split-title-group">
+      <ion-title>Bill Splitting</ion-title>
+      <div class="split-subtitle">Split bills with friends</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="page-content">
-  <ion-grid>
-    <ion-row>
-      <ion-col>
-        <ion-card class="card-join">
-          <ion-card-header>
-            <ion-item lines="none">
-              <ion-avatar slot="start" class="avatar-gradient">
-                <ion-icon name="hash-outline"></ion-icon>
-              </ion-avatar>
-              <ion-label>
-                <h2>Join Session</h2>
-                <p>Enter the session code</p>
-              </ion-label>
-            </ion-item>
-          </ion-card-header>
+<ion-content [fullscreen]="true" class="split-content">
+  <div class="split-shell">
+    <section class="card card-join">
+      <div class="card-labels">
+        <span class="card-tag">Join Session</span>
+        <p>Enter the session code</p>
+      </div>
 
-          <ion-card-content>
-            <ion-item lines="none" class="code-input">
-              <ion-input placeholder="Enter 6-digit code" [(ngModel)]="joinCode" maxlength="6" inputmode="numeric"></ion-input>
-            </ion-item>
+      <ion-item class="session-input" lines="none">
+        <ion-input placeholder="Enter 6-digit code" [(ngModel)]="joinCode" maxlength="6" inputmode="numeric"></ion-input>
+      </ion-item>
 
-            <ion-button expand="block" class="join-btn" (click)="joinSession()">Join Session</ion-button>
-          </ion-card-content>
-        </ion-card>
+      <ion-button expand="block" class="primary-button" (click)="joinSession()">Join Session</ion-button>
+    </section>
 
-        <div class="or-sep">OR</div>
+    <div class="split-or">OR</div>
 
-        <ion-card class="card-create">
-          <ion-card-header>
-            <ion-item lines="none">
-              <ion-avatar slot="start" class="avatar-create">
-                <ion-icon name="people-outline"></ion-icon>
-              </ion-avatar>
-              <ion-label>
-                <h2>Create New Session</h2>
-                <p>Start a new bill split</p>
-              </ion-label>
-            </ion-item>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-button expand="block" fill="outline" (click)="createSession()">Create Session</ion-button>
-          </ion-card-content>
-        </ion-card>
+    <section class="card card-create">
+      <div class="create-top">
+        <div class="create-icon">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+        <div>
+          <h2>Create New Session</h2>
+          <p>Start a new bill split</p>
+        </div>
+      </div>
+      <ion-button expand="block" class="secondary-button" (click)="createSession()">Create Session</ion-button>
+    </section>
 
-        <h3 class="active-title">Active Sessions</h3>
-        <ion-list>
-          <ion-item button detail (click)="openSession('dinner-mario')">
-            <ion-avatar slot="start" class="avatar-active">
+    <section class="active-section">
+      <div class="active-header">
+        <h3>Active Sessions</h3>
+      </div>
+      <ion-card button detail class="active-card" (click)="openSession('dinner-mario')">
+        <div class="active-row">
+          <div class="active-meta">
+            <ion-avatar class="active-avatar">
               <ion-icon name="restaurant-outline"></ion-icon>
             </ion-avatar>
-            <ion-label>
-              <h2>Dinner at Mario's</h2>
+            <div class="active-text">
+              <h4>Dinner at Mario's</h4>
               <p>Mario's Italian Restaurant</p>
-              <small>Started 25 min ago • 4 people</small>
-            </ion-label>
-            <ion-note slot="end" color="primary">$156.50</ion-note>
-          </ion-item>
-        </ion-list>
-
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+              <span>Started 25 min ago • 4 people</span>
+            </div>
+          </div>
+          <div class="active-total">
+            <span>$156.50</span>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </ion-card>
+    </section>
+  </div>
 </ion-content>

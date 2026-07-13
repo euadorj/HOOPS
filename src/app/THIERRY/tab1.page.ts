@@ -24,7 +24,7 @@ export class Tab1Page {
     { icon: 'card-outline', title: 'Pay', route: '/tabs/tab1' },
     { icon: 'swap-horizontal-outline', title: 'Transfer', route: '/tabs/tab1' },
     { icon: 'game-controller-outline', title: 'Games', route: '/game' },
-    { icon: 'receipt-outline', title: 'Bill Split', route: '/tabs/tab1' },
+    { icon: 'receipt-outline', title: 'Bill Split', route: '/tabs/tab2' },
     { icon: 'wallet-outline', title: 'Shared Wallets', route: '/tabs/tab1' },
     { icon: 'pricetag-outline', title: 'Discounts', route: '/tabs/tab1' },
   ];
