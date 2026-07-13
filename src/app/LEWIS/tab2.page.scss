@@ -1,6 +1,7 @@
 :host {
 	display: block;
-	min-height: 100vh;
+	height: 100%;
+	min-height: 100%;
 }
 
 .bill-header {
@@ -33,11 +34,18 @@
 
 .bill-content {
 	--background: #f5f5f7;
+	--overflow: auto;
+	--padding-bottom: 96px;
+	--offset-top: 0px;
+	--offset-bottom: 0px;
 	background: #f5f5f7;
+	min-height: 100%;
+	overscroll-behavior: contain;
 }
 
 .bill-container {
-	padding: 24px 16px;
+	padding: 24px 16px 96px;
+	min-height: 100%;
 }
 
 // Join Session Card

@@ -24,6 +24,10 @@ const routes: Routes = [
         loadChildren: () => import('../BENEDICT/tab4.module').then(m => m.Tab4PageModule)
       },
       {
+        path: 'shared-wallets',
+        loadChildren: () => import('../THIERRY/shared-wallets.module').then(m => m.SharedWalletsPageModule)
+      },
+      {
         path: '',
         redirectTo: '/tabs/tab1',
         pathMatch: 'full'

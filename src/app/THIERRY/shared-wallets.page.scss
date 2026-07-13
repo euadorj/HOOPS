@@ -1,0 +1,55 @@
+.shared-header {
+  --background: linear-gradient(135deg,#2ea0ff 0%,#4c7cff 100%);
+  color: white;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.header-content {
+  padding: 0 16px;
+}
+
+.shared-content {
+  --background: #f6f7fb;
+  background: #f6f7fb;
+}
+
+.shared-container {
+  padding: 20px 16px 96px;
+}
+
+.hero-card {
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  background: white;
+  margin-bottom: 18px;
+}
+
+.join-wallet .card-top, .create-wallet .card-top {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.icon{
+  width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#ffd8b6,#ff9a6b);
+}
+
+.create-wallet{background:linear-gradient(135deg,#6e4dff,#3b8bff);color:white}
+.create-wallet .icon{background:rgba(255,255,255,0.15)}
+.create-wallet .outline{margin-top:12px;background:rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;border:none;color:white}
+
+.input-row label{font-size:0.85rem;color:#334155;margin-bottom:6px;display:block}
+.input-row input{width:100%;padding:12px;border-radius:10px;border:none;background:#f0f3ff;margin-bottom:12px}
+.input-row .primary{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#6e4dff,#3b8bff);color:white;font-weight:700}
+
+.or{text-align:center;color:#94a3b8;font-weight:700;margin:6px 0}
+
+.recent-title{margin:10px 0 12px 4px;color:#334155}
+.wallet-list .wallet-item{display:flex;gap:12px;align-items:center;background:white;padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.05)}
+.wallet-list .avatar{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#ffb3a7,#ff8b6b);display:flex;align-items:center;justify-content:center}
+.wallet-info h5{margin:0;font-size:0.95rem}
+.wallet-info p{margin:0;color:#94a3b8;font-size:0.85rem}
+.chev{margin-left:auto;color:#cbd5e1;font-size:20px}

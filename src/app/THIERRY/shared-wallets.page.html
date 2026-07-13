@@ -1,0 +1,55 @@
+<ion-header [translucent]="true" class="shared-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content">
+      <ion-title class="header-title">Shared Wallet</ion-title>
+      <p class="header-subtitle">Pool funds with friends</p>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="shared-content">
+  <div class="shared-container">
+    <div class="hero-card join-wallet">
+      <div class="card-top">
+        <div class="icon">#</div>
+        <div class="text">
+          <h3>Join Wallet</h3>
+          <p>Enter the wallet code</p>
+        </div>
+      </div>
+      <div class="input-row">
+        <label>Wallet Code</label>
+        <input placeholder="Enter wallet code" />
+        <button class="primary">Join Wallet</button>
+      </div>
+    </div>
+
+    <div class="or">OR</div>
+
+    <div class="hero-card create-wallet">
+      <div class="card-top">
+        <div class="icon">+</div>
+        <div class="text white">
+          <h3>Create New Wallet</h3>
+          <p>Start a group wallet</p>
+        </div>
+      </div>
+      <button class="outline">+ Create Wallet</button>
+    </div>
+
+    <h4 class="recent-title">Recent Wallets</h4>
+    <div class="wallet-list">
+      <div class="wallet-item">
+        <div class="avatar">👥</div>
+        <div class="wallet-info">
+          <h5>Group Trip 2026</h5>
+          <p>4 members • $1,245.50</p>
+        </div>
+        <div class="chev">›</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
