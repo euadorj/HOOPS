@@ -1,0 +1,49 @@
+:root {
+	--grad-start: #1e73ff;
+	--grad-end: #6b4bff;
+}
+
+.header-grad {
+	--background: linear-gradient(180deg, var(--grad-start), var(--grad-end));
+	color: white;
+}
+
+.page-content {
+	padding: 16px;
+}
+
+.card-join, .card-create {
+	border-radius: 12px;
+	box-shadow: 0 6px 18px rgba(16,24,40,0.08);
+	margin-bottom: 18px;
+}
+
+.avatar-gradient {
+	--background: linear-gradient(135deg,#ff9051,#ff6fb5);
+	width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:white; border-radius:12px;
+}
+
+.avatar-create {
+	--background: linear-gradient(135deg,#6b4bff,#4dd0e1);
+	width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:white; border-radius:12px;
+}
+
+.avatar-active {
+	--background: #ffd7a6;
+	width:44px; height:44px; display:flex; align-items:center; justify-content:center; color:#5a3e00; border-radius:8px;
+}
+
+.code-input ion-input {
+	background: #f3f4f6; border-radius:8px; padding:12px;
+}
+
+.join-btn {
+	margin-top: 12px; --background: linear-gradient(90deg,#7b61ff,#5db0ff); color:white;
+}
+
+.or-sep {
+	text-align:center; color:#9aa4b2; margin: 12px 0; font-weight:600;
+}
+
+.active-title { margin-top: 6px; margin-bottom: 8px; color:#334155; }
+
