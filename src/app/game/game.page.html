@@ -8,18 +8,94 @@
 </ion-header>
 
 <ion-content class="game-page" fullscreen>
-  <div class="game-intro">
-    <h2>Welcome to Games</h2>
-    <p>Play quick challenges or explore rewards tied to your spending goals.</p>
+  <!-- Daily Check-In Card -->
+  <div class="daily-checkin-container">
+    <!-- Check-In Header Card -->
+    <div class="checkin-header-card">
+      <div class="checkin-header-content">
+        <h2>Daily Check-In</h2>
+        <p>Check in daily to earn coins!</p>
+      </div>
+      <div class="checkin-header-icon">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="40" r="35" fill="#FDB022" opacity="0.1"/>
+          <g clip-path="url(#clip0)">
+            <circle cx="40" cy="32" r="12" fill="#FDB022"/>
+            <path d="M32 52C32 47.58 35.58 44 40 44C44.42 44 48 47.58 48 52V56H32V52Z" fill="#FDB022"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Streak Info -->
+    <div class="streak-info">
+      <div class="streak-badge">
+        🔥 Keep your streak going!
+      </div>
+      <div class="streak-count">{{ currentStreak }} day streak <ion-icon name="help-circle-outline"></ion-icon></div>
+    </div>
+
+    <!-- Check-In Days Grid -->
+    <div class="checkin-days">
+      <div *ngFor="let day of checkInDays" class="day-card" [class.completed]="day.completed" [class.today]="day.day === currentStreak + 1">
+        <div class="day-label">Day {{ day.day }}</div>
+        <div class="day-reward">
+          <span *ngIf="day.completed" class="coin-icon">💰</span>
+          <span *ngIf="!day.completed && day.day === currentStreak + 1" class="coin-icon">💰</span>
+          <span *ngIf="!day.completed && day.day !== currentStreak + 1" class="coin-icon">💰</span>
+        </div>
+        <div class="reward-amount">{{ day.reward }}</div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStreak / checkInDays.length) * 100"></div>
+        </div>
+        <div class="progress-dots">
+          <div *ngFor="let day of checkInDays" class="dot" [class.completed]="day.completed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check In Button -->
+    <button class="checkin-button" (click)="checkIn()" [disabled]="hasCheckedInToday">
+      <ion-icon name="checkmark-outline"></ion-icon>
+      {{ hasCheckedInToday ? 'Checked In Today' : 'Check In Now' }}
+    </button>
+
+    <!-- Reminder Message -->
+    <div class="reminder-message">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <div>
+        <p class="reminder-title">Come back tomorrow for more coins!</p>
+        <p class="reminder-text">Don't miss a day to keep your streak alive.</p>
+      </div>
+    </div>
   </div>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Featured game</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>Start a round of trivia or spin the wheel to earn points toward your savings goals.</p>
-      <ion-button expand="block" routerLink="/tabs/tab1">Start game</ion-button>
-    </ion-card-content>
-  </ion-card>
+  <!-- Games Section -->
+  <div class="games-section">
+    <h3>Play Our Game!</h3>
+    <div class="games-grid">
+      <div class="game-card">
+        <div class="game-icon spin-icon">🎡</div>
+        <p>Spin & win</p>
+      </div>
+      <div class="game-card">
+        <div class="game-icon scratch-icon">🎫</div>
+        <p>Scratch Card</p>
+      </div>
+      <div class="game-card">
+        <div class="game-icon savings-icon">🏆</div>
+        <p>Savings Challenge</p>
+      </div>
+      <div class="game-card">
+        <div class="game-icon quiz-icon">❓</div>
+        <p>Finance Quiz</p>
+      </div>
+    </div>
+  </div>
 </ion-content>

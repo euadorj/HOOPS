@@ -1,67 +1,89 @@
-<ion-header [translucent]="true" class="split-header">
+<ion-header [translucent]="true" class="bill-header">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
     </ion-buttons>
-    <div class="split-title-group">
-      <ion-title>Bill Splitting</ion-title>
-      <div class="split-subtitle">Split bills with friends</div>
+    <div class="header-content">
+      <ion-title class="header-title">Bill Splitting</ion-title>
+      <p class="header-subtitle">Split bills with friends</p>
     </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="split-content">
-  <div class="split-shell">
-    <section class="card card-join">
-      <div class="card-labels">
-        <span class="card-tag">Join Session</span>
-        <p>Enter the session code</p>
+<ion-content fullscreen class="bill-content">
+  <div class="bill-container">
+    <!-- Join Session Card -->
+    <div class="join-card">
+      <div class="card-header">
+        <div class="card-icon join-icon">#</div>
+        <div class="card-text">
+          <h2>Join Session</h2>
+          <p>Enter the session code</p>
+        </div>
       </div>
 
-      <ion-item class="session-input" lines="none">
-        <ion-input placeholder="Enter 6-digit code" [(ngModel)]="joinCode" maxlength="6" inputmode="numeric"></ion-input>
-      </ion-item>
+      <div class="input-label">Session Code</div>
+      <input 
+        type="text" 
+        class="session-input" 
+        placeholder="Enter 6-digit code" 
+        [(ngModel)]="joinCode" 
+        maxlength="6" 
+        inputmode="numeric"
+      />
 
-      <ion-button expand="block" class="primary-button" (click)="joinSession()">Join Session</ion-button>
-    </section>
+      <button class="join-button" (click)="joinSession()">Join Session</button>
+    </div>
 
-    <div class="split-or">OR</div>
+    <!-- OR Divider -->
+    <div class="divider">OR</div>
 
-    <section class="card card-create">
-      <div class="create-top">
-        <div class="create-icon">
-          <ion-icon name="people-outline"></ion-icon>
-        </div>
-        <div>
+    <!-- Create Session Card -->
+    <div class="create-card">
+      <div class="card-header">
+        <div class="card-icon create-icon">👥</div>
+        <div class="card-text-white">
           <h2>Create New Session</h2>
           <p>Start a new bill split</p>
         </div>
       </div>
-      <ion-button expand="block" class="secondary-button" (click)="createSession()">Create Session</ion-button>
-    </section>
 
-    <section class="active-section">
-      <div class="active-header">
-        <h3>Active Sessions</h3>
-      </div>
-      <ion-card button detail class="active-card" (click)="openSession('dinner-mario')">
-        <div class="active-row">
-          <div class="active-meta">
-            <ion-avatar class="active-avatar">
-              <ion-icon name="restaurant-outline"></ion-icon>
-            </ion-avatar>
-            <div class="active-text">
-              <h4>Dinner at Mario's</h4>
-              <p>Mario's Italian Restaurant</p>
-              <span>Started 25 min ago • 4 people</span>
-            </div>
-          </div>
-          <div class="active-total">
-            <span>$156.50</span>
-            <ion-icon name="chevron-forward-outline"></ion-icon>
+      <button class="create-button" (click)="createSession()">Create Session</button>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="active-sessions">
+      <h3>Active Sessions</h3>
+
+      <div class="session-item" (click)="openSession('dinner-mario')">
+        <div class="session-avatar">👤</div>
+        <div class="session-details">
+          <h4>Dinner at Mario's</h4>
+          <p class="restaurant-name">Mario's Italian Restaurant</p>
+          <div class="session-meta">
+            <span class="meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+              4 people
+            </span>
+            <span class="meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Started 25 min ago
+            </span>
           </div>
         </div>
-      </ion-card>
-    </section>
+        <div class="session-total">
+          <span class="total-amount">$156.50</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 </ion-content>
