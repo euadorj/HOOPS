@@ -1,0 +1,130 @@
+.scratch-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 16px 24px;
+  background: rgba(0,0,0,0.12);
+  z-index: 1000;
+}
+
+.scratch-card-panel {
+  width: 100%;
+  max-width: 720px;
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 20px 40px rgba(2,6,23,0.16);
+}
+
+.scratch-header {
+  background: linear-gradient(90deg,#2f1fae,#4c7cff);
+  color: white;
+  padding: 12px;
+  border-radius: 12px;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.scratch-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.scratch-sub {
+  opacity: 0.95;
+}
+
+.scratch-body h3 {
+  margin: 10px 0 6px;
+  text-align: center;
+}
+
+.available-text {
+  margin: 0 0 12px;
+  text-align: center;
+  color: #64748b;
+}
+
+.card-area {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 16px;
+}
+
+.ticket-card {
+  width: 100%;
+  max-width: 520px;
+  height: 160px;
+  border-radius: 14px;
+  background: linear-gradient(180deg,#ffffff,#f3f6ff);
+  border: 2px solid #dfe7ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(59,91,219,0.06);
+  overflow: hidden;
+}
+
+.ticket-inner { text-align:center }
+.ticket-emoji { font-size:48px; margin-bottom:8px }
+.ticket-label { font-weight:700; color:#1e293b; font-size:1.1rem }
+
+.ticket-card.revealed { border-color:#4c7cff }
+
+.reward { font-weight:700; font-size:1.1rem; color:#1e293b; }
+
+.reward-detail {
+  background: #f1f6ff;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  color: #1e293b;
+}
+
+.reward-left { display:flex; gap:12px; align-items:center }
+.reward-emoji { font-size:28px }
+.reward-title { font-weight:700 }
+.reward-desc { color: #64748b; font-size:0.9rem }
+.reward-amount { background: #eaf2ff; color: #1e293b; padding:6px 10px; border-radius:10px; font-weight:700 }
+
+.recent { margin-top: 10px }
+.recent-title { font-weight:700; color:#1e293b; margin-bottom:8px }
+.recent-list { display:flex; flex-direction:column; gap:8px }
+.recent-item { display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border-radius:10px; box-shadow:0 6px 18px rgba(2,6,23,0.04) }
+.recent-left { display:flex; gap:10px; align-items:center }
+.recent-emoji { font-size:20px }
+.recent-text { color:#475569 }
+.recent-status { background:#e6ffef; color:#097a3d; padding:6px 10px; border-radius:8px; font-weight:700 }
+
+.possible-rewards {
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  margin: 16px 0;
+}
+
+.reward-chip {
+  background:#fff;
+  border-radius:10px;
+  padding:10px 12px;
+  box-shadow:0 6px 18px rgba(2,6,23,0.06);
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.chip-icon { font-size:18px }
+.chip-label { font-weight:600; font-size:0.9rem }
+
+.actions { display:flex; gap:12px; }
+.btn { flex:1; padding:12px 16px; border-radius:10px; font-weight:700 }
+.btn.outline { background:white; border:2px solid #3b5bdb; color:#3b5bdb }
+.btn.primary { background: linear-gradient(90deg,#4c7cff,#6b6cff); color:white }

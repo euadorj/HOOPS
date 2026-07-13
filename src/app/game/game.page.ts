@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AlertController } from '@ionic/angular';
 
 interface CheckInDay {
   day: number;
@@ -18,12 +19,34 @@ export class GamePage implements OnInit {
   totalCoins: number = 0;
   lastCheckInDate: string | null = null;
   hasCheckedInToday: boolean = false;
+  showScratch: boolean = false;
 
-  constructor() {}
+  constructor(private alertCtrl: AlertController) {}
 
   ngOnInit() {
     this.loadCheckInData();
     this.initializeDays();
+  }
+
+  openScratch() {
+    const today = new Date().toISOString().split('T')[0];
+    const saved = localStorage.getItem('scratchLastReveal');
+    if (saved === today) {
+      this.alertCtrl
+        .create({
+          header: 'No scratch cards left',
+          message: 'You have 0 scratch cards left today. Try again tomorrow.',
+          buttons: ['OK'],
+        })
+        .then((a) => a.present());
+      return;
+    }
+
+    this.showScratch = true;
+  }
+
+  closeScratch() {
+    this.showScratch = false;
   }
 
   loadCheckInData() {

@@ -85,8 +85,8 @@
         <p>Spin & win</p>
       </div>
       <div class="game-card">
-        <div class="game-icon scratch-icon">🎫</div>
-        <p>Scratch Card</p>
+        <div class="game-icon scratch-icon" (click)="openScratch()">🎫</div>
+        <p (click)="openScratch()">Scratch Card</p>
       </div>
       <div class="game-card">
         <div class="game-icon savings-icon">🏆</div>
@@ -99,3 +99,5 @@
     </div>
   </div>
 </ion-content>
+
+<app-scratch-card *ngIf="showScratch" (close)="closeScratch()"></app-scratch-card>

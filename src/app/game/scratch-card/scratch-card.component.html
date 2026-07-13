@@ -1,0 +1,51 @@
+<div class="scratch-overlay">
+  <div class="scratch-card-panel">
+    <div class="scratch-header">
+      <div class="scratch-title">Scratch Card</div>
+      <div class="scratch-sub">Tap to reveal your reward</div>
+    </div>
+
+    <div class="scratch-body">
+      <h3 class="center">{{ revealed ? ('You won ' + (selectedReward?.label || 'a reward') + '!') : "Reveal today's scratch card?" }}</h3>
+      <p class="available-text">You have 1 scratch card available today.</p>
+
+      <div class="card-area" (click)="reveal()">
+        <div class="ticket-card" [class.revealed]="revealed">
+          <div class="ticket-inner">
+            <div class="ticket-emoji">{{ revealed ? (selectedReward?.emoji) : '🪪' }}</div>
+            <div class="ticket-label">{{ revealed ? (selectedReward?.label) : 'Tap to Reveal' }}</div>
+          </div>
+        </div>
+      </div>
+
+        <div class="reward-detail" *ngIf="revealed">
+        <div class="reward-left">
+          <div class="reward-emoji">{{ selectedReward?.emoji }}</div>
+          <div>
+            <div class="reward-title">Your Reward</div>
+              <div class="reward-desc">{{ selectedReward?.label }} has been added to your Reward Coins balance</div>
+          </div>
+        </div>
+        <div class="reward-amount">+<span>{{ rewardAmountDisplay }}</span></div>
+      </div>
+
+      <div class="recent" *ngIf="recentRewards.length">
+        <div class="recent-title">Recent Rewards</div>
+        <div class="recent-list">
+          <div class="recent-item" *ngFor="let r of recentRewards">
+            <div class="recent-left">
+              <div class="recent-emoji">{{ r.emoji }}</div>
+              <div class="recent-text">{{ r.label }}</div>
+            </div>
+            <div class="recent-status">{{ r.status }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn outline" (click)="cancel()">View Rewards</button>
+        <button class="btn primary" (click)="done()">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
