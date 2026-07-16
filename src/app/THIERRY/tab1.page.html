@@ -16,24 +16,58 @@
       </button>
     </div>
 
-    <div class="hero-card">
-      <div class="hero-heading">
-        <h1>Saving Goals</h1>
+    <!-- Combined Dashboard Card -->
+    <div *ngIf="isDashboardItemSelected('savings-goals') || isDashboardItemSelected('investment-tracking')" class="combined-dashboard-card" [class.single-section]="!isDashboardItemSelected('investment-tracking') && isDashboardItemSelected('savings-goals')">
+      <div class="card-header">
+        <h1>Saving Goals <span *ngIf="isDashboardItemSelected('investment-tracking')">& Investment</span></h1>
+        <button class="dashboard-settings-btn" (click)="openDashboardSelector(); $event.stopPropagation()" title="Customize dashboard">
+          <ion-icon name="settings-outline"></ion-icon>
+        </button>
       </div>
-      <div class="hero-body">
-        <div class="hero-summary">
-          <p class="summary-label">Total Saved</p>
-          <h2>{{ totalSaved | currency:'USD':'symbol':'1.0-0' }}</h2>
-        </div>
-        <div class="goal-metrics">
-          <div class="goal-row" *ngFor="let goal of savingGoals">
-            <div class="goal-meta">
-              <p>{{ goal.name }}</p>
-              <span>{{ goal.amount }}</span>
+      
+      <div class="card-content">
+        <!-- Savings Goals Section -->
+        <div *ngIf="isDashboardItemSelected('savings-goals')" class="section savings-section">
+          <div class="section-header">
+            <p class="summary-label">Total Saved</p>
+            <h2>{{ totalSaved | currency:'USD':'symbol':'1.0-0' }}</h2>
+          </div>
+          <div class="goal-metrics">
+            <div class="goal-row" *ngFor="let goal of savingGoals">
+              <div class="goal-meta">
+                <p>{{ goal.name }}</p>
+                <span>{{ goal.amount }}</span>
+              </div>
+              <div class="goal-progress">
+                <ion-progress-bar [value]="goal.value" [color]="goal.color"></ion-progress-bar>
+                <span class="goal-percent">{{ goal.percent }}%</span>
+              </div>
             </div>
-            <div class="goal-progress">
-              <ion-progress-bar [value]="goal.value" [color]="goal.color"></ion-progress-bar>
-              <span class="goal-percent">{{ goal.percent }}% complete</span>
+          </div>
+        </div>
+
+        <!-- Investment Section -->
+        <div *ngIf="isDashboardItemSelected('investment-tracking')" class="section investment-section">
+          <div class="section-header">
+            <p class="summary-label">Investment:</p>
+            <p class="summary-label">Total P/L:</p>
+            <h2 style="color: #4ade80;">+$200.00</h2>
+          </div>
+          <div class="investment-list">
+            <div class="investment-item">
+              <span>Stock:</span>
+            </div>
+            <div class="investment-item">
+              <span>Apple</span>
+              <span style="color: #4ade80;">+100.00</span>
+            </div>
+            <div class="investment-item">
+              <span>Nvidia</span>
+              <span style="color: #4ade80;">+150.00</span>
+            </div>
+            <div class="investment-item">
+              <span>Tesla</span>
+              <span style="color: #ef4444;">-50.00</span>
             </div>
           </div>
         </div>
@@ -41,7 +75,16 @@
     </div>
   </div>
 
-  <div class="account-card">
+  <!-- Settings Button Always Visible -->
+  <div class="settings-button-container">
+    <button class="settings-btn" (click)="openDashboardSelector()" title="Customize dashboard">
+      <ion-icon name="settings-outline"></ion-icon>
+      <span>Customize Dashboard</span>
+    </button>
+  </div>
+
+  <!-- Account Card (if selected) -->
+  <div *ngIf="isDashboardItemSelected('account')" class="account-card">
     <div class="account-heading">
       <h2>Account</h2>
     </div>

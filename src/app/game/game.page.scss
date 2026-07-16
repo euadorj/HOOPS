@@ -1,17 +1,21 @@
 :host {
   display: block;
+  height: 100%;
 }
 
 .game-page {
   --background: #f5f5f7;
-  padding: 16px;
-  overflow-y: auto;
+  --padding-top: 16px;
+  --padding-bottom: 80px;
+  --padding-start: 16px;
+  --padding-end: 16px;
   height: 100%;
 }
 
 // Daily Check-In Container
 .daily-checkin-container {
   margin-bottom: 32px;
+  padding-bottom: 8px;
 }
 
 // Check-In Header Card
@@ -258,6 +262,7 @@
 // Games Section
 .games-section {
   margin-top: 32px;
+  padding-bottom: 24px;
 
   h3 {
     margin: 0 0 16px;

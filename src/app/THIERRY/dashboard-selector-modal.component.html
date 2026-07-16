@@ -1,0 +1,51 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="#" (click)="closeModal()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Dashboard Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dashboard-selector">
+  <div class="selector-container">
+    <div class="info-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Select 1 or 2 dashboard items to display</p>
+    </div>
+
+    <div class="items-section">
+      <h3>Select Dashboard Items:</h3>
+      <div class="checkbox-group">
+        <div
+          *ngFor="let item of dashboardItems"
+          class="checkbox-item"
+          [class.disabled]="!item.selected && selectedCount >= 2"
+        >
+          <ion-checkbox
+            [checked]="item.selected"
+            (ionChange)="onCheckboxChange(item, $event)"
+            [disabled]="!item.selected && selectedCount >= 2"
+          ></ion-checkbox>
+          <label>{{ item.label }}</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="selection-info">
+      <span [class.valid]="selectedCount >= 1 && selectedCount <= 2" [class.invalid]="selectedCount < 1 || selectedCount > 2">
+        {{ selectedCount }} of 2 selected
+      </span>
+    </div>
+
+    <ion-button
+      expand="full"
+      color="primary"
+      class="save-button"
+      (click)="saveSettings()"
+      [disabled]="isSaveDisabled()"
+    >
+      Save Settings
+    </ion-button>
+  </div>
+</ion-content>
