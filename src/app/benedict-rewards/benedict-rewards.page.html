@@ -10,7 +10,7 @@
 <ion-content class="ion-padding">
 
   <!-- Profile card -->
-  <ion-card class="profile-card">
+  <ion-card class="profile-card" [ngClass]="tierColorClass">
     <div class="profile-header">
       <div class="profile-avatar"></div>
 
@@ -26,10 +26,16 @@
     </div>
 
     <!-- Points row -->
+    <!-- Points row -->
     <div class="points-row">
       <div class="points-pill">
         <div class="big">{{ points.toFixed(2) }}</div>
         <div class="small">Blue</div>
+      </div>
+
+      <div class="points-controls">
+        <ion-button class="delta-btn" (click)="decreasePoints()" fill="clear">−</ion-button>
+        <ion-button class="delta-btn" (click)="increasePoints()" fill="clear">+</ion-button>
       </div>
 
       <div class="points-pill">
@@ -45,6 +51,7 @@
         <div *ngFor="let t of tiers" class="tier-label">{{ t }}</div>
       </div>
     </div>
+
   </ion-card>
 
   <!-- Action buttons -->
