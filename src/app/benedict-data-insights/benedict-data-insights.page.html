@@ -36,66 +36,84 @@
   <ion-card class="chart-card">
     <div class="chart-bars-wrap">
       <div class="chart-bars" role="list" aria-label="Expenses split by month">
-        <button
-          *ngFor="let m of months; let i = index"
-          class="month-bar-btn"
-          (click)="onMonthClick(i)"
-          role="listitem"
-          [style.opacity]="getMonthOpacity(i)"
-        >
-          <!-- Single color mode (left screenshot) -->
-          <div
-            *ngIf="!isExpandedMonth(i)"
-            class="bar-single"
-            [style.height.%]="monthTotals[i]"
-          ></div>
+        <button *ngFor="let m of months; let i = index" class="month-bar-btn" role="listitem" type="button"
+          [style.opacity]="getMonthOpacity(i)">
+          <div class="bars-two-row">
+            <!-- Series A (green) -->
+            <div class="bar-slot" (click)="onMonthClick(i, 'A'); onMonthSingleClickTooltip(i); $event.stopPropagation()">
+              <div *ngIf="!isExpandedMonthA(i)" class="bar-single" [style.height.%]="monthTotalsA[i]"></div>
 
-          <!-- Split categories mode (right screenshot) -->
-          <div
-            *ngIf="isExpandedMonth(i)"
-            class="bar-stack"
-            aria-hidden="true"
-          >
-            <div
-              *ngFor="let seg of getStackSegments(i)"
-              class="seg"
-              [style.height.%]="seg.percent"
-              [style.backgroundColor]="seg.color"
-            ></div>
+              <div *ngIf="isExpandedMonthA(i)" class="bar-stack" aria-hidden="true">
+                <div *ngFor="let seg of getStackSegmentsA(i)" class="seg" [style.height.%]="seg.percent"
+                  [style.backgroundColor]="seg.color"></div>
+              </div>
+            </div>
+
+            <!-- Series B (purple/blue) -->
+            <div class="bar-slot" (click)="onMonthClick(i, 'B'); onMonthSingleClickTooltip(i); $event.stopPropagation()">
+              <div *ngIf="!isExpandedMonthB(i)" class="bar-single bar-single-b" [style.height.%]="monthTotalsB[i]">
+              </div>
+
+              <div *ngIf="isExpandedMonthB(i)" class="bar-stack" aria-hidden="true">
+                <div *ngFor="let seg of getStackSegmentsB(i)" class="seg" [style.height.%]="seg.percent"
+                  [style.backgroundColor]="seg.color"></div>
+              </div>
+            </div>
           </div>
 
           <div class="bar-label">{{ m }}</div>
+          <div *ngIf="isTooltipVisibleFor(i)" class="money-tooltip" role="status">
+            <div class="tooltip-row">
+              <span>Money in:</span>
+              <span class="tooltip-value">{{ fmtMoney(monthMoneyIn[i]) }}</span>
+            </div>
+
+            <div class="tooltip-row">
+              <span>Money out:</span>
+              <span class="tooltip-value">{{ fmtMoney(monthMoneyOut[i]) }}</span>
+            </div>
+
+            <div class="tooltip-row net">
+              <span>Net profit:</span>
+              <span class="tooltip-value">{{ fmtMoney(getNetProfitFor(i)) }}</span>
+            </div>
+          </div>
         </button>
+
       </div>
-    </div>
+      <p>Legend:
+        
+      </p>
 
-    <div class="legend-row">
-      <div class="today-label">Today</div>
-    </div>
-
-    <!-- Transaction list -->
-    <div class="tx">
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="dot"></div>
-          <div class="tx-text">
-            <div class="tx-title">{{ todayBadge }}</div>
-            <div class="tx-sub">{{ todayStatus }}</div>
-          </div>
-        </div>
-        <div class="tx-amt danger">{{ fmtInt(todayAmount) }}</div>
+      <div class="legend-row">
+        <div class="today-label">Today</div>
       </div>
 
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="square"></div>
-          <div class="tx-text">
-            <div class="tx-title">{{ yesterdayTitle }}</div>
-            <div class="tx-sub">Yesterday</div>
+      <!-- Transaction list -->
+      <div class="tx">
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="dot"></div>
+            <div class="tx-text">
+              <div class="tx-title">{{ todayBadge }}</div>
+              <div class="tx-sub">{{ todayStatus }}</div>
+            </div>
           </div>
+          <div class="tx-amt danger">{{ fmtInt(todayAmount) }}</div>
         </div>
-        <div class="tx-amt success">{{ fmtInt(yesterdayAmount) }}</div>
+
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="square"></div>
+            <div class="tx-text">
+              <div class="tx-title">{{ yesterdayTitle }}</div>
+              <div class="tx-sub">Yesterday</div>
+            </div>
+          </div>
+          <div class="tx-amt success">{{ fmtInt(yesterdayAmount) }}</div>
+        </div>
       </div>
     </div>
   </ion-card>
+
 </ion-content>

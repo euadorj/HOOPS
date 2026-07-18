@@ -22,12 +22,12 @@
       (ionChange)="segmentChanged($event)"
       class="cashback-segment"
     >
-      <ion-segment-button value="vouchers">
+      <ion-segment-button value="vouchers" [routerLink]="['/benedict-data-insights']">
         <ion-icon name="ticket-outline" aria-hidden="true"></ion-icon>
         <div>DATA INSIGHTS</div>
       </ion-segment-button>
 
-      <ion-segment-button value="rewards">
+      <ion-segment-button value="rewards" [routerLink]="['/benedict-rewards']">
         <ion-icon name="gift-outline" aria-hidden="true"></ion-icon>
         <div>Rewards</div>
       </ion-segment-button>
