@@ -48,6 +48,12 @@
   font-weight: 600;
 }
 
+.profile-text .sub-greeting {
+  margin: 2px 0 0;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.8rem;
+}
+
 .notification-button {
   position: relative;
   width: 44px;
@@ -119,8 +125,11 @@
   padding: 16px;
   display: flex;
   justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 
-  .settings-btn {
+  .settings-btn,
+  .logout-btn {
     background: linear-gradient(135deg, #4c7cff 0%, #5a8dff 100%);
     border: none;
     color: white;
@@ -142,6 +151,10 @@
       transform: scale(0.98);
       opacity: 0.9;
     }
+  }
+
+  .logout-btn {
+    background: #ef4444;
   }
 }
 

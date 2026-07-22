@@ -6,7 +6,8 @@
           <span>{{ userInitial }}</span>
         </ion-avatar>
         <div class="profile-text">
-          <p class="greeting">Hi, {{ userName }}</p>
+          <p class="greeting">Welcome, {{ userName }}</p>
+          <p class="sub-greeting" *ngIf="currentUser?.phoneNumber">{{ currentUser?.countryCode }} {{ currentUser?.phoneNumber }}</p>
         </div>
       </div>
 
@@ -80,6 +81,10 @@
     <button class="settings-btn" (click)="openDashboardSelector()" title="Customize dashboard">
       <ion-icon name="settings-outline"></ion-icon>
       <span>Customize Dashboard</span>
+    </button>
+    <button class="logout-btn" (click)="logout()" title="Logout">
+      <ion-icon name="log-out-outline"></ion-icon>
+      <span>Logout</span>
     </button>
   </div>
 

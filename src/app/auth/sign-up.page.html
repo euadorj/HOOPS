@@ -1,0 +1,86 @@
+<ion-content [fullscreen]="true" class="auth-page">
+  <div class="auth-shell">
+    <div class="auth-header">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/sign-in" text="" color="light"></ion-back-button>
+      </ion-buttons>
+      <h1>Sign up</h1>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-intro">
+        <h2>Welcome to us,</h2>
+        <p>Hello there, create new account</p>
+      </div>
+
+      <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="input-group">
+          <ion-item lines="none" class="rounded-input">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-input formControlName="username" placeholder="Name" (ionInput)="onInputChange($event, 'username')"></ion-input>
+          </ion-item>
+          <div class="validation-error" *ngIf="(usernameControl?.touched || submitted) && usernameControl?.hasError('required')">
+            Name is required
+          </div>
+          <div class="validation-error" *ngIf="duplicateUsernameError">
+            {{ duplicateUsernameError }}
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="phone-row">
+            <ion-item lines="none" class="rounded-input country-select">
+              <ion-select formControlName="countryCode" interface="popover" (ionChange)="onInputChange($event, 'countryCode')">
+                <ion-select-option *ngFor="let country of countryCodes" [value]="country.value">
+                  {{ country.label }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none" class="rounded-input phone-input">
+              <ion-input formControlName="phoneNumber" placeholder="Phone number" inputmode="numeric" (ionInput)="onInputChange($event, 'phoneNumber')"></ion-input>
+            </ion-item>
+          </div>
+          <div class="validation-error" *ngIf="(phoneNumberControl?.touched || submitted) && phoneNumberControl?.hasError('required')">
+            Phone number is required
+          </div>
+          <div class="validation-error" *ngIf="((phoneNumberControl?.touched || submitted) && (phoneNumberControl?.hasError('pattern') || phoneNumberControl?.hasError('minlength') || phoneNumberControl?.hasError('maxlength')))">
+            Enter a valid phone number
+          </div>
+        </div>
+
+        <div class="input-group">
+          <ion-item lines="none" class="rounded-input">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Password" (ionInput)="onInputChange($event, 'password')"></ion-input>
+            <ion-button fill="clear" slot="end" type="button" (click)="togglePasswordVisibility()">
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="validation-error" *ngIf="(passwordControl?.touched || submitted) && passwordControl?.hasError('required')">
+            Password is required
+          </div>
+          <div class="validation-error" *ngIf="(passwordControl?.touched || submitted) && passwordControl?.hasError('minlength')">
+            Password must contain at least 6 characters
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <ion-checkbox formControlName="terms"></ion-checkbox>
+          <label>I agree to the Terms and Conditions</label>
+        </div>
+        <div class="validation-error" *ngIf="(termsControl?.touched || submitted) && termsControl?.hasError('required')">
+          You must accept the Terms and Conditions
+        </div>
+
+        <ion-button expand="block" class="auth-button" type="submit">Sign Up</ion-button>
+      </form>
+
+      <div class="auth-footer">
+        <p>
+          Have an account?
+          <a routerLink="/sign-in">Sign In</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

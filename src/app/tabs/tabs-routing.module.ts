@@ -1,51 +1,62 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import {
+  RouterModule,
+  Routes
+} from '@angular/router';
+import { AuthGuard } from '../auth/auth.guard';
 import { TabsPage } from './tabs.page';
 
 const routes: Routes = [
   {
-    path: 'tabs',
+    path: '',
     component: TabsPage,
     children: [
       {
         path: 'tab1',
-        loadChildren: () => import('../THIERRY/tab1.module').then(m => m.Tab1PageModule)
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('../THIERRY/tab1.module')
+            .then((m) => m.Tab1PageModule)
       },
       {
         path: 'tab2',
-        loadChildren: () => import('../LEWIS/tab2.module').then(m => m.Tab2PageModule)
+        loadChildren: () =>
+          import('../LEWIS/tab2.module')
+            .then((m) => m.Tab2PageModule)
       },
       {
         path: 'tab3',
-        loadChildren: () => import('../HIDAYAT/tab3.module').then(m => m.Tab3PageModule)
+        loadChildren: () =>
+          import('../HIDAYAT/tab3.module')
+            .then((m) => m.Tab3PageModule)
       },
       {
         path: 'tab4',
-        loadChildren: () => import('../BENEDICT/tab4.module').then(m => m.Tab4PageModule)
+        loadChildren: () =>
+          import('../BENEDICT/tab4.module')
+            .then((m) => m.Tab4PageModule)
       },
       {
         path: 'shared-wallets',
-        loadChildren: () => import('../THIERRY/shared-wallets.module').then(m => m.SharedWalletsPageModule)
+        loadChildren: () =>
+          import('../THIERRY/shared-wallets.module')
+            .then((m) => m.SharedWalletsPageModule)
       },
       {
         path: '',
-        redirectTo: '/tabs/tab1',
+        redirectTo: 'tab1',
         pathMatch: 'full'
       }
     ]
-  },
-  {
-    path: '',
-    redirectTo: '/tabs/tab1',
-    pathMatch: 'full'
-  },
-  {
-    path: 'tab4',
-    loadChildren: () => import('../BENEDICT/tab4.module').then( m => m.Tab4PageModule)
   }
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
+  imports: [
+    RouterModule.forChild(routes)
+  ],
+  exports: [
+    RouterModule
+  ]
 })
 export class TabsPageRoutingModule {}

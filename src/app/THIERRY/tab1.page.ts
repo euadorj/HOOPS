@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { Router } from '@angular/router';
+import { AuthService, CurrentUser } from '../auth/auth.service';
 import { DashboardSelectorModalComponent } from './dashboard-selector-modal.component';
 
 @Component({
@@ -9,8 +11,9 @@ import { DashboardSelectorModalComponent } from './dashboard-selector-modal.comp
   standalone: false,
 })
 export class Tab1Page implements OnInit {
-  userName = 'Thierry';
-  userInitial = 'T';
+  userName = 'Guest';
+  userInitial = 'G';
+  currentUser: CurrentUser | null = null;
 
   totalSaved = 1500;
   netWorth = 1000000;
@@ -33,10 +36,15 @@ export class Tab1Page implements OnInit {
 
   selectedDashboardItems: string[] = [];
 
-  constructor(private modalController: ModalController) {}
+  constructor(private modalController: ModalController, private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadDashboardSettings();
+    this.currentUser = this.authService.getCurrentUser();
+    if (this.currentUser) {
+      this.userName = this.currentUser.username;
+      this.userInitial = this.currentUser.username.charAt(0).toUpperCase();
+    }
   }
 
   loadDashboardSettings() {
@@ -52,6 +60,11 @@ export class Tab1Page implements OnInit {
 
   isDashboardItemSelected(itemId: string): boolean {
     return this.selectedDashboardItems.includes(itemId);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/sign-in']);
   }
 
   async openDashboardSelector() {
