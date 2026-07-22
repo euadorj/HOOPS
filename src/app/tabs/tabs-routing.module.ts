@@ -47,7 +47,7 @@ const routes: Routes = [
         path: 'shared-wallets',
         canActivate: [AuthGuard],
         loadChildren: () =>
-          import('../THIERRY/shared-wallets.module')
+          import('../LEWIS/shared-wallets.module')
             .then((m) => m.SharedWalletsPageModule)
       },
 
