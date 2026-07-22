@@ -1,0 +1,130 @@
+<div class="game-overlay">
+  <div class="game-panel">
+    <div class="panel-header">
+      <div>
+        <h2>Finance Quiz</h2>
+        <p>Test your financial knowledge.</p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        (click)="closeGame()"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div
+      class="quiz-intro"
+      *ngIf="!quizStarted && !finished"
+    >
+      <div class="quiz-icon">❓</div>
+
+      <h3>Five Finance Questions</h3>
+
+      <p>
+        Earn 20 coins for each correct answer and
+        50 bonus coins for a perfect score.
+      </p>
+
+      <button
+        type="button"
+        class="primary-button"
+        (click)="startQuiz()"
+        [disabled]="!canPlay"
+      >
+        {{
+          canPlay
+            ? 'Start Quiz'
+            : 'Try Again in ' + countdownText
+        }}
+      </button>
+    </div>
+
+    <div *ngIf="quizStarted">
+      <div class="question-status">
+        <span>
+          Question {{ currentQuestionIndex + 1 }}
+          of {{ questions.length }}
+        </span>
+
+        <strong>Score: {{ score }}</strong>
+      </div>
+
+      <ion-progress-bar
+        [value]="progressValue"
+      ></ion-progress-bar>
+
+      <h3 class="question-text">
+        {{ currentQuestion.question }}
+      </h3>
+
+      <div class="answer-list">
+        <button
+          type="button"
+          *ngFor="
+            let option of currentQuestion.options;
+            let index = index
+          "
+          [class.selected]="
+            selectedAnswer === index
+          "
+          (click)="chooseAnswer(index)"
+        >
+          <span class="option-letter">
+            {{ ['A', 'B', 'C', 'D'][index] }}
+          </span>
+
+          <span>{{ option }}</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="primary-button"
+        (click)="nextQuestion()"
+        [disabled]="selectedAnswer === null"
+      >
+        {{
+          currentQuestionIndex ===
+          questions.length - 1
+            ? 'Submit Quiz'
+            : 'Next Question'
+        }}
+      </button>
+    </div>
+
+    <div
+      class="quiz-result"
+      *ngIf="finished"
+    >
+      <div class="result-icon">
+        {{
+          score === questions.length
+            ? '🏆'
+            : '🎓'
+        }}
+      </div>
+
+      <h3>Quiz Completed</h3>
+
+      <p>
+        You answered {{ score }} out of
+        {{ questions.length }} correctly.
+      </p>
+
+      <div class="coins-earned">
+        +{{ earnedCoins }} coins
+      </div>
+
+      <button
+        type="button"
+        class="primary-button"
+        (click)="closeGame()"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+</div>

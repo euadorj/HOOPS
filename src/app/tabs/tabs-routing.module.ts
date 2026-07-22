@@ -50,7 +50,13 @@ const routes: Routes = [
           import('../LEWIS/shared-wallets.module')
             .then((m) => m.SharedWalletsPageModule)
       },
-
+      {
+  path: 'transfer',
+  canActivate: [AuthGuard],
+  loadChildren: () =>
+    import('../THIERRY/transfer/transfer.module')
+      .then((m) => m.TransferPageModule)
+},
       {
         path: '',
         redirectTo: 'tab1',

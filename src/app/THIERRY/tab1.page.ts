@@ -48,7 +48,7 @@ export class Tab1Page implements OnInit {
     {
       icon: 'swap-horizontal-outline',
       title: 'Transfer',
-      route: '/tabs/tab1',
+      route: '/tabs/transfer',
     },
     {
       icon: 'game-controller-outline',
@@ -97,7 +97,7 @@ export class Tab1Page implements OnInit {
     private authService: AuthService,
     private savingsService: SavingsService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUser();

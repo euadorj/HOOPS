@@ -1,0 +1,175 @@
+<ion-header>
+  <ion-toolbar class="transfer-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab1"
+        text=""
+        color="light"
+      ></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Transfer Money</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content
+  [fullscreen]="true"
+  class="transfer-page"
+>
+  <div class="transfer-container">
+
+    <div class="page-heading">
+      <h1>Send Money</h1>
+
+      <p>
+        Transfer money to another registered user.
+      </p>
+    </div>
+
+    <div class="balance-card">
+      <p>Available Balance</p>
+
+      <h2>
+        {{
+          financeData.balance
+            | currency:'USD':'symbol':'1.2-2'
+        }}
+      </h2>
+    </div>
+
+    <div
+      class="message success-message"
+      *ngIf="successMessage"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <div
+      class="message error-message"
+      *ngIf="errorMessage"
+    >
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div class="transfer-card">
+      <h2>Transfer Details</h2>
+
+      <form
+        [formGroup]="transferForm"
+        (ngSubmit)="transferMoney()"
+        novalidate
+      >
+        <div class="input-group">
+          <label>Recipient username</label>
+
+          <ion-item
+            lines="none"
+            class="rounded-input"
+          >
+            <ion-icon
+              name="person-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="recipientUsername"
+              placeholder="Enter username"
+              autocomplete="off"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (recipientControl?.touched ||
+                submitted) &&
+              recipientControl?.hasError(
+                'required'
+              )
+            "
+          >
+            Recipient username is required
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Amount</label>
+
+          <ion-item
+            lines="none"
+            class="rounded-input"
+          >
+            <ion-icon
+              name="cash-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="amount"
+              type="number"
+              inputmode="decimal"
+              min="0.01"
+              placeholder="0.00"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (amountControl?.touched ||
+                submitted) &&
+              amountControl?.hasError(
+                'required'
+              )
+            "
+          >
+            Transfer amount is required
+          </div>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (amountControl?.touched ||
+                submitted) &&
+              amountControl?.hasError('min')
+            "
+          >
+            Amount must be greater than $0
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          type="submit"
+          class="transfer-button"
+        >
+          <ion-icon
+            name="send-outline"
+            slot="start"
+          ></ion-icon>
+
+          Transfer Money
+        </ion-button>
+      </form>
+    </div>
+
+    <div class="testing-card">
+      <h3>Test Accounts</h3>
+
+      <p>
+        <strong>Thierry</strong> can transfer to
+        <strong>user</strong>, and user can transfer
+        money back to Thierry.
+      </p>
+    </div>
+
+  </div>
+</ion-content>

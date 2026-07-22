@@ -326,3 +326,399 @@
     }
   }
 }
+
+
+.game-page {
+  --background: #f5f7fc;
+}
+
+.game-content {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Toolbar coin count */
+
+.toolbar-coins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 14px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Coin balance */
+
+.coin-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  background: linear-gradient(
+    135deg,
+    #4028d2,
+    #5e8ff0
+  );
+  color: #ffffff;
+  box-shadow: 0 12px 30px
+    rgba(64, 40, 210, 0.2);
+}
+
+.coin-summary-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 30px;
+}
+
+.coin-summary-text {
+  flex: 1;
+
+  p {
+    margin: 0 0 4px;
+    opacity: 0.85;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 29px;
+    font-weight: 800;
+  }
+}
+
+.coin-user-label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* Daily check-in */
+
+.daily-checkin-container {
+  margin-bottom: 30px;
+  padding: 24px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px
+    rgba(24, 38, 70, 0.08);
+}
+
+.checkin-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0 0 5px;
+    color: #1f2a44;
+    font-size: 24px;
+  }
+
+  p {
+    margin: 0;
+    color: #718096;
+  }
+}
+
+.checkin-coin-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 16px;
+  background: #fff3d6;
+  font-size: 31px;
+}
+
+.streak-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.streak-badge {
+  color: #3e35d3;
+  font-weight: 750;
+}
+
+.next-checkin {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #718096;
+
+  strong {
+    color: #3e35d3;
+  }
+}
+
+/* Seven days */
+
+.checkin-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(90px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.day-card {
+  min-height: 125px;
+  padding: 13px 8px;
+  border: 2px solid #e1e6f0;
+  border-radius: 15px;
+  background: #ffffff;
+  text-align: center;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+
+  .day-label {
+    color: #63708a;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .coin-icon {
+    margin: 12px 0 6px;
+    font-size: 25px;
+  }
+
+  .reward-amount {
+    color: #24314a;
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  small {
+    color: #8b95a8;
+  }
+}
+
+.day-card.current {
+  border-color: #4c5cff;
+  background: #f0f3ff;
+  transform: translateY(-2px);
+}
+
+.day-card.completed {
+  border-color: #35c878;
+  background: #edfff5;
+}
+
+.day-card.locked {
+  opacity: 0.65;
+}
+
+/* Progress */
+
+.progress-section {
+  margin-bottom: 18px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #536078;
+  font-size: 13px;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e8ecf4;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #4736df,
+    #6196f2
+  );
+  transition: width 0.3s ease;
+}
+
+/* Claim message */
+
+.reward-message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 15px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 650;
+
+  ion-icon {
+    font-size: 21px;
+  }
+}
+
+/* Check-in button */
+
+.checkin-button {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(
+    135deg,
+    #4333d8,
+    #5d85ef
+  );
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 750;
+  cursor: pointer;
+
+  &:disabled {
+    background: #a6b7eb;
+    cursor: not-allowed;
+  }
+}
+
+.reminder-message {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 15px;
+  border-radius: 13px;
+  background: #f0f4ff;
+
+  ion-icon {
+    flex-shrink: 0;
+    color: #4665eb;
+    font-size: 22px;
+  }
+}
+
+.reminder-title {
+  margin: 0 0 3px;
+  color: #27344c;
+  font-weight: 700;
+}
+
+.reminder-text {
+  margin: 0;
+  color: #718096;
+  font-size: 13px;
+}
+
+/* Game cards */
+
+.games-section h3 {
+  margin: 0 0 15px;
+  color: #202b42;
+  font-size: 23px;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.game-card {
+  padding: 14px;
+  border: none;
+  border-radius: 17px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px
+    rgba(31, 41, 75, 0.08);
+  color: #202b42;
+  font-family: inherit;
+  cursor: pointer;
+
+  p {
+    margin: 10px 0 3px;
+    font-weight: 750;
+  }
+
+  small {
+    color: #7c879c;
+  }
+}
+
+.game-icon {
+  display: grid;
+  min-height: 75px;
+  place-items: center;
+  border-radius: 13px;
+  font-size: 36px;
+}
+
+.spin-icon {
+  background: #ededff;
+}
+
+.scratch-icon {
+  background: #fff0e7;
+}
+
+.savings-icon {
+  background: #e8f8ec;
+}
+
+.quiz-icon {
+  background: #e8efff;
+}
+
+@media (max-width: 800px) {
+  .checkin-days {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .day-card {
+    min-width: 105px;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-content {
+    padding: 14px;
+  }
+
+  .daily-checkin-container {
+    padding: 17px;
+  }
+
+  .coin-summary-card {
+    align-items: flex-start;
+  }
+
+  .coin-user-label {
+    display: none;
+  }
+
+  .streak-info {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .games-grid {
+    grid-template-columns: 1fr;
+  }
+}

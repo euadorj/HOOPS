@@ -9,6 +9,13 @@ export interface SavingsGoal {
   color: string;
 }
 
+export interface TransferResult {
+  success: boolean;
+  message: string;
+  senderBalance?: number;
+  recipientUsername?: string;
+}
+
 export interface FinanceData {
   balance: number;
   goals: SavingsGoal[];
@@ -26,36 +33,15 @@ export class SavingsService {
   constructor(private authService: AuthService) {}
 
   getFinanceData(): FinanceData {
-    const storageKey = this.getStorageKey();
+  const currentUser =
+    this.authService.getCurrentUser();
 
-    try {
-      const savedData = localStorage.getItem(storageKey);
+  const username =
+    currentUser?.username ?? 'guest';
 
-      if (!savedData) {
-        const defaultData = this.createDefaultFinanceData();
-        this.saveFinanceData(defaultData);
-        return defaultData;
-      }
-
-      const parsedData: unknown = JSON.parse(savedData);
-
-      if (!this.isFinanceData(parsedData)) {
-        const defaultData = this.createDefaultFinanceData();
-        this.saveFinanceData(defaultData);
-        return defaultData;
-      }
-
-      return parsedData;
-    } catch (error) {
-      console.error('Unable to load finance data:', error);
-
-      const defaultData = this.createDefaultFinanceData();
-      this.saveFinanceData(defaultData);
-
-      return defaultData;
-    }
-  }
-
+  return this.getFinanceDataForUsername(username);
+}
+  
   createGoal(
     name: string,
     targetAmount: number
@@ -295,16 +281,20 @@ export class SavingsService {
     return this.roundMoney(total);
   }
 
-  private saveFinanceData(financeData: FinanceData): void {
-    try {
-      localStorage.setItem(
-        this.getStorageKey(),
-        JSON.stringify(financeData)
-      );
-    } catch (error) {
-      console.error('Unable to save finance data:', error);
-    }
-  }
+  private saveFinanceData(
+  financeData: FinanceData
+): void {
+  const currentUser =
+    this.authService.getCurrentUser();
+
+  const username =
+    currentUser?.username ?? 'guest';
+
+  this.saveFinanceDataForUsername(
+    username,
+    financeData
+  );
+}
 
   private getStorageKey(): string {
     const currentUser = this.authService.getCurrentUser();
@@ -375,4 +365,186 @@ export class SavingsService {
       );
     });
   }
+  getFinanceDataForUsername(
+  username: string
+): FinanceData {
+  const storageKey =
+    this.getStorageKeyForUsername(username);
+
+  try {
+    const savedData =
+      localStorage.getItem(storageKey);
+
+    if (!savedData) {
+      const defaultData =
+        this.createDefaultFinanceData();
+
+      this.saveFinanceDataForUsername(
+        username,
+        defaultData
+      );
+
+      return defaultData;
+    }
+
+    const parsedData: unknown =
+      JSON.parse(savedData);
+
+    if (!this.isFinanceData(parsedData)) {
+      const defaultData =
+        this.createDefaultFinanceData();
+
+      this.saveFinanceDataForUsername(
+        username,
+        defaultData
+      );
+
+      return defaultData;
+    }
+
+    return parsedData;
+  } catch (error) {
+    console.warn(
+      'Unable to load finance data:',
+      error
+    );
+
+    const defaultData =
+      this.createDefaultFinanceData();
+
+    this.saveFinanceDataForUsername(
+      username,
+      defaultData
+    );
+
+    return defaultData;
+  }
+}
+
+transferMoney(
+  recipientInput: string,
+  amount: number
+): TransferResult {
+  const currentUser =
+    this.authService.getCurrentUser();
+
+  if (!currentUser) {
+    return {
+      success: false,
+      message: 'You must be signed in.',
+    };
+  }
+
+  const recipientUsername =
+    this.authService.getAccountUsername(
+      recipientInput
+    );
+
+  if (!recipientUsername) {
+    return {
+      success: false,
+      message: 'Recipient username does not exist.',
+    };
+  }
+
+  const senderUsername =
+    currentUser.username;
+
+  if (
+    senderUsername.trim().toLowerCase() ===
+    recipientUsername.trim().toLowerCase()
+  ) {
+    return {
+      success: false,
+      message:
+        'You cannot transfer money to your own account.',
+    };
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return {
+      success: false,
+      message:
+        'Enter an amount greater than $0.',
+    };
+  }
+
+  const roundedAmount =
+    this.roundMoney(amount);
+
+  const senderData =
+    this.getFinanceDataForUsername(
+      senderUsername
+    );
+
+  if (roundedAmount > senderData.balance) {
+    return {
+      success: false,
+      message:
+        'You do not have enough available balance.',
+    };
+  }
+
+  const recipientData =
+    this.getFinanceDataForUsername(
+      recipientUsername
+    );
+
+  senderData.balance =
+    this.roundMoney(
+      senderData.balance - roundedAmount
+    );
+
+  recipientData.balance =
+    this.roundMoney(
+      recipientData.balance + roundedAmount
+    );
+
+  this.saveFinanceDataForUsername(
+    senderUsername,
+    senderData
+  );
+
+  this.saveFinanceDataForUsername(
+    recipientUsername,
+    recipientData
+  );
+
+  return {
+    success: true,
+    message:
+      `$${roundedAmount.toFixed(2)} was transferred ` +
+      `to ${recipientUsername}.`,
+    senderBalance: senderData.balance,
+    recipientUsername,
+  };
+}
+
+private saveFinanceDataForUsername(
+  username: string,
+  financeData: FinanceData
+): void {
+  try {
+    localStorage.setItem(
+      this.getStorageKeyForUsername(username),
+      JSON.stringify(financeData)
+    );
+  } catch (error) {
+    console.warn(
+      'Unable to save finance data:',
+      error
+    );
+  }
+}
+
+private getStorageKeyForUsername(
+  username: string
+): string {
+  const normalizedUsername =
+    username.trim().toLowerCase();
+
+  return `financeData_${
+    normalizedUsername || 'guest'
+  }`;
+}
 }

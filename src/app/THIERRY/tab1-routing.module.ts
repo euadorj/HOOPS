@@ -10,6 +10,10 @@ const routes: Routes = [
   {
     path: 'savings',
     loadChildren: () => import('../THIERRY/savings/savings.module').then( m => m.SavingsPageModule)
+  },
+  {
+    path: 'transfer',
+    loadChildren: () => import('../THIERRY/transfer/transfer.module').then( m => m.TransferPageModule)
   }
 ];
 

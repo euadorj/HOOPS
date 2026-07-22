@@ -1,0 +1,71 @@
+<div class="game-overlay">
+  <div class="game-panel">
+    <div class="panel-header">
+      <div>
+        <h2>Spin & Win</h2>
+        <p>Spin the wheel to win reward coins.</p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        (click)="closeGame()"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="wheel-area">
+      <div class="wheel-pointer"></div>
+
+      <div
+        class="wheel"
+        [style.transform]="'rotate(' + rotation + 'deg)'"
+        [class.spinning]="spinning"
+      >
+        <span class="wheel-label label-1">10</span>
+        <span class="wheel-label label-2">20</span>
+        <span class="wheel-label label-3">50</span>
+        <span class="wheel-label label-4">100</span>
+        <span class="wheel-label label-5">30</span>
+        <span class="wheel-label label-6">20</span>
+
+        <div class="wheel-centre">🪙</div>
+      </div>
+    </div>
+
+    <div
+      class="result-message"
+      *ngIf="resultMessage"
+    >
+      {{ resultMessage }}
+    </div>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="spin()"
+      [disabled]="!canSpin || spinning"
+    >
+      <ng-container *ngIf="spinning">
+        Spinning...
+      </ng-container>
+
+      <ng-container
+        *ngIf="!spinning && canSpin"
+      >
+        Spin Now
+      </ng-container>
+
+      <ng-container
+        *ngIf="!spinning && !canSpin"
+      >
+        Next Spin in {{ countdownText }}
+      </ng-container>
+    </button>
+
+    <p class="test-note">
+      Test mode: one free spin every 30 seconds.
+    </p>
+  </div>
+</div>

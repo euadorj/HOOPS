@@ -1,0 +1,165 @@
+<div class="game-overlay">
+  <div class="game-panel">
+    <div class="panel-header">
+      <div>
+        <h2>Savings Challenge</h2>
+        <p>
+          Complete a savings target to earn coins.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        (click)="closeGame()"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="balance-card">
+      <span>Available Balance</span>
+
+      <strong>
+        {{
+          financeData.balance
+            | currency:'USD':'symbol':'1.2-2'
+        }}
+      </strong>
+    </div>
+
+    <div
+      class="message success"
+      *ngIf="successMessage"
+    >
+      {{ successMessage }}
+    </div>
+
+    <div
+      class="message error"
+      *ngIf="errorMessage"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <ng-container
+      *ngIf="!challengeState.active"
+    >
+      <h3>Choose your challenge</h3>
+
+      <div class="target-options">
+        <button
+          type="button"
+          *ngFor="let amount of targetOptions"
+          [class.selected]="
+            selectedTarget === amount
+          "
+          (click)="selectTarget(amount)"
+        >
+          Save ${{ amount }}
+        </button>
+      </div>
+
+      <div class="reward-information">
+        Complete the challenge to earn
+        <strong>{{ challengeReward }} coins</strong>.
+      </div>
+
+      <button
+        type="button"
+        class="primary-button"
+        (click)="startChallenge()"
+        [disabled]="!canStartChallenge"
+      >
+        {{
+          canStartChallenge
+            ? 'Start Challenge'
+            : 'Next Challenge in ' + countdownText
+        }}
+      </button>
+    </ng-container>
+
+    <ng-container
+      *ngIf="challengeState.active"
+    >
+      <div class="challenge-progress">
+        <div class="progress-heading">
+          <span>
+            Saved
+            {{
+              challengeState.depositedAmount
+                | currency:'USD':'symbol':'1.2-2'
+            }}
+          </span>
+
+          <strong>{{ progressPercent }}%</strong>
+        </div>
+
+        <ion-progress-bar
+          [value]="progressPercent / 100"
+          color="success"
+        ></ion-progress-bar>
+
+        <p>
+          Remaining:
+          {{
+            remainingAmount
+              | currency:'USD':'symbol':'1.2-2'
+          }}
+        </p>
+      </div>
+
+      <ng-container
+        *ngIf="!isChallengeComplete"
+      >
+        <ion-item
+          lines="none"
+          class="form-input"
+        >
+          <ion-select
+            placeholder="Select savings goal"
+            [value]="selectedGoalId"
+            (ionChange)="selectGoal($event)"
+          >
+            <ion-select-option
+              *ngFor="let goal of financeData.goals"
+              [value]="goal.id"
+            >
+              {{ goal.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item
+          lines="none"
+          class="form-input"
+        >
+          <ion-input
+            type="number"
+            inputmode="decimal"
+            placeholder="Amount to save"
+            [value]="depositAmount"
+            (ionInput)="updateDepositAmount($event)"
+          ></ion-input>
+        </ion-item>
+
+        <button
+          type="button"
+          class="primary-button"
+          (click)="addToSavings()"
+        >
+          Add to Savings
+        </button>
+      </ng-container>
+
+      <button
+        type="button"
+        class="claim-button"
+        *ngIf="isChallengeComplete"
+        (click)="claimReward()"
+      >
+        Claim {{ challengeReward }} Coins
+      </button>
+    </ng-container>
+  </div>
+</div>

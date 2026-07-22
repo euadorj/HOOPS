@@ -96,10 +96,7 @@ export class AuthService {
     return account ? this.getUserId(account) : null;
   }
 
-  getAccountUsername(id: string): string | null {
-    const account = this.getAllAccounts().find((entry) => this.getUserId(entry) === id);
-    return account?.username ?? null;
-  }
+  
 
   logout(): void {
     this.clearCurrentUser();
@@ -209,4 +206,20 @@ export class AuthService {
         typeof (value as CurrentUser).username === 'string'
     );
   }
+  accountExists(username: string): boolean {
+  return this.getAccountUsername(username) !== null;
+}
+
+getAccountUsername(username: string): string | null {
+  const normalizedUsername =
+    this.normalizeUsername(username);
+
+  const account = this.getAllAccounts().find(
+    (entry) =>
+      this.normalizeUsername(entry.username) ===
+      normalizedUsername
+  );
+
+  return account?.username ?? null;
+}
 }
