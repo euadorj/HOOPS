@@ -540,3 +540,89 @@
   color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
 }
+
+
+.quick-tabs-section {
+  padding: 10px 20px 35px;
+
+  h2 {
+    margin: 0 0 14px;
+    color: #27344f;
+    font-size: 20px;
+    font-weight: 700;
+  }
+}
+
+.quick-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.quick-tab-card {
+  min-height: 90px;
+  padding: 14px 10px;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  color: #34425c;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  ion-icon {
+    color: #4434d7;
+    font-size: 26px;
+  }
+
+  small {
+    color: #8a94a8;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(31, 41, 75, 0.12);
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.98);
+  }
+
+  &:disabled,
+  &.coming-soon {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 600px) {
+  .quick-tabs-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .quick-tab-card {
+    min-height: 82px;
+    padding: 10px 5px;
+    font-size: 12px;
+
+    ion-icon {
+      font-size: 23px;
+    }
+  }
+}

@@ -19,6 +19,13 @@ const routes: Routes = [
             .then((m) => m.Tab1PageModule)
       },
       {
+        path: 'savings',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('../THIERRY/savings/savings.module')
+            .then((m) => m.SavingsPageModule)
+      },
+      {
         path: 'tab2',
         loadChildren: () =>
           import('../LEWIS/tab2.module')
@@ -42,6 +49,7 @@ const routes: Routes = [
           import('../THIERRY/shared-wallets.module')
             .then((m) => m.SharedWalletsPageModule)
       },
+
       {
         path: '',
         redirectTo: 'tab1',
@@ -59,4 +67,4 @@ const routes: Routes = [
     RouterModule
   ]
 })
-export class TabsPageRoutingModule {}
+export class TabsPageRoutingModule { }

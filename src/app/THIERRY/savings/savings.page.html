@@ -1,0 +1,364 @@
+<ion-header>
+  <ion-toolbar class="savings-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab1"
+        text=""
+        color="light"
+      ></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Savings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="savings-page">
+  <div class="savings-container">
+
+    <div class="page-heading">
+      <h1>My Savings</h1>
+      <p>Create savings goals and transfer money into them.</p>
+    </div>
+
+    <div
+      class="page-message success-message"
+      *ngIf="successMessage"
+    >
+      {{ successMessage }}
+    </div>
+
+    <div
+      class="page-message error-message"
+      *ngIf="errorMessage"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <!-- Account summary -->
+    <div class="summary-grid">
+      <div class="summary-card balance-card">
+        <p>Available Balance</p>
+        <h2>
+          {{
+            financeData.balance
+              | currency:'USD':'symbol':'1.2-2'
+          }}
+        </h2>
+      </div>
+
+      <div class="summary-card savings-total-card">
+        <p>Total Savings</p>
+        <h2>
+          {{
+            totalSaved
+              | currency:'USD':'symbol':'1.2-2'
+          }}
+        </h2>
+      </div>
+    </div>
+
+    <!-- Create a new goal -->
+    <div class="form-card">
+      <h2>Create New Goal</h2>
+
+      <form
+        [formGroup]="goalForm"
+        (ngSubmit)="createGoal()"
+        novalidate
+      >
+        <div class="input-group">
+          <ion-item lines="none" class="rounded-input">
+            <ion-icon
+              name="flag-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="name"
+              placeholder="Goal name"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (goalForm.get('name')?.touched || submitted) &&
+              goalForm.get('name')?.hasError('required')
+            "
+          >
+            Goal name is required
+          </div>
+        </div>
+
+        <div class="input-group">
+          <ion-item lines="none" class="rounded-input">
+            <ion-icon
+              name="cash-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="targetAmount"
+              type="number"
+              inputmode="decimal"
+              min="1"
+              placeholder="Target amount"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (goalForm.get('targetAmount')?.touched ||
+                submitted) &&
+              goalForm
+                .get('targetAmount')
+                ?.hasError('required')
+            "
+          >
+            Target amount is required
+          </div>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (goalForm.get('targetAmount')?.touched ||
+                submitted) &&
+              goalForm
+                .get('targetAmount')
+                ?.hasError('min')
+            "
+          >
+            Target amount must be greater than $0
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          type="submit"
+          class="create-goal-button"
+        >
+          <ion-icon
+            name="add-outline"
+            slot="start"
+          ></ion-icon>
+
+          Create Goal
+        </ion-button>
+      </form>
+    </div>
+
+    <!-- Savings goals -->
+    <div class="section-heading">
+      <h2>Your Savings Goals</h2>
+      <span>{{ financeData.goals.length }} goals</span>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="financeData.goals.length === 0"
+    >
+      <ion-icon name="wallet-outline"></ion-icon>
+      <h3>No savings goals yet</h3>
+      <p>Create your first goal using the form above.</p>
+    </div>
+
+    <ion-card
+      class="saving-goal-card"
+      *ngFor="
+        let goal of financeData.goals;
+        trackBy: trackByGoalId
+      "
+    >
+      <ion-card-content>
+
+        <!-- Normal goal display -->
+        <ng-container *ngIf="editingGoalId !== goal.id">
+          <div class="goal-heading">
+            <div>
+              <h3>{{ goal.name }}</h3>
+
+              <p>
+                {{
+                  goal.savedAmount
+                    | currency:'USD':'symbol':'1.2-2'
+                }}
+                of
+                {{
+                  goal.targetAmount
+                    | currency:'USD':'symbol':'1.2-2'
+                }}
+              </p>
+            </div>
+
+            <strong>
+              {{ getGoalPercent(goal) }}%
+            </strong>
+          </div>
+
+          <ion-progress-bar
+            [value]="getGoalProgress(goal)"
+            [color]="goal.color"
+          ></ion-progress-bar>
+
+          <div class="remaining-text">
+            Remaining:
+            {{
+              goal.targetAmount - goal.savedAmount
+                | currency:'USD':'symbol':'1.2-2'
+            }}
+          </div>
+
+          <!-- Add money -->
+          <div class="deposit-row">
+            <ion-item
+              lines="none"
+              class="rounded-input deposit-input"
+            >
+              <ion-icon
+                name="cash-outline"
+                slot="start"
+              ></ion-icon>
+
+              <ion-input
+                type="number"
+                inputmode="decimal"
+                min="0.01"
+                placeholder="Amount to save"
+                [value]="depositAmounts[goal.id] || ''"
+                (ionInput)="
+                  setDepositAmount($event, goal.id)
+                "
+              ></ion-input>
+            </ion-item>
+
+            <ion-button
+              type="button"
+              class="deposit-button"
+              (click)="deposit(goal.id)"
+              [disabled]="
+                goal.savedAmount >= goal.targetAmount
+              "
+            >
+              Add Money
+            </ion-button>
+          </div>
+
+          <div
+            class="completed-label"
+            *ngIf="
+              goal.savedAmount >= goal.targetAmount
+            "
+          >
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+
+            Goal completed
+          </div>
+
+          <div class="goal-actions">
+            <ion-button
+              type="button"
+              fill="clear"
+              size="small"
+              (click)="startEditing(goal)"
+            >
+              <ion-icon
+                name="create-outline"
+                slot="start"
+              ></ion-icon>
+
+              Edit
+            </ion-button>
+
+            <ion-button
+              type="button"
+              fill="clear"
+              size="small"
+              color="danger"
+              (click)="confirmDelete(goal)"
+            >
+              <ion-icon
+                name="trash-outline"
+                slot="start"
+              ></ion-icon>
+
+              Delete
+            </ion-button>
+          </div>
+        </ng-container>
+
+        <!-- Edit goal -->
+        <div
+          class="edit-form"
+          *ngIf="editingGoalId === goal.id"
+          [formGroup]="editGoalForm"
+        >
+          <h3>Edit Goal</h3>
+
+          <ion-item lines="none" class="rounded-input">
+            <ion-input
+              formControlName="name"
+              placeholder="Goal name"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (editGoalForm.get('name')?.touched ||
+                editSubmitted) &&
+              editGoalForm
+                .get('name')
+                ?.hasError('required')
+            "
+          >
+            Goal name is required
+          </div>
+
+          <ion-item lines="none" class="rounded-input">
+            <ion-input
+              formControlName="targetAmount"
+              type="number"
+              inputmode="decimal"
+              placeholder="Target amount"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (editGoalForm.get('targetAmount')?.touched ||
+                editSubmitted) &&
+              editGoalForm
+                .get('targetAmount')
+                ?.invalid
+            "
+          >
+            Enter a valid target amount
+          </div>
+
+          <div class="edit-buttons">
+            <ion-button
+              type="button"
+              fill="outline"
+              (click)="cancelEditing()"
+            >
+              Cancel
+            </ion-button>
+
+            <ion-button
+              type="button"
+              (click)="saveEditedGoal()"
+            >
+              Save Changes
+            </ion-button>
+          </div>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>

@@ -1,0 +1,303 @@
+.savings-toolbar {
+  --background: linear-gradient(135deg, #3722c5, #4938e8);
+  --color: #ffffff;
+}
+
+.savings-page {
+  --background: #f4f6ff;
+}
+
+.savings-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 22px 18px 45px;
+}
+
+.page-heading {
+  margin-bottom: 20px;
+
+  h1 {
+    margin: 0 0 6px;
+    color: #26334c;
+    font-size: 28px;
+    font-weight: 750;
+  }
+
+  p {
+    margin: 0;
+    color: #77829a;
+    font-size: 14px;
+  }
+}
+
+.page-message {
+  margin-bottom: 16px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.summary-card {
+  min-height: 130px;
+  padding: 22px;
+  border-radius: 20px;
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(60, 49, 205, 0.18);
+
+  p {
+    margin: 0 0 7px;
+    opacity: 0.88;
+    font-size: 14px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+  }
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #3421bd, #5847ef);
+}
+
+.savings-total-card {
+  background: linear-gradient(135deg, #1876d2, #62a5f2);
+}
+
+.form-card {
+  margin-bottom: 25px;
+  padding: 20px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
+
+  h2 {
+    margin: 0 0 16px;
+    color: #26334c;
+    font-size: 20px;
+  }
+}
+
+.input-group {
+  margin-bottom: 13px;
+}
+
+.rounded-input {
+  --background: #f8f9fd;
+  --border-radius: 13px;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+
+  border: 1px solid #dce1ec;
+  border-radius: 13px;
+
+  ion-icon {
+    color: #4938dc;
+  }
+}
+
+.validation-error {
+  margin: 6px 4px 0;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.create-goal-button {
+  margin-top: 17px;
+  --background: #4432d7;
+  --border-radius: 13px;
+  min-height: 48px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 2px 13px;
+
+  h2 {
+    margin: 0;
+    color: #26334c;
+    font-size: 20px;
+  }
+
+  span {
+    color: #7b859b;
+    font-size: 13px;
+  }
+}
+
+.saving-goal-card {
+  margin: 0 0 15px;
+  border-radius: 18px;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
+}
+
+.goal-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 14px;
+
+  h3 {
+    margin: 0 0 5px;
+    color: #26334c;
+    font-size: 18px;
+  }
+
+  p {
+    margin: 0;
+    color: #77829a;
+    font-size: 14px;
+  }
+
+  strong {
+    color: #4434d7;
+    font-size: 17px;
+  }
+}
+
+ion-progress-bar {
+  height: 9px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.remaining-text {
+  margin-top: 9px;
+  color: #77829a;
+  font-size: 13px;
+}
+
+.deposit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.deposit-button {
+  margin: 0;
+  --background: #4432d7;
+  --border-radius: 12px;
+}
+
+.completed-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  color: #15803d;
+  font-size: 14px;
+  font-weight: 700;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.goal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.edit-form {
+  h3 {
+    margin: 0 0 14px;
+    color: #26334c;
+  }
+
+  .rounded-input {
+    margin-bottom: 10px;
+  }
+}
+
+.edit-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.empty-state {
+  padding: 35px 20px;
+  border-radius: 18px;
+  background: #ffffff;
+  text-align: center;
+
+  ion-icon {
+    color: #4938dc;
+    font-size: 45px;
+  }
+
+  h3 {
+    margin: 12px 0 6px;
+    color: #26334c;
+  }
+
+  p {
+    margin: 0;
+    color: #77829a;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    min-height: 110px;
+
+    h2 {
+      font-size: 27px;
+    }
+  }
+
+  .deposit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .deposit-button {
+    min-height: 44px;
+  }
+}
+
+
+/* Text typed inside all savings inputs */
+.rounded-input ion-input {
+  --color: #000000;
+  --placeholder-color: #6b7280;
+  --placeholder-opacity: 1;
+}
+
+/* Goal title, for example Emergency Fund */
+.saving-goal-card .goal-heading h3 {
+  color: #ffffff;
+}
+
+/* Optional: make the other goal information easier to read */
+.saving-goal-card .goal-heading p,
+.saving-goal-card .remaining-text {
+  color: #d1d5db;
+}

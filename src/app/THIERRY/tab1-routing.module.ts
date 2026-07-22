@@ -6,6 +6,10 @@ const routes: Routes = [
   {
     path: '',
     component: Tab1Page,
+  },
+  {
+    path: 'savings',
+    loadChildren: () => import('../THIERRY/savings/savings.module').then( m => m.SavingsPageModule)
   }
 ];
 
