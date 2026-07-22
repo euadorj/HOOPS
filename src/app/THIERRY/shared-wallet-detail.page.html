@@ -1,0 +1,87 @@
+<ion-header [translucent]="true" class="wallet-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/shared-wallets"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content" *ngIf="wallet">
+      <ion-title class="header-title">{{ wallet.name }}</ion-title>
+      <p class="header-subtitle">Shared wallet</p>
+    </div>
+    <ion-buttons slot="end" *ngIf="wallet">
+      <ion-button fill="clear" color="light" (click)="copyWalletCode()">
+        <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="wallet-content">
+  <div class="wallet-container" *ngIf="!loading && wallet">
+    <section class="balance-card">
+      <p>Total Balance</p>
+      <h1>{{ formatCurrency(wallet.balanceCents) }}</h1>
+      <div class="totals-row">
+        <div>
+          <span>Total In</span>
+          <strong>{{ formatCurrency(wallet.totalInCents) }}</strong>
+        </div>
+        <div>
+          <span>Total Out</span>
+          <strong>{{ formatCurrency(wallet.totalOutCents) }}</strong>
+        </div>
+      </div>
+      <div class="code-row">
+        <div>
+          <small>Wallet Code</small>
+          <strong>{{ wallet.code }}</strong>
+        </div>
+        <button type="button" class="copy-button" (click)="copyWalletCode()">Copy</button>
+      </div>
+    </section>
+
+    <section class="actions-row">
+      <button type="button" class="action add" (click)="goToAddFunds()">Add Funds</button>
+      <button type="button" class="action withdraw" (click)="goToWithdraw()">Withdraw</button>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <h2>Contributors</h2>
+      </div>
+      <div class="contributor-row" *ngFor="let contributor of contributors">
+        <span class="contributor-avatar">{{ contributor.displayName.charAt(0).toUpperCase() }}</span>
+        <div class="contributor-meta">
+          <strong>{{ contributor.displayName }}<small *ngIf="contributor.isCurrentUser"> · You</small></strong>
+          <span>{{ contributor.percentageOfTotalIn | number:'1.0-1' }}% of total</span>
+        </div>
+        <div class="contributor-amount">{{ formatCurrency(contributor.amountAddedCents) }}</div>
+      </div>
+    </section>
+
+    <section class="content-card">
+      <div class="section-heading">
+        <h2>Recent Activity</h2>
+      </div>
+      <div class="empty-state" *ngIf="!recentActivity.length">No wallet activity yet.</div>
+      <div class="activity-row" *ngFor="let tx of recentActivity">
+        <div class="activity-icon" [class.deposit]="tx.type === 'deposit'" [class.withdrawal]="tx.type === 'withdrawal'">
+          {{ tx.type === 'deposit' ? '+' : '-' }}
+        </div>
+        <div class="activity-meta">
+          <strong>{{ tx.description }}</strong>
+          <span>{{ formatActivityMeta(tx) }}</span>
+        </div>
+        <div class="activity-amount" [class.deposit]="tx.type === 'deposit'" [class.withdrawal]="tx.type === 'withdrawal'">
+          {{ formatActivityAmount(tx) }}
+        </div>
+      </div>
+    </section>
+
+    <section class="leave-card">
+      <h3>Leave Wallet</h3>
+      <p>You will no longer have access to this shared wallet. Your contributions will remain in the wallet.</p>
+      <p class="leave-error" *ngIf="leaveError">{{ leaveError }}</p>
+      <button type="button" class="leave-button" (click)="confirmLeaveWallet()">Leave Wallet</button>
+    </section>
+  </div>
+</ion-content>

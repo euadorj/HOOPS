@@ -1,0 +1,53 @@
+<ion-header [translucent]="true" class="wallet-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="wallet ? '/tabs/shared-wallets/wallet/' + wallet.id : '/tabs/shared-wallets'"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content">
+      <ion-title class="header-title">Add Funds</ion-title>
+      <p class="header-subtitle">Contribute to wallet</p>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="wallet-content" *ngIf="wallet">
+  <div class="wallet-container">
+    <section class="amount-card">
+      <p>Enter Amount</p>
+      <div class="amount-symbol">$</div>
+      <input
+        [value]="amountInput"
+        inputmode="decimal"
+        placeholder="0.00"
+        (input)="sanitizeAmount(($any($event.target)).value)"
+      />
+      <div class="preset-row">
+        <button type="button" *ngFor="let preset of presetAmounts" (click)="setPreset(preset)">
+          {{ formatCurrency(preset) }}
+        </button>
+      </div>
+    </section>
+
+    <section class="method-section">
+      <p class="section-title">Payment Method</p>
+      <button
+        class="method-card"
+        type="button"
+        *ngFor="let method of paymentMethods"
+        [class.selected]="selectedPaymentMethod === method.name"
+        (click)="selectPaymentMethod(method.name)"
+      >
+        <span class="method-icon" [style.background]="method.color">{{ method.badge }}</span>
+        <span>
+          <strong>{{ method.name }}</strong>
+          <span class="method-subtitle">{{ method.subtitle }}</span>
+        </span>
+      </button>
+    </section>
+
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <ion-button expand="block" class="submit-button" [disabled]="submitting" (click)="submit()">
+      {{ submitting ? 'Processing...' : ('Add ' + (amountInput ? ('$' + amountInput) : '$0.00')) }}
+    </ion-button>
+  </div>
+</ion-content>

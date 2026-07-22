@@ -30,8 +30,10 @@
         [(ngModel)]="joinCode" 
         maxlength="6" 
         inputmode="numeric"
+        name="joinCode"
       />
 
+      <p class="join-error" *ngIf="joinError">{{ joinError }}</p>
       <button class="join-button" (click)="joinSession()">Join Session</button>
     </div>
 
@@ -54,31 +56,17 @@
     <!-- Active Sessions -->
     <div class="active-sessions">
       <h3>Active Sessions</h3>
-
-      <div class="session-item" (click)="openSession('dinner-mario')">
+      <div class="session-item" *ngFor="let session of sessions" (click)="openSession(session.id)">
         <div class="session-avatar">👤</div>
         <div class="session-details">
-          <h4>Dinner at Mario's</h4>
-          <p class="restaurant-name">Mario's Italian Restaurant</p>
+          <h4>{{ session.title }}</h4>
+          <p class="restaurant-name">{{ session.restaurant }}</p>
           <div class="session-meta">
-            <span class="meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-              </svg>
-              4 people
-            </span>
-            <span class="meta-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              Started 25 min ago
-            </span>
+            <span class="meta-item">{{ session.menuCategories.length }} categories</span>
+            <span class="meta-item">Code {{ session.id }}</span>
           </div>
         </div>
         <div class="session-total">
-          <span class="total-amount">$156.50</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
           </svg>

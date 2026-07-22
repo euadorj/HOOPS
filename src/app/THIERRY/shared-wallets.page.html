@@ -22,8 +22,10 @@
       </div>
       <div class="input-row">
         <label>Wallet Code</label>
-        <input placeholder="Enter wallet code" />
-        <button class="primary">Join Wallet</button>
+        <input [(ngModel)]="walletCode" maxlength="6" inputmode="numeric" name="walletCode" placeholder="Enter wallet code" />
+        <p class="form-error" *ngIf="joinError">{{ joinError }}</p>
+        <p class="form-message" *ngIf="joinMessage">{{ joinMessage }}</p>
+        <button class="primary" type="button" (click)="joinWallet()">Join Wallet</button>
       </div>
     </div>
 
@@ -37,19 +39,24 @@
           <p>Start a group wallet</p>
         </div>
       </div>
-      <button class="outline">+ Create Wallet</button>
+      <button class="outline" type="button" (click)="createWallet()">+ Create Wallet</button>
     </div>
 
+    <div class="access-message" *ngIf="accessMessage">{{ accessMessage }}</div>
     <h4 class="recent-title">Recent Wallets</h4>
-    <div class="wallet-list">
-      <div class="wallet-item">
-        <div class="avatar">👥</div>
+    <div class="state-message" *ngIf="loading">Loading wallets...</div>
+    <div class="state-message" *ngIf="!loading && !wallets.length">
+      You have not created or joined any shared wallets yet.
+    </div>
+    <div class="wallet-list" *ngIf="!loading && wallets.length">
+      <button class="wallet-item" type="button" *ngFor="let wallet of wallets" (click)="openWallet(wallet)">
+        <div class="avatar">{{ wallet.name.charAt(0).toUpperCase() }}</div>
         <div class="wallet-info">
-          <h5>Group Trip 2026</h5>
-          <p>4 members • $1,245.50</p>
+          <h5>{{ wallet.name }}</h5>
+          <p>{{ wallet.memberIds.length }} members • {{ formatBalance(wallet.balanceCents) }}</p>
         </div>
         <div class="chev">›</div>
-      </div>
+      </button>
     </div>
   </div>
 </ion-content>

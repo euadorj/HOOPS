@@ -1,0 +1,30 @@
+<ion-header [translucent]="true" class="wallet-header">
+  <ion-toolbar>
+    <div class="header-content">
+      <ion-title class="header-title">Payment Complete</ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="wallet-content" *ngIf="wallet && transaction">
+  <div class="wallet-container">
+    <section class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>{{ title }}</h2>
+      <p>Your payment has been processed</p>
+      <div class="amount-block">
+        <span>{{ amountLabel }}</span>
+        <strong>{{ formatCurrency(transaction.amountCents) }}</strong>
+      </div>
+    </section>
+
+    <section class="details-card">
+      <h3>Payment Details</h3>
+      <div class="row"><span>Transaction ID</span><strong>{{ transaction.id | uppercase }}</strong></div>
+      <div class="row"><span>Date & Time</span><strong>{{ transaction.createdAt | date:'dd MMM yyyy, hh:mm a' }}</strong></div>
+      <div class="row"><span>{{ detailLabel }}</span><strong>{{ detailValue }}</strong></div>
+    </section>
+
+    <ion-button expand="block" class="home-button" (click)="backToWallet()">Back to Wallet</ion-button>
+  </div>
+</ion-content>

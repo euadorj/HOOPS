@@ -1,10 +1,93 @@
-<ion-header>
+<ion-header [translucent]="true" class="create-header">
   <ion-toolbar>
-    <ion-title>Create Session</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab2"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content">
+      <ion-title class="header-title">Create Session</ion-title>
+      <p class="header-subtitle">Build your menu, categories, and pricing</p>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <p>Set up a new bill-splitting session.</p>
-  <ion-button expand="block" (click)="create()">Create</ion-button>
+<ion-content fullscreen class="create-content">
+  <div class="create-container">
+    <div class="form-card">
+      <div class="field-group">
+        <label>Session Code</label>
+        <input
+          type="text"
+          maxlength="6"
+          inputmode="numeric"
+          [(ngModel)]="sessionCode"
+          placeholder="Enter 6-digit code"
+          name="sessionCode"
+        />
+      </div>
+
+      <div class="field-group">
+        <label>Session Title</label>
+        <input
+          type="text"
+          [(ngModel)]="sessionTitle"
+          placeholder="Enter the session name"
+          name="sessionTitle"
+        />
+      </div>
+
+      <div class="field-group">
+        <label>Restaurant Name</label>
+        <input
+          type="text"
+          [(ngModel)]="restaurantName"
+          placeholder="Enter the restaurant's name"
+          name="restaurantName"
+        />
+      </div>
+
+      <div class="field-group">
+        <label>Menu Categories</label>
+      </div>
+
+      <div class="category-card" *ngFor="let category of categories; let catIndex = index">
+        <div class="category-header">
+          <h3>{{ category.title }}</h3>
+          <button class="category-action" type="button" (click)="removeCategory(catIndex)">Remove</button>
+        </div>
+
+        <div class="field-group">
+          <input
+            type="text"
+            [(ngModel)]="category.title"
+            placeholder="Category title"
+            name="categoryTitle{{ catIndex }}"
+          />
+        </div>
+
+        <div class="menu-item-card" *ngFor="let item of category.items; let itemIndex = index">
+          <div class="menu-item-row">
+            <input
+              type="text"
+              [(ngModel)]="item.title"
+              placeholder="Item name"
+              name="itemTitle{{ catIndex }}-{{ itemIndex }}"
+            />
+            <input
+              type="number"
+              [(ngModel)]="item.price"
+              placeholder="Price"
+              name="itemPrice{{ catIndex }}-{{ itemIndex }}"
+            />
+          </div>
+          <button class="category-action" type="button" (click)="removeItem(category, itemIndex)">Remove item</button>
+        </div>
+
+        <button class="add-button" type="button" (click)="addItem(category)">Add Item</button>
+      </div>
+
+      <button class="add-button" type="button" (click)="addCategory()">Add Category</button>
+      <div class="validation-error" *ngIf="validationMessage">{{ validationMessage }}</div>
+      <ion-button class="create-button" expand="block" (click)="create()">Create Session</ion-button>
+    </div>
+  </div>
 </ion-content>

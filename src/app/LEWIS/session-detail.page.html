@@ -1,13 +1,125 @@
-<ion-header>
+<ion-header [translucent]="true" class="payment-header">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/tab2"></ion-back-button>
     </ion-buttons>
-    <ion-title>Session</ion-title>
+    <div class="header-rows">
+      <ion-title>{{ headerTitle }}</ion-title>
+      <p class="header-subtitle">{{ headerSubtitle }}</p>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <h2>Session: {{ id }}</h2>
-  <p>This is a placeholder session view. Integrate team data here.</p>
+<ion-content fullscreen class="payment-content">
+  <div class="page-container">
+    <div *ngIf="step === 'order'">
+      <div class="selecting-card">
+        <div class="top-row">
+          <div>
+            <p class="label">Session Members</p>
+          </div>
+          <div class="session-tag">{{ session.restaurant }}</div>
+        </div>
+
+        <div class="participant-row">
+          <div class="member-chip" *ngFor="let member of sessionMembers">
+            <span class="member-avatar">{{ member.initial }}</span>
+            <span>{{ member.displayName }}<small *ngIf="member.isCurrentUser"> · You</small></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-group" *ngFor="let category of session.menuCategories">
+        <div class="menu-heading">
+          <h3>{{ category.title }}</h3>
+        </div>
+        <div class="menu-item" *ngFor="let item of category.items" [class.selected]="item.selected" (click)="toggleItem(item)">
+          <div>
+            <p class="item-title">{{ item.title }}</p>
+            <p class="item-description">{{ item.description }}</p>
+          </div>
+          <div class="item-meta">
+            <span class="item-price">{{ formatPrice(item.price) }}</span>
+            <span class="item-check" *ngIf="item.selected">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sticky-footer">
+        <div class="summary-block">
+          <div class="summary-row">
+            <span>Your Total</span>
+            <strong>{{ formatPrice(totalAmount) }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Items Selected</span>
+            <strong>{{ selectedCount }}</strong>
+          </div>
+        </div>
+        <ion-button expand="block" [disabled]="!selectedCount" (click)="continueToPayment()">
+          Continue to Payment
+        </ion-button>
+        <ion-button class="leave-button" expand="block" fill="outline" (click)="confirmLeaveSession()">
+          Leave Session
+        </ion-button>
+      </div>
+    </div>
+
+    <div *ngIf="step === 'payment'">
+      <div class="payment-card">
+        <p class="payment-label">Total Amount</p>
+        <h1>{{ formatPrice(totalAmount) }}</h1>
+      </div>
+
+      <div class="payment-methods">
+        <p class="section-label">Payment Method</p>
+        <button
+          class="method-card"
+          *ngFor="let method of paymentMethods"
+          [class.selected]="method.id === selectedPaymentMethodId"
+          (click)="selectPaymentMethod(method.id)"
+          type="button"
+        >
+          <span class="method-icon" [style.background]="method.color">{{ method.badge }}</span>
+          <span>
+            <strong>{{ method.name }}</strong>
+            <span class="method-subtitle">{{ method.subtitle }}</span>
+          </span>
+        </button>
+      </div>
+
+      <ion-button expand="block" (click)="pay()">Pay {{ formatPrice(totalAmount) }}</ion-button>
+    </div>
+
+    <div *ngIf="step === 'complete'">
+      <div class="success-card">
+        <div class="success-icon">✓</div>
+        <h2>Payment Successful!</h2>
+        <p>Your payment has been processed.</p>
+        <div class="paid-amount">{{ formatPrice(paidAmount) }}</div>
+      </div>
+
+      <div class="details-card">
+        <p class="details-title">Payment Details</p>
+        <div class="details-row">
+          <span>Transaction ID</span>
+          <strong>{{ transactionId }}</strong>
+        </div>
+        <div class="details-row">
+          <span>Date & Time</span>
+          <strong>{{ paidAt | date:'dd MMM yyyy, hh:mm a' }}</strong>
+        </div>
+        <div class="details-row">
+          <span>Payment Method</span>
+          <strong>{{ selectedPaymentMethodName }}</strong>
+        </div>
+        <div class="details-row">
+          <span>Session</span>
+          <strong>{{ session.title }}</strong>
+        </div>
+      </div>
+
+      <ion-button expand="block" (click)="backToHome()">Back to Home</ion-button>
+    </div>
+  </div>
 </ion-content>

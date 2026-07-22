@@ -1,0 +1,60 @@
+<ion-header [translucent]="true" class="wallet-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="wallet ? '/tabs/shared-wallets/wallet/' + wallet.id : '/tabs/shared-wallets'"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content">
+      <ion-title class="header-title">Withdrawal</ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="wallet-content" *ngIf="wallet">
+  <div class="wallet-container">
+    <section class="amount-card">
+      <p>Withdrawal amount</p>
+      <div class="amount-symbol">$</div>
+      <input
+        [value]="amountInput"
+        inputmode="decimal"
+        placeholder="0.00"
+        (input)="sanitizeAmount(($any($event.target)).value)"
+      />
+      <div class="amount-meta">
+        <span>Available Balance: {{ formatCurrency(wallet.balanceCents) }}</span>
+        <span *ngIf="balanceAfterWithdrawalCents !== null">
+          Balance After Withdrawal: {{ formatCurrency(balanceAfterWithdrawalCents) }}
+        </span>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <h3>Category</h3>
+      <div class="category-grid">
+        <button
+          type="button"
+          class="category-item"
+          *ngFor="let category of categories"
+          [class.selected]="selectedCategory === category"
+          (click)="selectCategory(category)"
+        >
+          {{ category }}
+        </button>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <h3>Description</h3>
+      <textarea
+        [(ngModel)]="description"
+        name="withdrawDescription"
+        placeholder="What is this expense for?"
+      ></textarea>
+    </section>
+
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <ion-button expand="block" class="submit-button" [disabled]="submitting" (click)="submit()">
+      {{ submitting ? 'Recording...' : 'Record Expense' }}
+    </ion-button>
+  </div>
+</ion-content>

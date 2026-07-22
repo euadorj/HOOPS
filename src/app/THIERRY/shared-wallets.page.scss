@@ -1,8 +1,8 @@
 .shared-header {
-  --background: linear-gradient(135deg,#2ea0ff 0%,#4c7cff 100%);
+  --background: linear-gradient(135deg,#2939b8 0%,#1989ef 100%);
   color: white;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
 }
 
 .header-content {
@@ -15,13 +15,13 @@
 }
 
 .shared-container {
-  padding: 20px 16px 96px;
+  padding: 22px 16px 96px;
 }
 
 .hero-card {
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(15,23,42,0.08);
   background: white;
   margin-bottom: 18px;
 }
@@ -34,22 +34,46 @@
 }
 
 .icon{
-  width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#ffd8b6,#ff9a6b);
+  width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#31c0e8,#3386ef);color:white;font-size:1.7rem;
 }
 
-.create-wallet{background:linear-gradient(135deg,#6e4dff,#3b8bff);color:white}
+.create-wallet{background:linear-gradient(135deg,#5740bf,#8b82d9);color:white}
 .create-wallet .icon{background:rgba(255,255,255,0.15)}
 .create-wallet .outline{margin-top:12px;background:rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;border:none;color:white}
 
 .input-row label{font-size:0.85rem;color:#334155;margin-bottom:6px;display:block}
-.input-row input{width:100%;padding:12px;border-radius:10px;border:none;background:#f0f3ff;margin-bottom:12px}
-.input-row .primary{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#6e4dff,#3b8bff);color:white;font-weight:700}
+.input-row input{width:100%;padding:14px;border-radius:12px;border:none;background:#f1f0f8;margin-bottom:12px;box-sizing:border-box;text-align:center}
+.input-row .primary{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#9187d3,#82c6f5);color:white;font-weight:700}
 
 .or{text-align:center;color:#94a3b8;font-weight:700;margin:6px 0}
 
 .recent-title{margin:10px 0 12px 4px;color:#334155}
-.wallet-list .wallet-item{display:flex;gap:12px;align-items:center;background:white;padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.05)}
+.wallet-list .wallet-item{width:100%;display:flex;gap:12px;align-items:center;background:white;padding:14px;border:0;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,0.05);text-align:left;color:#1e293b}
 .wallet-list .avatar{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#ffb3a7,#ff8b6b);display:flex;align-items:center;justify-content:center}
 .wallet-info h5{margin:0;font-size:0.95rem}
 .wallet-info p{margin:0;color:#94a3b8;font-size:0.85rem}
 .chev{margin-left:auto;color:#cbd5e1;font-size:20px}
+
+.form-error,
+.access-message {
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.form-message {
+  color: #0f766e;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.state-message {
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  color: #64748b;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}

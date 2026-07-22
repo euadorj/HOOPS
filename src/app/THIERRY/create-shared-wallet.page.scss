@@ -1,0 +1,22 @@
+:host { display: block; min-height: 100%; }
+
+.wallet-header {
+  --background: linear-gradient(135deg, #2939b8 0%, #1989ef 100%);
+  color: white;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
+.header-content { display: flex; flex-direction: column; gap: 5px; }
+.header-title { font-size: 1.4rem; font-weight: 700; }
+.header-subtitle { margin: 0; opacity: .9; font-size: .9rem; }
+.wallet-content { --background: #f6f7fb; background: #f6f7fb; }
+.wallet-container { padding: 22px 16px 100px; }
+.form-card { background: white; border-radius: 22px; padding: 22px; box-shadow: 0 12px 28px rgba(15,23,42,.08); }
+.field-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.field-group label { color: #1e293b; font-weight: 700; }
+.field-group label span { color: #94a3b8; font-weight: 500; }
+.field-group input, .field-group textarea { width: 100%; box-sizing: border-box; border: 0; border-radius: 13px; background: #f1f0f8; padding: 14px; color: #0f172a; font: inherit; }
+.field-group textarea { min-height: 100px; resize: vertical; }
+.validation-error { color: #dc2626; font-weight: 700; font-size: .85rem; line-height: 1.4; }
+.create-button { --background: linear-gradient(90deg, #9187d3, #82c6f5); --border-radius: 14px; --box-shadow: none; margin-top: 10px; }

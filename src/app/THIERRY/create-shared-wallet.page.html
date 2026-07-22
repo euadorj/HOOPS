@@ -1,0 +1,38 @@
+<ion-header [translucent]="true" class="wallet-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/shared-wallets"></ion-back-button>
+    </ion-buttons>
+    <div class="header-content">
+      <ion-title class="header-title">Create Wallet</ion-title>
+      <p class="header-subtitle">Start a group wallet</p>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="wallet-content">
+  <div class="wallet-container">
+    <div class="form-card">
+      <div class="field-group">
+        <label>Wallet Name</label>
+        <input [(ngModel)]="walletName" name="walletName" placeholder="Enter wallet name" type="text" />
+      </div>
+
+      <div class="field-group">
+        <label>Wallet Code</label>
+        <input [(ngModel)]="walletCode" name="walletCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" type="text" />
+      </div>
+
+      <div class="field-group">
+        <label>Description <span>(optional)</span></label>
+        <textarea [(ngModel)]="description" name="description" placeholder="What is this wallet for?"></textarea>
+      </div>
+
+      <p class="validation-error" *ngIf="validationMessage">{{ validationMessage }}</p>
+      <p class="validation-error" *ngIf="creationError">{{ creationError }}</p>
+      <ion-button expand="block" class="create-button" [disabled]="submitting" (click)="create()">
+        {{ submitting ? 'Creating...' : 'Create Wallet' }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

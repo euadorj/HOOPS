@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export interface User {
+  id?: string;
   username: string;
   password: string;
   countryCode?: string;
@@ -8,6 +9,7 @@ export interface User {
 }
 
 export interface CurrentUser {
+  id: string;
   username: string;
   countryCode?: string;
   phoneNumber?: string;
@@ -18,8 +20,8 @@ export interface CurrentUser {
 })
 export class AuthService {
   private readonly hardcodedAccounts: User[] = [
-    { username: 'Thierry', password: '123456' },
-    { username: 'user', password: '123456' },
+    { id: 'account-thierry', username: 'Thierry', password: '123456' },
+    { id: 'account-user', username: 'user', password: '123456' },
   ];
 
   private readonly registeredUsersStorageKey = 'registeredUsers';
@@ -38,6 +40,7 @@ export class AuthService {
     }
 
     const currentUser: CurrentUser = {
+      id: this.getUserId(account),
       username: account.username,
       countryCode: account.countryCode,
       phoneNumber: account.phoneNumber,
@@ -57,6 +60,7 @@ export class AuthService {
 
     const registeredUsers = this.readRegisteredUsers();
     registeredUsers.push({
+      id: `account-${this.normalizeUsername(user.username)}`,
       username: user.username.trim(),
       password: user.password,
       countryCode: user.countryCode,
@@ -74,6 +78,27 @@ export class AuthService {
   getCurrentUser(): CurrentUser | null {
     const storedUser = this.readCurrentUser();
     return storedUser;
+  }
+
+  getAccountDisplayName(username: string): string {
+    const normalizedUsername = this.normalizeUsername(username);
+    const account = this.getAllAccounts().find(
+      (entry) => this.normalizeUsername(entry.username) === normalizedUsername
+    );
+    return account?.username ?? username;
+  }
+
+  getAccountId(username: string): string | null {
+    const normalizedUsername = this.normalizeUsername(username);
+    const account = this.getAllAccounts().find(
+      (entry) => this.normalizeUsername(entry.username) === normalizedUsername
+    );
+    return account ? this.getUserId(account) : null;
+  }
+
+  getAccountUsername(id: string): string | null {
+    const account = this.getAllAccounts().find((entry) => this.getUserId(entry) === id);
+    return account?.username ?? null;
   }
 
   logout(): void {
@@ -131,7 +156,10 @@ export class AuthService {
         return null;
       }
 
-      return parsedValue;
+      return {
+        ...parsedValue,
+        id: parsedValue.id || this.getAccountId(parsedValue.username) || `account-${this.normalizeUsername(parsedValue.username)}`
+      };
     } catch (error) {
       console.warn('Unable to read current user from localStorage', error);
       return null;
@@ -156,6 +184,10 @@ export class AuthService {
 
   private normalizeUsername(username: string): string {
     return username.trim().toLowerCase();
+  }
+
+  private getUserId(user: User): string {
+    return user.id || `account-${this.normalizeUsername(user.username)}`;
   }
 
   private isUser(value: unknown): value is User {
