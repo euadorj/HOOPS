@@ -130,7 +130,7 @@ export class SavingsPage implements OnInit {
   }
 
   setDepositAmount(
-    event: any,
+    event: CustomEvent,
     goalId: string
   ): void {
     this.depositAmounts[goalId] =
@@ -176,7 +176,6 @@ export class SavingsPage implements OnInit {
   cancelEditing(): void {
     this.editingGoalId = null;
     this.editSubmitted = false;
-
     this.editGoalForm.reset();
   }
 
@@ -213,7 +212,6 @@ export class SavingsPage implements OnInit {
     }
 
     this.successMessage = result.message;
-
     this.editingGoalId = null;
     this.editSubmitted = false;
 

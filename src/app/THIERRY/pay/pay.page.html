@@ -1,0 +1,263 @@
+<ion-header>
+  <ion-toolbar class="pay-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab1"
+        text=""
+        color="light"
+      ></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Pay</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content
+  [fullscreen]="true"
+  class="pay-page"
+>
+  <div class="pay-container">
+
+    <div class="page-heading">
+      <h1>Merchant Payment</h1>
+
+      <p>
+        Select a merchant and enter the amount
+        you would like to pay.
+      </p>
+    </div>
+
+    <!-- Available balance -->
+    <div class="balance-card">
+      <div>
+        <p>Available Balance</p>
+
+        <h2>
+          {{
+            financeData.balance
+              | currency:'SGD':'symbol-narrow':'1.2-2'
+          }}
+        </h2>
+      </div>
+
+      <ion-icon
+        name="wallet-outline"
+      ></ion-icon>
+    </div>
+
+    <!-- Success message -->
+    <div
+      class="page-message success-message"
+      *ngIf="successMessage"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <!-- Error message -->
+    <div
+      class="page-message error-message"
+      *ngIf="errorMessage"
+    >
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Merchant selection -->
+    <section class="merchant-section">
+      <h2>Select Merchant</h2>
+
+      <div class="merchant-grid">
+        <button
+          type="button"
+          class="merchant-card"
+          *ngFor="let merchant of merchants"
+          [class.selected]="
+            selectedMerchant?.name === merchant.name
+          "
+          (click)="selectMerchant(merchant)"
+        >
+          <div class="merchant-icon">
+            <ion-icon
+              [name]="merchant.icon"
+            ></ion-icon>
+          </div>
+
+          <strong>{{ merchant.name }}</strong>
+          <span>{{ merchant.category }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Payment form -->
+    <section class="payment-card">
+      <h2>Payment Details</h2>
+
+      <form
+        [formGroup]="paymentForm"
+        (ngSubmit)="confirmPayment()"
+        novalidate
+      >
+        <div class="input-group">
+          <label>Selected merchant</label>
+
+          <ion-item
+            lines="none"
+            class="rounded-input"
+          >
+            <ion-icon
+              name="storefront-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="merchantName"
+              placeholder="Select a merchant above"
+              readonly="true"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (merchantControl?.touched ||
+                submitted) &&
+              merchantControl?.hasError(
+                'required'
+              )
+            "
+          >
+            Please select a merchant
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Payment amount</label>
+
+          <ion-item
+            lines="none"
+            class="rounded-input"
+          >
+            <ion-icon
+              name="cash-outline"
+              slot="start"
+            ></ion-icon>
+
+            <ion-input
+              formControlName="amount"
+              type="number"
+              inputmode="decimal"
+              min="0.01"
+              placeholder="0.00"
+            ></ion-input>
+          </ion-item>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (amountControl?.touched ||
+                submitted) &&
+              amountControl?.hasError(
+                'required'
+              )
+            "
+          >
+            Payment amount is required
+          </div>
+
+          <div
+            class="validation-error"
+            *ngIf="
+              (amountControl?.touched ||
+                submitted) &&
+              amountControl?.hasError('min')
+            "
+          >
+            Amount must be greater than $0
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          type="submit"
+          class="pay-button"
+        >
+          <ion-icon
+            name="card-outline"
+            slot="start"
+          ></ion-icon>
+
+          Pay Merchant
+        </ion-button>
+      </form>
+    </section>
+
+    <!-- Payment history -->
+    <section class="history-section">
+      <div class="section-heading">
+        <h2>Recent Payments</h2>
+
+        <span>
+          {{ paymentHistory.length }}
+          transactions
+        </span>
+      </div>
+
+      <div
+        class="empty-history"
+        *ngIf="paymentHistory.length === 0"
+      >
+        <ion-icon
+          name="receipt-outline"
+        ></ion-icon>
+
+        <h3>No payments yet</h3>
+
+        <p>
+          Your merchant payments will appear here.
+        </p>
+      </div>
+
+      <div
+        class="payment-history-card"
+        *ngFor="
+          let payment of paymentHistory;
+          trackBy: trackByPaymentId
+        "
+      >
+        <div class="history-icon">
+          <ion-icon
+            name="storefront-outline"
+          ></ion-icon>
+        </div>
+
+        <div class="history-details">
+          <strong>
+            {{ payment.merchantName }}
+          </strong>
+
+          <span>
+            {{
+              payment.paidAt
+                | date:'dd MMM yyyy, h:mm a'
+            }}
+          </span>
+        </div>
+
+        <div class="history-amount">
+          -{{
+            payment.amount
+              | currency:'SGD':'symbol-narrow':'1.2-2'
+          }}
+        </div>
+      </div>
+    </section>
+
+  </div>
+</ion-content>

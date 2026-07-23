@@ -8,7 +8,19 @@ export interface SavingsGoal {
   savedAmount: number;
   color: string;
 }
+export interface MerchantPayment {
+  id: string;
+  merchantName: string;
+  amount: number;
+  paidAt: number;
+}
 
+export interface MerchantPaymentResult {
+  success: boolean;
+  message: string;
+  balance?: number;
+  payment?: MerchantPayment;
+}
 export interface TransferResult {
   success: boolean;
   message: string;
@@ -519,7 +531,144 @@ transferMoney(
     recipientUsername,
   };
 }
+payMerchant(
+  merchantName: string,
+  amount: number
+): MerchantPaymentResult {
+  const currentUser =
+    this.authService.getCurrentUser();
 
+  if (!currentUser) {
+    return {
+      success: false,
+      message: 'You must be signed in.',
+    };
+  }
+
+  const cleanedMerchantName =
+    merchantName.trim();
+
+  if (!cleanedMerchantName) {
+    return {
+      success: false,
+      message: 'Please select a merchant.',
+    };
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return {
+      success: false,
+      message: 'Enter an amount greater than $0.',
+    };
+  }
+
+  const roundedAmount =
+    this.roundMoney(amount);
+
+  const financeData =
+    this.getFinanceData();
+
+  if (roundedAmount > financeData.balance) {
+    return {
+      success: false,
+      message:
+        'You do not have enough available balance.',
+    };
+  }
+
+  financeData.balance =
+    this.roundMoney(
+      financeData.balance - roundedAmount
+    );
+
+  this.saveFinanceData(financeData);
+
+  const payment: MerchantPayment = {
+    id:
+      `payment-${Date.now()}-` +
+      `${Math.floor(Math.random() * 100000)}`,
+    merchantName: cleanedMerchantName,
+    amount: roundedAmount,
+    paidAt: Date.now(),
+  };
+
+  const paymentHistory =
+    this.getPaymentHistory();
+
+  paymentHistory.unshift(payment);
+
+  this.savePaymentHistory(
+    currentUser.username,
+    paymentHistory
+  );
+
+  return {
+    success: true,
+    message:
+      `$${roundedAmount.toFixed(2)} was paid ` +
+      `to ${cleanedMerchantName}.`,
+    balance: financeData.balance,
+    payment,
+  };
+}
+
+getPaymentHistory(): MerchantPayment[] {
+  const currentUser =
+    this.authService.getCurrentUser();
+
+  if (!currentUser) {
+    return [];
+  }
+
+  try {
+    const storedValue = localStorage.getItem(
+      this.getPaymentHistoryStorageKey(
+        currentUser.username
+      )
+    );
+
+    if (!storedValue) {
+      return [];
+    }
+
+    const parsedValue: unknown =
+      JSON.parse(storedValue);
+
+    if (!Array.isArray(parsedValue)) {
+      return [];
+    }
+
+    return parsedValue.filter(
+      (
+        payment
+      ): payment is MerchantPayment => {
+        if (
+          !payment ||
+          typeof payment !== 'object'
+        ) {
+          return false;
+        }
+
+        const item =
+          payment as Partial<MerchantPayment>;
+
+        return (
+          typeof item.id === 'string' &&
+          typeof item.merchantName === 'string' &&
+          typeof item.amount === 'number' &&
+          typeof item.paidAt === 'number'
+        );
+      }
+    );
+  } catch (error) {
+    console.warn(
+      'Unable to read payment history:',
+      error
+    );
+
+    return [];
+  }
+}
 private saveFinanceDataForUsername(
   username: string,
   financeData: FinanceData
@@ -536,7 +685,34 @@ private saveFinanceDataForUsername(
     );
   }
 }
+private savePaymentHistory(
+  username: string,
+  payments: MerchantPayment[]
+): void {
+  try {
+    localStorage.setItem(
+      this.getPaymentHistoryStorageKey(username),
+      JSON.stringify(payments)
+    );
+  } catch (error) {
+    console.warn(
+      'Unable to save payment history:',
+      error
+    );
+  }
+}
 
+private getPaymentHistoryStorageKey(
+  username: string
+): string {
+  const normalizedUsername =
+    username.trim().toLowerCase();
+
+  return (
+    `merchantPayments_` +
+    `${normalizedUsername || 'guest'}`
+  );
+}
 private getStorageKeyForUsername(
   username: string
 ): string {

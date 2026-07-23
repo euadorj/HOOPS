@@ -57,6 +57,13 @@ const routes: Routes = [
     import('../THIERRY/transfer/transfer.module')
       .then((m) => m.TransferPageModule)
 },
+{
+  path: 'pay',
+  canActivate: [AuthGuard],
+  loadChildren: () =>
+    import('../THIERRY/pay/pay.module')
+      .then((m) => m.PayPageModule)
+},
       {
         path: '',
         redirectTo: 'tab1',

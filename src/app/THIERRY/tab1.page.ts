@@ -41,10 +41,10 @@ export class Tab1Page implements OnInit {
 
   actions = [
     {
-      icon: 'card-outline',
-      title: 'Pay',
-      route: '/tabs/tab1',
-    },
+  icon: 'card-outline',
+  title: 'Pay',
+  route: '/tabs/pay',
+},
     {
       icon: 'swap-horizontal-outline',
       title: 'Transfer',
