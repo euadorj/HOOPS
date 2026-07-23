@@ -1,6 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+} from '@angular/core';
+
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+
+import {
+  AlertController,
+  ModalController,
+} from '@ionic/angular';
 
 import {
   AuthService,
@@ -8,9 +16,25 @@ import {
 } from '../auth/auth.service';
 
 import {
+  MerchantPayment,
   SavingsGoal,
   SavingsService,
 } from './savings.service';
+
+import {
+  CoinService
+} from '../game/coin.service';
+
+import {
+  RewardsService
+} from '../game/rewards.service';
+
+import {
+  DashboardBill,
+  DashboardInvestment,
+  DashboardItemId,
+  DashboardService,
+} from './dashboard.service';
 
 import {
   DashboardSelectorModalComponent
@@ -31,20 +55,47 @@ interface QuickTab {
 export class Tab1Page implements OnInit {
   userName = 'Guest';
   userInitial = 'G';
+
   currentUser: CurrentUser | null = null;
 
   totalSaved = 0;
-  netWorth = 1000000;
+  netWorth = 0;
   balance = 0;
 
   savingGoals: SavingsGoal[] = [];
 
+  selectedDashboardItems:
+    DashboardItemId[] = [];
+
+  investments: DashboardInvestment[] = [];
+
+  investmentTotalValue = 0;
+  investmentProfitLoss = 0;
+
+  spendingThisMonth = 0;
+  monthlyTransactionCount = 0;
+  topSpendingMerchant = 'No spending yet';
+
+  monthlyBudget = 0;
+  budgetRemaining = 0;
+  budgetProgress = 0;
+
+  rewardCoins = 0;
+  cashbackBalance = 0;
+  activeVoucherCount = 0;
+
+  upcomingBills: DashboardBill[] = [];
+
+  recentTransactions: MerchantPayment[] = [];
+
+  financialTips: string[] = [];
+
   actions = [
     {
-  icon: 'card-outline',
-  title: 'Pay',
-  route: '/tabs/pay',
-},
+      icon: 'card-outline',
+      title: 'Pay',
+      route: '/tabs/pay',
+    },
     {
       icon: 'swap-horizontal-outline',
       title: 'Transfer',
@@ -68,7 +119,7 @@ export class Tab1Page implements OnInit {
     {
       icon: 'pricetag-outline',
       title: 'Discounts',
-      route: '/tabs/tab1',
+      route: '/tabs/discounts',
     },
   ];
 
@@ -79,35 +130,34 @@ export class Tab1Page implements OnInit {
       route: '/tabs/savings',
     },
     {
-      icon: 'storefront-outline',
-      title: 'Merchant Deals',
-      route: null,
-    },
-    {
-      icon: 'cash-outline',
-      title: 'Cashback',
-      route: null,
-    },
+    icon: 'storefront-outline',
+    title: 'Merchant Deals',
+    route: '/tabs/tab1',
+  },
+  {
+    icon: 'cash-outline',
+    title: 'Cashback',
+    route: '/tabs/tab1',
+  },
   ];
-
-  selectedDashboardItems: string[] = [];
 
   constructor(
     private modalController: ModalController,
+    private alertController: AlertController,
     private authService: AuthService,
     private savingsService: SavingsService,
+    private dashboardService: DashboardService,
+    private coinService: CoinService,
+    private rewardsService: RewardsService,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.loadCurrentUser();
-    this.loadDashboardSettings();
-    this.loadFinanceData();
+    this.loadPageData();
   }
 
   ionViewWillEnter(): void {
-    this.loadCurrentUser();
-    this.loadFinanceData();
+    this.loadPageData();
   }
 
   loadCurrentUser(): void {
@@ -120,7 +170,8 @@ export class Tab1Page implements OnInit {
       return;
     }
 
-    this.userName = this.currentUser.username;
+    this.userName =
+      this.currentUser.username;
 
     this.userInitial =
       this.currentUser.username
@@ -141,61 +192,218 @@ export class Tab1Page implements OnInit {
       );
   }
 
-  getGoalProgress(goal: SavingsGoal): number {
+  loadDashboardSettings(): void {
+    this.selectedDashboardItems =
+      this.dashboardService.getSelectedItems();
+  }
+
+  loadDashboardInformation(): void {
+    this.investments =
+      this.dashboardService.getInvestments();
+
+    this.investmentTotalValue =
+      this.investments.reduce(
+        (
+          total,
+          investment
+        ) => total + investment.currentValue,
+        0
+      );
+
+    const totalInvested =
+      this.investments.reduce(
+        (
+          total,
+          investment
+        ) => total + investment.investedAmount,
+        0
+      );
+
+    this.investmentProfitLoss =
+      this.investmentTotalValue -
+      totalInvested;
+
+    this.monthlyBudget =
+      this.dashboardService.getMonthlyBudget();
+
+    this.upcomingBills =
+      this.dashboardService
+        .getUpcomingBills()
+        .filter((bill) => !bill.paid)
+        .sort(
+          (firstBill, secondBill) =>
+            new Date(
+              firstBill.dueDate
+            ).getTime() -
+            new Date(
+              secondBill.dueDate
+            ).getTime()
+        )
+        .slice(0, 3);
+
+    this.financialTips =
+      this.dashboardService.getFinancialTips();
+
+    this.coinService.refreshCoins();
+
+    this.rewardCoins =
+      this.coinService.getCoins();
+
+    this.cashbackBalance =
+      this.dashboardService
+        .getCashbackBalance();
+
+    this.activeVoucherCount =
+      this.rewardsService
+        .getActiveVouchers()
+        .length;
+
+    const paymentHistory =
+      this.savingsService.getPaymentHistory();
+
+    this.recentTransactions =
+      paymentHistory.slice(0, 5);
+
+    const monthlyPayments =
+      paymentHistory.filter(
+        (payment) =>
+          this.isCurrentMonth(
+            payment.paidAt
+          )
+      );
+
+    this.monthlyTransactionCount =
+      monthlyPayments.length;
+
+    this.spendingThisMonth =
+      monthlyPayments.reduce(
+        (
+          total,
+          payment
+        ) => total + payment.amount,
+        0
+      );
+
+    this.topSpendingMerchant =
+      this.calculateTopMerchant(
+        monthlyPayments
+      );
+
+    this.budgetRemaining = Math.max(
+      this.monthlyBudget -
+        this.spendingThisMonth,
+      0
+    );
+
+    if (this.monthlyBudget <= 0) {
+      this.budgetProgress = 0;
+    } else {
+      this.budgetProgress = Math.min(
+        this.spendingThisMonth /
+          this.monthlyBudget,
+        1
+      );
+    }
+
+    this.netWorth =
+      this.balance +
+      this.totalSaved +
+      this.investmentTotalValue;
+  }
+
+  getGoalProgress(
+    goal: SavingsGoal
+  ): number {
     if (goal.targetAmount <= 0) {
       return 0;
     }
 
     return Math.min(
-      goal.savedAmount / goal.targetAmount,
+      goal.savedAmount /
+        goal.targetAmount,
       1
     );
   }
 
-  getGoalPercent(goal: SavingsGoal): number {
+  getGoalPercent(
+    goal: SavingsGoal
+  ): number {
     return Math.round(
       this.getGoalProgress(goal) * 100
     );
   }
 
-  loadDashboardSettings(): void {
-    try {
-      const saved =
-        localStorage.getItem('dashboardItems');
-
-      if (saved) {
-        const parsedValue: unknown =
-          JSON.parse(saved);
-
-        if (Array.isArray(parsedValue)) {
-          this.selectedDashboardItems =
-            parsedValue.filter(
-              (item): item is string =>
-                typeof item === 'string'
-            );
-
-          return;
-        }
-      }
-    } catch (error) {
-      console.error(
-        'Unable to load dashboard items:',
-        error
-      );
-    }
-
-    this.selectedDashboardItems = [
-      'savings-goals',
-      'investment-tracking',
-    ];
+  getInvestmentProfit(
+    investment: DashboardInvestment
+  ): number {
+    return (
+      investment.currentValue -
+      investment.investedAmount
+    );
   }
 
   isDashboardItemSelected(
-    itemId: string
+    itemId: DashboardItemId
   ): boolean {
     return this.selectedDashboardItems.includes(
       itemId
     );
+  }
+
+  async changeMonthlyBudget():
+    Promise<void> {
+    const alert =
+      await this.alertController.create({
+        header: 'Set Monthly Budget',
+        message:
+          'Enter your new monthly spending budget.',
+        inputs: [
+          {
+            name: 'budget',
+            type: 'number',
+            min: 1,
+            value: this.monthlyBudget,
+            placeholder: 'Monthly budget',
+          },
+        ],
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+          },
+          {
+            text: 'Save',
+            handler: (data) => {
+              const amount =
+                Number(data.budget);
+
+              const saved =
+                this.dashboardService
+                  .setMonthlyBudget(amount);
+
+              if (!saved) {
+                return false;
+              }
+
+              this.loadDashboardInformation();
+
+              return true;
+            },
+          },
+        ],
+      });
+
+    await alert.present();
+  }
+
+  markBillPaid(billId: string): void {
+    const updated =
+      this.dashboardService
+        .markBillPaid(billId);
+
+    if (updated) {
+      this.loadDashboardInformation();
+    }
   }
 
   openQuickTab(tab: QuickTab): void {
@@ -208,28 +416,104 @@ export class Tab1Page implements OnInit {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/sign-in']);
+
+    this.router.navigate([
+      '/sign-in'
+    ]);
   }
 
-  async openDashboardSelector(): Promise<void> {
+  async openDashboardSelector():
+    Promise<void> {
     const modal =
       await this.modalController.create({
         component:
           DashboardSelectorModalComponent,
-        cssClass: 'dashboard-selector-modal',
+        cssClass:
+          'dashboard-selector-modal',
       });
 
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
+    const { data } =
+      await modal.onDidDismiss();
 
-    if (data?.saved && Array.isArray(data.data)) {
-      localStorage.setItem(
-        'dashboardItems',
-        JSON.stringify(data.data)
-      );
-
+    if (data?.saved) {
       this.loadDashboardSettings();
+      this.loadDashboardInformation();
     }
+  }
+
+  trackByInvestmentId(
+    index: number,
+    investment: DashboardInvestment
+  ): string {
+    return investment.id;
+  }
+
+  trackByBillId(
+    index: number,
+    bill: DashboardBill
+  ): string {
+    return bill.id;
+  }
+
+  trackByPaymentId(
+    index: number,
+    payment: MerchantPayment
+  ): string {
+    return payment.id;
+  }
+
+  private loadPageData(): void {
+    this.loadCurrentUser();
+    this.loadFinanceData();
+    this.loadDashboardSettings();
+    this.loadDashboardInformation();
+  }
+
+  private isCurrentMonth(
+    timestamp: number
+  ): boolean {
+    const transactionDate =
+      new Date(timestamp);
+
+    const today = new Date();
+
+    return (
+      transactionDate.getMonth() ===
+        today.getMonth() &&
+      transactionDate.getFullYear() ===
+        today.getFullYear()
+    );
+  }
+
+  private calculateTopMerchant(
+    payments: MerchantPayment[]
+  ): string {
+    if (payments.length === 0) {
+      return 'No spending yet';
+    }
+
+    const totals:
+      Record<string, number> = {};
+
+    payments.forEach((payment) => {
+      totals[payment.merchantName] =
+        (totals[payment.merchantName] ?? 0) +
+        payment.amount;
+    });
+
+    const topMerchant =
+      Object.entries(totals).sort(
+        (
+          firstMerchant,
+          secondMerchant
+        ) =>
+          secondMerchant[1] -
+          firstMerchant[1]
+      )[0];
+
+    return topMerchant?.[0] ??
+      'No spending yet';
   }
 }

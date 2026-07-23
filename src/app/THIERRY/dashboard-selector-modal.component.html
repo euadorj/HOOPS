@@ -1,8 +1,19 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="#" (click)="closeModal()"></ion-back-button>
-    </ion-buttons>
+  <ion-button
+    type="button"
+    fill="clear"
+    color="dark"
+    (click)="closeModal()"
+    aria-label="Back to home"
+  >
+    <ion-icon
+      slot="icon-only"
+      name="arrow-back-outline"
+    ></ion-icon>
+  </ion-button>
+</ion-buttons>
     <ion-title>Dashboard Settings</ion-title>
   </ion-toolbar>
 </ion-header>

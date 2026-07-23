@@ -1,0 +1,191 @@
+<ion-header>
+  <ion-toolbar class="discount-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab1"
+        text=""
+        color="light"
+      ></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Discounts & Vouchers</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content
+  [fullscreen]="true"
+  class="discount-page"
+>
+  <div class="discount-container">
+
+    <div class="page-heading">
+      <h1>Voucher Rewards</h1>
+
+      <p>
+        Redeem your reward coins for vouchers
+        that can be used during merchant payment.
+      </p>
+    </div>
+
+    <div class="coin-card">
+      <div class="coin-icon">🪙</div>
+
+      <div>
+        <p>Your Coin Balance</p>
+        <h2>{{ coinBalance }} coins</h2>
+      </div>
+    </div>
+
+    <div
+      class="page-message success-message"
+      *ngIf="successMessage"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <div
+      class="page-message error-message"
+      *ngIf="errorMessage"
+    >
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <section class="catalog-section">
+      <div class="section-heading">
+        <h2>Redeem Vouchers</h2>
+
+        <span>
+          {{ voucherCatalog.length }} available
+        </span>
+      </div>
+
+      <div class="voucher-grid">
+        <article
+          class="voucher-card"
+          *ngFor="
+            let voucher of voucherCatalog;
+            trackBy: trackByCatalogId
+          "
+        >
+          <div class="voucher-top">
+            <div class="voucher-emoji">
+              {{ voucher.emoji }}
+            </div>
+
+            <div class="voucher-cost">
+              {{ voucher.coinCost }} coins
+            </div>
+          </div>
+
+          <h3>{{ voucher.title }}</h3>
+
+          <p>{{ voucher.description }}</p>
+
+          <div class="voucher-details">
+            <span>
+              Discount: ${{ voucher.discountAmount }}
+            </span>
+
+            <span>
+              Minimum spend:
+              ${{ voucher.minimumSpend }}
+            </span>
+          </div>
+
+          <ion-button
+            expand="block"
+            type="button"
+            class="redeem-button"
+            [disabled]="coinBalance < voucher.coinCost"
+            (click)="confirmRedeem(voucher)"
+          >
+            {{
+              coinBalance >= voucher.coinCost
+                ? 'Redeem Voucher'
+                : 'Not Enough Coins'
+            }}
+          </ion-button>
+        </article>
+      </div>
+    </section>
+
+    <section class="wallet-section">
+      <div class="section-heading">
+        <h2>My Vouchers</h2>
+
+        <span>
+          {{ userVouchers.length }} vouchers
+        </span>
+      </div>
+
+      <div
+        class="empty-wallet"
+        *ngIf="userVouchers.length === 0"
+      >
+        <ion-icon
+          name="ticket-outline"
+        ></ion-icon>
+
+        <h3>No vouchers redeemed</h3>
+
+        <p>
+          Redeem a voucher using your coins above.
+        </p>
+      </div>
+
+      <article
+        class="wallet-voucher"
+        *ngFor="
+          let voucher of userVouchers;
+          trackBy: trackByVoucherId
+        "
+        [class.used]="voucher.usedAt !== null"
+        [class.expired]="isVoucherExpired(voucher)"
+      >
+        <div class="wallet-voucher-main">
+          <div>
+            <h3>{{ voucher.title }}</h3>
+
+            <p>{{ voucher.description }}</p>
+
+            <div class="voucher-code">
+              Code: {{ voucher.code }}
+            </div>
+          </div>
+
+          <span
+            class="status-badge"
+            [class.available]="
+              getVoucherStatus(voucher) === 'Available'
+            "
+          >
+            {{ getVoucherStatus(voucher) }}
+          </span>
+        </div>
+
+        <div class="wallet-voucher-footer">
+          <span>
+            Merchant: {{ voucher.merchantName }}
+          </span>
+
+          <span>
+            Expires:
+            {{
+              voucher.expiresAt
+                | date:'dd MMM yyyy'
+            }}
+          </span>
+        </div>
+      </article>
+    </section>
+
+  </div>
+</ion-content>

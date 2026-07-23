@@ -17,6 +17,11 @@ import {
   SavingsService,
 } from '../savings.service';
 
+import {
+  RewardsService,
+  UserVoucher,
+} from '../../game/rewards.service';
+
 interface MerchantOption {
   name: string;
   category: string;
@@ -73,6 +78,7 @@ export class PayPage implements OnInit {
   selectedMerchant: MerchantOption | null = null;
 
   paymentHistory: MerchantPayment[] = [];
+  applicableVouchers: UserVoucher[] = [];
 
   submitted = false;
   successMessage = '';
@@ -81,24 +87,29 @@ export class PayPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private savingsService: SavingsService,
+    private rewardsService: RewardsService,
     private alertController: AlertController
   ) {}
 
   ngOnInit(): void {
-    this.paymentForm =
-      this.formBuilder.group({
-        merchantName: [
-          '',
-          Validators.required,
-        ],
+    this.paymentForm = this.formBuilder.group({
+      merchantName: ['', Validators.required],
 
-        amount: [
-          null,
-          [
-            Validators.required,
-            Validators.min(0.01),
-          ],
+      amount: [
+        null,
+        [
+          Validators.required,
+          Validators.min(0.01),
         ],
+      ],
+
+      voucherId: [''],
+    });
+
+    this.paymentForm
+      .get('amount')
+      ?.valueChanges.subscribe(() => {
+        this.refreshApplicableVouchers();
       });
 
     this.loadPageData();
@@ -106,6 +117,48 @@ export class PayPage implements OnInit {
 
   ionViewWillEnter(): void {
     this.loadPageData();
+    this.refreshApplicableVouchers();
+  }
+
+  get selectedVoucher(): UserVoucher | null {
+    const voucherId =
+      String(
+        this.paymentForm?.get('voucherId')?.value ?? ''
+      );
+
+    return (
+      this.applicableVouchers.find(
+        (voucher) => voucher.id === voucherId
+      ) ?? null
+    );
+  }
+
+  get originalAmount(): number {
+    const amount = Number(
+      this.paymentForm?.get('amount')?.value
+    );
+
+    return Number.isFinite(amount) && amount > 0
+      ? amount
+      : 0;
+  }
+
+  get discountAmount(): number {
+    if (!this.selectedVoucher) {
+      return 0;
+    }
+
+    return Math.min(
+      this.selectedVoucher.discountAmount,
+      this.originalAmount
+    );
+  }
+
+  get finalAmount(): number {
+    return Math.max(
+      this.originalAmount - this.discountAmount,
+      0
+    );
   }
 
   selectMerchant(
@@ -115,11 +168,10 @@ export class PayPage implements OnInit {
 
     this.paymentForm.patchValue({
       merchantName: merchant.name,
+      voucherId: '',
     });
 
-    this.paymentForm
-      .get('merchantName')
-      ?.markAsTouched();
+    this.refreshApplicableVouchers();
 
     this.successMessage = '';
     this.errorMessage = '';
@@ -135,24 +187,27 @@ export class PayPage implements OnInit {
       return;
     }
 
-    const merchantName =
-      String(
-        this.paymentForm.get(
-          'merchantName'
-        )?.value ?? ''
-      ).trim();
+    const merchantName = String(
+      this.paymentForm.get('merchantName')?.value ??
+        ''
+    ).trim();
 
-    const amount =
-      Number(
-        this.paymentForm.get('amount')?.value
-      );
+    const voucherText = this.selectedVoucher
+      ? `<br><br>Voucher: ${this.selectedVoucher.title}` +
+        `<br>Discount: $${this.discountAmount.toFixed(2)}`
+      : '';
 
     const alert =
       await this.alertController.create({
         header: 'Confirm Payment',
         message:
-          `Pay $${amount.toFixed(2)} ` +
-          `to ${merchantName}?`,
+          `Original amount: $${this.originalAmount.toFixed(
+            2
+          )}` +
+          voucherText +
+          `<br><br>Final payment: $${this.finalAmount.toFixed(
+            2
+          )}`,
         buttons: [
           {
             text: 'Cancel',
@@ -161,10 +216,7 @@ export class PayPage implements OnInit {
           {
             text: 'Pay',
             handler: () => {
-              this.completePayment(
-                merchantName,
-                amount
-              );
+              this.completePayment(merchantName);
             },
           },
         ],
@@ -174,9 +226,7 @@ export class PayPage implements OnInit {
   }
 
   get merchantControl() {
-    return this.paymentForm.get(
-      'merchantName'
-    );
+    return this.paymentForm.get('merchantName');
   }
 
   get amountControl() {
@@ -190,14 +240,22 @@ export class PayPage implements OnInit {
     return payment.id;
   }
 
+  trackByVoucherId(
+    index: number,
+    voucher: UserVoucher
+  ): string {
+    return voucher.id;
+  }
+
   private completePayment(
-    merchantName: string,
-    amount: number
+    merchantName: string
   ): void {
+    const voucher = this.selectedVoucher;
+
     const result =
       this.savingsService.payMerchant(
         merchantName,
-        amount
+        this.finalAmount
       );
 
     if (!result.success) {
@@ -206,12 +264,32 @@ export class PayPage implements OnInit {
       return;
     }
 
-    this.successMessage = result.message;
-    this.errorMessage = '';
+    if (voucher) {
+      const voucherResult =
+        this.rewardsService.markVoucherUsed(
+          voucher.id
+        );
+
+      if (!voucherResult.success) {
+        this.errorMessage =
+          voucherResult.message;
+        return;
+      }
+    }
+
+    this.successMessage = voucher
+      ? `$${this.finalAmount.toFixed(
+          2
+        )} was paid to ${merchantName}. ` +
+        `You saved $${this.discountAmount.toFixed(
+          2
+        )} using ${voucher.title}.`
+      : result.message;
 
     this.paymentForm.reset({
       merchantName: '',
       amount: null,
+      voucherId: '',
     });
 
     this.selectedMerchant = null;
@@ -220,11 +298,45 @@ export class PayPage implements OnInit {
     this.loadPageData();
   }
 
+  private refreshApplicableVouchers(): void {
+    const merchantName = String(
+      this.paymentForm?.get('merchantName')?.value ??
+        ''
+    );
+
+    this.applicableVouchers =
+      this.rewardsService.getApplicableVouchers(
+        merchantName,
+        this.originalAmount
+      );
+
+    const selectedVoucherId = String(
+      this.paymentForm?.get('voucherId')?.value ??
+        ''
+    );
+
+    const selectedStillValid =
+      this.applicableVouchers.some(
+        (voucher) =>
+          voucher.id === selectedVoucherId
+      );
+
+    if (!selectedStillValid) {
+      this.paymentForm
+        ?.get('voucherId')
+        ?.setValue('', {
+          emitEvent: false,
+        });
+    }
+  }
+
   private loadPageData(): void {
     this.financeData =
       this.savingsService.getFinanceData();
 
     this.paymentHistory =
       this.savingsService.getPaymentHistory();
+
+    this.refreshApplicableVouchers();
   }
 }

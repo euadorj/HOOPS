@@ -18,6 +18,10 @@ const routes: Routes = [
   {
     path: 'pay',
     loadChildren: () => import('../THIERRY/pay/pay.module').then( m => m.PayPageModule)
+  },
+  {
+    path: 'discounts',
+    loadChildren: () => import('../THIERRY/discounts/discounts.module').then( m => m.DiscountsPageModule)
   }
 ];
 

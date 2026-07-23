@@ -1,4 +1,7 @@
-<ion-content [fullscreen]="true" class="home-page">
+<ion-content
+  [fullscreen]="true"
+  class="home-page"
+>
   <div class="top-shell">
 
     <!-- Top user bar -->
@@ -38,41 +41,23 @@
       </button>
     </div>
 
-    <!-- Savings and investment dashboard -->
-    <div
-      class="combined-dashboard-card"
-      *ngIf="
-        isDashboardItemSelected('savings-goals') ||
-        isDashboardItemSelected('investment-tracking')
-      "
-      [class.single-section]="
-        isDashboardItemSelected('savings-goals') &&
-        !isDashboardItemSelected('investment-tracking')
-      "
-    >
-      <div class="card-header">
-        <h1>
-          Saving Goals
+    <!-- Customisable dashboard -->
+    <section class="custom-dashboard-section">
+      <div class="dashboard-main-heading">
+        <div>
+          <p class="dashboard-eyebrow">
+            My Dashboard
+          </p>
 
-          <span
-            *ngIf="
-              isDashboardItemSelected(
-                'investment-tracking'
-              )
-            "
-          >
-            & Investment
-          </span>
-        </h1>
+          <h1>Financial Overview</h1>
+        </div>
 
         <button
           type="button"
           class="dashboard-settings-btn"
-          title="Customize dashboard"
-          (click)="
-            openDashboardSelector();
-            $event.stopPropagation()
-          "
+          title="Customise dashboard"
+          aria-label="Customise dashboard"
+          (click)="openDashboardSelector()"
         >
           <ion-icon
             name="settings-outline"
@@ -80,131 +65,676 @@
         </button>
       </div>
 
-      <div class="card-content">
+      <div
+        class="dashboard-grid"
+        [class.single-dashboard-item]="
+          selectedDashboardItems.length === 1
+        "
+      >
 
-        <!-- Savings section -->
-        <div
-          class="section savings-section"
+        <!-- Savings Goals -->
+        <article
+          class="dashboard-widget savings-widget"
           *ngIf="
-            isDashboardItemSelected('savings-goals')
+            isDashboardItemSelected(
+              'savings-goals'
+            )
           "
         >
-          <div class="section-header">
-            <p class="summary-label">
-              Total Saved
-            </p>
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Savings Goals
+              </p>
 
-            <h2>
-              {{
-                totalSaved
-                  | currency:'USD':'symbol':'1.0-0'
-              }}
-            </h2>
-          </div>
-
-          <div class="goal-metrics">
-            <div
-              class="goal-row"
-              *ngFor="let goal of savingGoals"
-            >
-              <div class="goal-meta">
-                <p>{{ goal.name }}</p>
-
-                <span>
-                  {{
-                    goal.savedAmount
-                      | currency:'USD':'symbol':'1.0-0'
-                  }}
-                  /
-                  {{
-                    goal.targetAmount
-                      | currency:'USD':'symbol':'1.0-0'
-                  }}
-                </span>
-              </div>
-
-              <div class="goal-progress">
-                <ion-progress-bar
-                  [value]="getGoalProgress(goal)"
-                  [color]="goal.color"
-                ></ion-progress-bar>
-
-                <span class="goal-percent">
-                  {{ getGoalPercent(goal) }}%
-                </span>
-              </div>
+              <h2>
+                {{
+                  totalSaved
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.0-0'
+                }}
+              </h2>
             </div>
 
-            <div
-              class="empty-dashboard-goals"
-              *ngIf="savingGoals.length === 0"
-            >
-              No savings goals created yet.
-            </div>
+            <ion-icon
+              name="save-outline"
+            ></ion-icon>
           </div>
-        </div>
 
-        <!-- Investment section -->
-        <div
-          class="section investment-section"
+          <div
+            class="goal-row"
+            *ngFor="let goal of savingGoals"
+          >
+            <div class="goal-meta">
+              <strong>
+                {{ goal.name }}
+              </strong>
+
+              <span>
+                {{
+                  goal.savedAmount
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.0-0'
+                }}
+                /
+                {{
+                  goal.targetAmount
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.0-0'
+                }}
+              </span>
+            </div>
+
+            <ion-progress-bar
+              [value]="getGoalProgress(goal)"
+              [color]="goal.color"
+            ></ion-progress-bar>
+
+            <span class="goal-percent">
+              {{ getGoalPercent(goal) }}%
+            </span>
+          </div>
+
+          <div
+            class="widget-empty"
+            *ngIf="savingGoals.length === 0"
+          >
+            No savings goals created yet.
+          </div>
+
+          <button
+            type="button"
+            class="widget-action-button"
+            routerLink="/tabs/savings"
+          >
+            View Savings
+          </button>
+        </article>
+
+        <!-- Investment Tracking -->
+        <article
+          class="dashboard-widget investment-widget"
           *ngIf="
             isDashboardItemSelected(
               'investment-tracking'
             )
           "
         >
-          <div class="section-header">
-            <p class="summary-label">
-              Investment:
-            </p>
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Investment Tracking
+              </p>
 
-            <p class="summary-label">
-              Total P/L:
-            </p>
+              <h2>
+                {{
+                  investmentTotalValue
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.2-2'
+                }}
+              </h2>
+            </div>
 
-            <h2 style="color: #4ade80;">
-              +$200.00
-            </h2>
+            <ion-icon
+              name="trending-up-outline"
+            ></ion-icon>
           </div>
 
-          <div class="investment-list">
-            <div class="investment-item">
-              <span>Stock:</span>
-            </div>
+          <div class="investment-summary">
+            <span>Total profit/loss</span>
 
-            <div class="investment-item">
-              <span>Apple</span>
-              <span style="color: #4ade80;">
-                +100.00
+            <strong
+              [class.positive-value]="
+                investmentProfitLoss >= 0
+              "
+              [class.negative-value]="
+                investmentProfitLoss < 0
+              "
+            >
+              <span
+                *ngIf="
+                  investmentProfitLoss >= 0
+                "
+              >
+                +
+              </span>
+
+              {{
+                investmentProfitLoss
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+          <div
+            class="investment-row"
+            *ngFor="
+              let investment of investments;
+              trackBy: trackByInvestmentId
+            "
+          >
+            <div>
+              <strong>
+                {{ investment.name }}
+              </strong>
+
+              <span>
+                {{ investment.symbol }}
               </span>
             </div>
 
-            <div class="investment-item">
-              <span>Nvidia</span>
-              <span style="color: #4ade80;">
-                +150.00
+            <strong
+              [class.positive-value]="
+                getInvestmentProfit(
+                  investment
+                ) >= 0
+              "
+              [class.negative-value]="
+                getInvestmentProfit(
+                  investment
+                ) < 0
+              "
+            >
+              <span
+                *ngIf="
+                  getInvestmentProfit(
+                    investment
+                  ) >= 0
+                "
+              >
+                +
               </span>
+
+              {{
+                getInvestmentProfit(
+                  investment
+                )
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+          <div
+            class="widget-empty"
+            *ngIf="investments.length === 0"
+          >
+            No investments available.
+          </div>
+        </article>
+
+        <!-- Spending Summary -->
+        <article
+          class="dashboard-widget spending-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'spending-summary'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Spending Summary
+              </p>
+
+              <h2>
+                {{
+                  spendingThisMonth
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.2-2'
+                }}
+              </h2>
             </div>
 
-            <div class="investment-item">
-              <span>Tesla</span>
-              <span style="color: #ef4444;">
-                -50.00
-              </span>
+            <ion-icon
+              name="pie-chart-outline"
+            ></ion-icon>
+          </div>
+
+          <p class="widget-description">
+            Total merchant spending this month
+          </p>
+
+          <div class="summary-row">
+            <span>Transactions</span>
+
+            <strong>
+              {{ monthlyTransactionCount }}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Top merchant</span>
+
+            <strong>
+              {{ topSpendingMerchant }}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Average payment</span>
+
+            <strong>
+              {{
+                (
+                  monthlyTransactionCount > 0
+                    ? spendingThisMonth /
+                      monthlyTransactionCount
+                    : 0
+                )
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            class="widget-action-button"
+            routerLink="/tabs/pay"
+          >
+            Make Payment
+          </button>
+        </article>
+
+        <!-- Monthly Budget -->
+        <article
+          class="dashboard-widget budget-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'monthly-budget'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Monthly Budget
+              </p>
+
+              <h2>
+                {{
+                  monthlyBudget
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.0-0'
+                }}
+              </h2>
+            </div>
+
+            <ion-icon
+              name="calculator-outline"
+            ></ion-icon>
+          </div>
+
+          <div class="budget-labels">
+            <span>
+              Spent
+              {{
+                spendingThisMonth
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.0-0'
+              }}
+            </span>
+
+            <span>
+              Remaining
+              {{
+                budgetRemaining
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.0-0'
+              }}
+            </span>
+          </div>
+
+          <ion-progress-bar
+            [value]="budgetProgress"
+            [color]="
+              budgetProgress >= 1
+                ? 'danger'
+                : budgetProgress >= 0.8
+                  ? 'warning'
+                  : 'success'
+            "
+          ></ion-progress-bar>
+
+          <p
+            class="budget-warning"
+            *ngIf="budgetProgress >= 1"
+          >
+            You have reached your monthly budget.
+          </p>
+
+          <p
+            class="widget-description"
+            *ngIf="budgetProgress < 1"
+          >
+            You have used
+            {{ budgetProgress * 100 | number:'1.0-0' }}%
+            of your monthly budget.
+          </p>
+
+          <button
+            type="button"
+            class="widget-action-button"
+            (click)="changeMonthlyBudget()"
+          >
+            Change Budget
+          </button>
+        </article>
+
+        <!-- Rewards and Cashback -->
+        <article
+          class="dashboard-widget rewards-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'rewards-cashback'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Rewards & Cashback
+              </p>
+
+              <h2>
+                {{ rewardCoins }} coins
+              </h2>
+            </div>
+
+            <ion-icon
+              name="gift-outline"
+            ></ion-icon>
+          </div>
+
+          <div class="reward-metric">
+            <div class="metric-icon">
+              🪙
+            </div>
+
+            <div>
+              <span>Reward coins</span>
+
+              <strong>
+                {{ rewardCoins }}
+              </strong>
             </div>
           </div>
-        </div>
+
+          <div class="reward-metric">
+            <div class="metric-icon">
+              💵
+            </div>
+
+            <div>
+              <span>Cashback balance</span>
+
+              <strong>
+                {{
+                  cashbackBalance
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.2-2'
+                }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="reward-metric">
+            <div class="metric-icon">
+              🎫
+            </div>
+
+            <div>
+              <span>Available vouchers</span>
+
+              <strong>
+                {{ activeVoucherCount }}
+              </strong>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="widget-action-button"
+            routerLink="/tabs/discounts"
+          >
+            View Rewards
+          </button>
+        </article>
+
+        <!-- Upcoming Bills -->
+        <article
+          class="dashboard-widget bills-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'upcoming-bills'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Upcoming Bills
+              </p>
+
+              <h2>
+                {{ upcomingBills.length }}
+                upcoming
+              </h2>
+            </div>
+
+            <ion-icon
+              name="calendar-outline"
+            ></ion-icon>
+          </div>
+
+          <div
+            class="bill-row"
+            *ngFor="
+              let bill of upcomingBills;
+              trackBy: trackByBillId
+            "
+          >
+            <div>
+              <strong>
+                {{ bill.name }}
+              </strong>
+
+              <span>
+                Due
+                {{
+                  bill.dueDate
+                    | date:'dd MMM yyyy'
+                }}
+              </span>
+            </div>
+
+            <div class="bill-actions">
+              <strong>
+                {{
+                  bill.amount
+                    | currency:
+                      'SGD':
+                      'symbol-narrow':
+                      '1.2-2'
+                }}
+              </strong>
+
+              <button
+                type="button"
+                (click)="markBillPaid(bill.id)"
+              >
+                Mark paid
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="widget-empty"
+            *ngIf="upcomingBills.length === 0"
+          >
+            You have no upcoming bills.
+          </div>
+        </article>
+
+        <!-- Recent Transactions -->
+        <article
+          class="dashboard-widget transactions-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'recent-transactions'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Recent Transactions
+              </p>
+
+              <h2>
+                Latest payments
+              </h2>
+            </div>
+
+            <ion-icon
+              name="receipt-outline"
+            ></ion-icon>
+          </div>
+
+          <div
+            class="transaction-row"
+            *ngFor="
+              let payment of recentTransactions;
+              trackBy: trackByPaymentId
+            "
+          >
+            <div class="transaction-icon">
+              <ion-icon
+                name="storefront-outline"
+              ></ion-icon>
+            </div>
+
+            <div class="transaction-details">
+              <strong>
+                {{ payment.merchantName }}
+              </strong>
+
+              <span>
+                {{
+                  payment.paidAt
+                    | date:'dd MMM, h:mm a'
+                }}
+              </span>
+            </div>
+
+            <strong class="transaction-amount">
+              -{{
+                payment.amount
+                  | currency:
+                    'SGD':
+                    'symbol-narrow':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+          <div
+            class="widget-empty"
+            *ngIf="
+              recentTransactions.length === 0
+            "
+          >
+            No merchant payments yet.
+          </div>
+
+          <button
+            type="button"
+            class="widget-action-button"
+            routerLink="/tabs/pay"
+          >
+            View Payments
+          </button>
+        </article>
+
+        <!-- Financial Tips -->
+        <article
+          class="dashboard-widget tips-widget"
+          *ngIf="
+            isDashboardItemSelected(
+              'financial-tips'
+            )
+          "
+        >
+          <div class="widget-heading">
+            <div>
+              <p class="widget-label">
+                Financial Tips
+              </p>
+
+              <h2>
+                Smart money habits
+              </h2>
+            </div>
+
+            <ion-icon
+              name="bulb-outline"
+            ></ion-icon>
+          </div>
+
+          <div
+            class="financial-tip"
+            *ngFor="
+              let tip of financialTips;
+              let tipIndex = index
+            "
+          >
+            <span>
+              {{ tipIndex + 1 }}
+            </span>
+
+            <p>
+              {{ tip }}
+            </p>
+          </div>
+        </article>
 
       </div>
-    </div>
+    </section>
   </div>
 
-  <!-- Dashboard buttons -->
+  <!-- Dashboard settings and logout buttons -->
   <div class="settings-button-container">
     <button
       type="button"
       class="settings-btn"
-      title="Customize dashboard"
+      title="Customise dashboard"
       (click)="openDashboardSelector()"
     >
       <ion-icon
@@ -212,7 +742,7 @@
       ></ion-icon>
 
       <span>
-        Customize Dashboard
+        Customise Dashboard
       </span>
     </button>
 
@@ -226,11 +756,13 @@
         name="log-out-outline"
       ></ion-icon>
 
-      <span>Logout</span>
+      <span>
+        Logout
+      </span>
     </button>
   </div>
 
-  <!-- Account card is always visible -->
+  <!-- Account card -->
   <div class="account-card">
     <div class="account-heading">
       <h2>Account</h2>
@@ -242,7 +774,10 @@
       <strong>
         {{
           netWorth
-            | currency:'USD':'symbol':'1.0-0'
+            | currency:
+              'SGD':
+              'symbol-narrow':
+              '1.0-0'
         }}
       </strong>
     </div>
@@ -253,7 +788,10 @@
       <strong>
         {{
           balance
-            | currency:'USD':'symbol':'1.0-0'
+            | currency:
+              'SGD':
+              'symbol-narrow':
+              '1.0-0'
         }}
       </strong>
     </div>
@@ -264,7 +802,24 @@
       <strong>
         {{
           totalSaved
-            | currency:'USD':'symbol':'1.0-0'
+            | currency:
+              'SGD':
+              'symbol-narrow':
+              '1.0-0'
+        }}
+      </strong>
+    </div>
+
+    <div class="account-row">
+      <span>Investment value</span>
+
+      <strong>
+        {{
+          investmentTotalValue
+            | currency:
+              'SGD':
+              'symbol-narrow':
+              '1.0-0'
         }}
       </strong>
     </div>
@@ -289,7 +844,7 @@
     </button>
   </div>
 
-  <!-- Three new smaller tabs -->
+  <!-- More services -->
   <div class="quick-tabs-section">
     <h2>More Services</h2>
 

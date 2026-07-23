@@ -1,100 +1,161 @@
-import { Component, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import {
+  Component,
+  OnInit,
+} from '@angular/core';
+
+import {
+  ModalController
+} from '@ionic/angular';
+
+import {
+  DashboardItemId,
+  DashboardService,
+} from './dashboard.service';
+
+interface DashboardSelectorItem {
+  id: DashboardItemId;
+  label: string;
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-dashboard-selector-modal',
-  templateUrl: 'dashboard-selector-modal.component.html',
-  styleUrls: ['dashboard-selector-modal.component.scss'],
+  templateUrl:
+    'dashboard-selector-modal.component.html',
+  styleUrls: [
+    'dashboard-selector-modal.component.scss',
+  ],
   standalone: false,
 })
-export class DashboardSelectorModalComponent implements OnInit {
-  dashboardItems = [
-    { id: 'savings-goals', label: 'Savings Goals', selected: true },
-    { id: 'investment-tracking', label: 'Investment Tracking', selected: false },
-    { id: 'spending-summary', label: 'Spending Summary', selected: false },
-    { id: 'monthly-budget', label: 'Monthly Budget', selected: false },
-    { id: 'rewards-cashback', label: 'Rewards & Cashback', selected: false },
-    { id: 'upcoming-bills', label: 'Upcoming Bills', selected: false },
-    { id: 'recent-transactions', label: 'Recent Transactions', selected: false },
-    { id: 'financial-tips', label: 'Financial Tips', selected: false },
+export class DashboardSelectorModalComponent
+  implements OnInit {
+  dashboardItems: DashboardSelectorItem[] = [
+    {
+      id: 'savings-goals',
+      label: 'Savings Goals',
+      selected: false,
+    },
+    {
+      id: 'investment-tracking',
+      label: 'Investment Tracking',
+      selected: false,
+    },
+    {
+      id: 'spending-summary',
+      label: 'Spending Summary',
+      selected: false,
+    },
+    {
+      id: 'monthly-budget',
+      label: 'Monthly Budget',
+      selected: false,
+    },
+    {
+      id: 'rewards-cashback',
+      label: 'Rewards & Cashback',
+      selected: false,
+    },
+    {
+      id: 'upcoming-bills',
+      label: 'Upcoming Bills',
+      selected: false,
+    },
+    {
+      id: 'recent-transactions',
+      label: 'Recent Transactions',
+      selected: false,
+    },
+    {
+      id: 'financial-tips',
+      label: 'Financial Tips',
+      selected: false,
+    },
   ];
 
-  selectedCount = 1;
+  selectedCount = 0;
 
-  constructor(private modalCtrl: ModalController) {}
+  constructor(
+    private modalCtrl: ModalController,
+    private dashboardService: DashboardService
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadSavedSelections();
+  }
+
+  loadSavedSelections(): void {
+    const savedItems =
+      this.dashboardService.getSelectedItems();
+
+    this.dashboardItems.forEach((item) => {
+      item.selected =
+        savedItems.includes(item.id);
+    });
+
     this.countSelected();
   }
 
-  loadSavedSelections() {
-    const saved = localStorage.getItem('dashboardItems');
-    if (saved) {
-      try {
-        const savedItems = JSON.parse(saved);
-        // Update the selected state based on saved items
-        this.dashboardItems.forEach(item => {
-          item.selected = savedItems.includes(item.id);
-        });
-        console.log('Loaded saved selections:', savedItems);
-      } catch (e) {
-        console.error('Error loading saved selections:', e);
-      }
-    }
+  countSelected(): void {
+    this.selectedCount =
+      this.dashboardItems.filter(
+        (item) => item.selected
+      ).length;
   }
 
-  countSelected() {
-    this.selectedCount = this.dashboardItems.filter(item => item.selected).length;
-    console.log('Selected count:', this.selectedCount);
-  }
+  onCheckboxChange(
+    item: DashboardSelectorItem,
+    event: CustomEvent<{
+      checked: boolean;
+    }>
+  ): void {
+    const checked =
+      event.detail.checked;
 
-  onCheckboxChange(item: any, event: any) {
-    // Explicitly set the selected value from the event
-    item.selected = event.detail.checked;
-    console.log('Checkbox changed:', item.label, 'to:', item.selected);
-    
-    const newCount = this.dashboardItems.filter(d => d.selected).length;
-    console.log('New count after change:', newCount);
-
-    // If now more than 2 are selected, revert the change
-    if (newCount > 2) {
-      console.log('More than 2 selected, reverting');
+    if (
+      checked &&
+      !item.selected &&
+      this.selectedCount >= 2
+    ) {
       item.selected = false;
       this.countSelected();
       return;
     }
 
+    item.selected = checked;
     this.countSelected();
   }
 
   isSaveDisabled(): boolean {
-    const isDisabled = this.selectedCount < 1 || this.selectedCount > 2;
-    console.log('Save disabled:', isDisabled, 'count:', this.selectedCount);
-    return isDisabled;
+    return (
+      this.selectedCount < 1 ||
+      this.selectedCount > 2
+    );
   }
 
-  async saveSettings() {
-    console.log('Saving settings. Count:', this.selectedCount);
-    
+  async saveSettings(): Promise<void> {
     if (this.isSaveDisabled()) {
-      console.log('Save is disabled, returning');
       return;
     }
 
-    const selected = this.dashboardItems
-      .filter(item => item.selected)
-      .map(item => item.id);
+    const selectedItems =
+      this.dashboardItems
+        .filter((item) => item.selected)
+        .map((item) => item.id);
 
-    console.log('Selected items:', selected);
+    const savedItems =
+      this.dashboardService.saveSelectedItems(
+        selectedItems
+      );
 
     await this.modalCtrl.dismiss({
-      data: selected,
+      data: savedItems,
       saved: true,
     });
   }
 
-  closeModal() {
-    this.modalCtrl.dismiss();
+  closeModal(): void {
+    this.modalCtrl.dismiss({
+      saved: false,
+    });
   }
 }

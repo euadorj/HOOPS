@@ -182,7 +182,86 @@
             Amount must be greater than $0
           </div>
         </div>
+<div class="input-group">
+  <label>Voucher</label>
 
+  <ion-item
+    lines="none"
+    class="rounded-input"
+  >
+    <ion-icon
+      name="ticket-outline"
+      slot="start"
+    ></ion-icon>
+
+    <ion-select
+      formControlName="voucherId"
+      placeholder="No voucher"
+      interface="popover"
+    >
+      <ion-select-option value="">
+        No voucher
+      </ion-select-option>
+
+      <ion-select-option
+        *ngFor="
+          let voucher of applicableVouchers;
+          trackBy: trackByVoucherId
+        "
+        [value]="voucher.id"
+      >
+        {{ voucher.title }}
+        — Save ${{ voucher.discountAmount }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <div
+    class="voucher-help"
+    *ngIf="
+      originalAmount > 0 &&
+      applicableVouchers.length === 0
+    "
+  >
+    No eligible vouchers for this merchant and
+    payment amount.
+  </div>
+</div>
+
+<div
+  class="payment-summary"
+  *ngIf="originalAmount > 0"
+>
+  <div>
+    <span>Original amount</span>
+    <strong>
+      {{
+        originalAmount
+          | currency:'SGD':'symbol-narrow':'1.2-2'
+      }}
+    </strong>
+  </div>
+
+  <div *ngIf="selectedVoucher">
+    <span>Voucher discount</span>
+    <strong class="discount-value">
+      -{{
+        discountAmount
+          | currency:'SGD':'symbol-narrow':'1.2-2'
+      }}
+    </strong>
+  </div>
+
+  <div class="final-row">
+    <span>Final payment</span>
+    <strong>
+      {{
+        finalAmount
+          | currency:'SGD':'symbol-narrow':'1.2-2'
+      }}
+    </strong>
+  </div>
+</div>
         <ion-button
           expand="block"
           type="submit"

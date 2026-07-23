@@ -318,3 +318,36 @@
     font-size: 28px;
   }
 }
+
+.voucher-help {
+  margin: 7px 4px 0;
+  color: #77829a;
+  font-size: 12px;
+}
+
+.payment-summary {
+  display: grid;
+  gap: 9px;
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f4f3ff;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    color: #536078;
+  }
+
+  .discount-value {
+    color: #15803d;
+  }
+
+  .final-row {
+    padding-top: 10px;
+    border-top: 1px solid #d8d6f5;
+    color: #26334c;
+    font-size: 16px;
+  }
+}

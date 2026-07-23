@@ -51,19 +51,26 @@ const routes: Routes = [
             .then((m) => m.SharedWalletsPageModule)
       },
       {
-  path: 'transfer',
-  canActivate: [AuthGuard],
-  loadChildren: () =>
-    import('../THIERRY/transfer/transfer.module')
-      .then((m) => m.TransferPageModule)
-},
-{
-  path: 'pay',
-  canActivate: [AuthGuard],
-  loadChildren: () =>
-    import('../THIERRY/pay/pay.module')
-      .then((m) => m.PayPageModule)
-},
+        path: 'transfer',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('../THIERRY/transfer/transfer.module')
+            .then((m) => m.TransferPageModule)
+      },
+      {
+        path: 'pay',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('../THIERRY/pay/pay.module')
+            .then((m) => m.PayPageModule)
+      },
+      {
+        path: 'discounts',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+          import('../THIERRY/discounts/discounts.module')
+            .then((m) => m.DiscountsPageModule)
+      },
       {
         path: '',
         redirectTo: 'tab1',
