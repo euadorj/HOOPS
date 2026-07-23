@@ -1,17 +1,122 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="discover-page">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Purple Header -->
+  <div class="header">
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+    <div class="top-row">
+
+      <div class="profile">
+
+        <img src="assets/avatar.png" alt="Avatar">
+
+        <span>Hi, Thierry</span>
+
+      </div>
+
+      <div class="notification">
+
+        <ion-icon name="notifications-outline"></ion-icon>
+
+        <div class="badge">3</div>
+
+      </div>
+
+    </div>
+
+    <div class="discover-card">
+
+      <h2>Discover Shops</h2>
+
+    </div>
+
+  </div>
+
+  <!-- White Body -->
+  <div class="content">
+
+    <div class="search-container">
+
+      <ion-searchbar 
+      [(ngModel)]="searchText" 
+      placeholder="Search shops..." 
+      show-clear-button="focus" 
+      animated="true">
+      </ion-searchbar>
+
+    </div>
+
+    <div class="section-title">
+
+      <h3>Browse by Category</h3>
+
+      <span>See All</span>
+
+    </div>
+
+    <div class="category-grid">
+
+      <div class="category-card" 
+      *ngFor="let category of categories" 
+      (click)="selectCategory(category.name)"
+      [class.active]="selectedCategory === category.type">
+
+        <div class="icon-circle">
+
+          <ion-icon [name]="category.icon"></ion-icon>
+
+        </div>
+
+        <p>{{ category.name }}</p>
+
+      </div>
+
+    </div>
+    <div class="section-title shop-title">
+
+      <h3>Suggested Shops</h3>
+
+      <span>See All</span>
+
+    </div>
+
+    <div class="shop-card" *ngFor="let shop of filteredShops">
+
+      <div class="shop-left">
+
+        <div class="shop-logo">
+          <img [src]="shop.image" [alt]="shop.name">
+        </div>
+
+        <div class="shop-info">
+
+          <h4>{{ shop.name }}</h4>
+
+          <p>{{ shop.category }}</p>
+
+          <div class="rating">
+
+            ⭐ {{ shop.rating }}
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="shop-right">
+
+        <span class="cashback">
+
+          {{ shop.cashback }}
+
+        </span>
+
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </ion-content>
