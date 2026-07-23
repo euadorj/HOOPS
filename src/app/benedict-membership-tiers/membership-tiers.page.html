@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/BENEDICT_REWARDS"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Membership Tiers</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="page-sub" *ngIf="currentTier">
+    Your current tier: <b>{{ currentTier }}</b>
+  </div>
+
+  <ion-card class="tier-card blue">
+    <ion-card-header>
+      <ion-card-title>Blue Member Rewards</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>• Birthday Coupon</p>
+      <p>• Points multiplier: 1x</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="tier-card silver">
+    <ion-card-header>
+      <ion-card-title>Silver Member Rewards</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>• Upgrade Reward</p>
+      <p>• Points multiplier: 1.2x</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="tier-card gold">
+    <ion-card-header>
+      <ion-card-title>Gold Member Rewards</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>• Free Coffee Beans Upgrade</p>
+      <p>• Points multiplier: 1.5x</p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card class="tier-card platinum">
+    <ion-card-header>
+      <ion-card-title>Platinum Member Rewards</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>• Free Coffee Beans Upgrade</p>
+      <p>• Points multiplier: 3.0x</p>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -31,6 +31,10 @@ const routes: Routes = [
     path: 'benedict-rewards',
     loadChildren: () => import('./benedict-rewards/benedict-rewards.module').then( m => m.BENEDICTREWARDSPageModule)
   },
+  {
+    path: 'membership-tiers',
+    loadChildren: () => import('./benedict-membership-tiers/membership-tiers.module').then( m => m.MembershipTiersPageModule)
+  },
 ];
 @NgModule({
   imports: [

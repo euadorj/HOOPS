@@ -9,50 +9,62 @@
 
 <ion-content class="ion-padding">
 
-  <!-- Profile card -->
-  <ion-card class="profile-card" [ngClass]="tierColorClass">
-    <div class="profile-header">
-      <div class="profile-avatar"></div>
+<!-- Profile card -->
+<ion-card class="profile-card" [ngClass]="tierColorClass" (click)="openTiers()">
+  <div class="profile-header">
+    <div class="profile-avatar"></div>
 
-      <div class="profile-meta">
-        <div class="profile-name">{{ name }}</div>
-        <div class="profile-tier">{{ tier }}</div>
+    <div class="profile-meta">
+      <div class="profile-name">{{ name }}</div>
+      <div class="profile-tier">{{ tier }}</div>
 
-        <div class="profile-saving">
-          <div class="label">Total savings:</div>
-          <div class="value">${{ totalSavings.toFixed(2) }}</div>
-        </div>
+      <div class="profile-saving">
+        <div class="label">Total savings:</div>
+        <div class="value">${{ totalSavings.toFixed(2) }}</div>
       </div>
     </div>
+  </div>
 
-    <!-- Points row -->
-    <!-- Points row -->
-    <div class="points-row">
-      <div class="points-pill">
-        <div class="big">{{ points.toFixed(2) }}</div>
-        <div class="small">Blue</div>
-      </div>
-
-      <div class="points-controls">
-        <ion-button class="delta-btn" (click)="decreasePoints()" fill="clear">−</ion-button>
-        <ion-button class="delta-btn" (click)="increasePoints()" fill="clear">+</ion-button>
-      </div>
-
-      <div class="points-pill">
-        <div class="big">{{ pointsGold.toFixed(2) }}</div>
-        <div class="small">Gold</div>
-      </div>
+  <!-- Points row -->
+  <div class="points-row">
+    <div class="points-pill">
+      <div class="big">{{ points.toFixed(2) }}</div>
+      <div class="small">Blue</div>
     </div>
 
-    <!-- Tier progress -->
-    <div class="tier-progress">
-      <ion-progress-bar [value]="tierPercent / 100" class="progress-bar"></ion-progress-bar>
-      <div class="tier-labels">
-        <div *ngFor="let t of tiers" class="tier-label">{{ t }}</div>
-      </div>
+    <div class="points-controls">
+      <ion-button
+        class="delta-btn"
+        (click)="decreasePoints(); $event.stopPropagation()"
+        fill="clear"
+      >
+        −
+      </ion-button>
+
+      <ion-button
+        class="delta-btn"
+        (click)="increasePoints(); $event.stopPropagation()"
+        fill="clear"
+      >
+        +
+      </ion-button>
     </div>
 
-  </ion-card>
+    <div class="points-pill">
+      <div class="big">{{ pointsGold.toFixed(2) }}</div>
+      <div class="small">Gold</div>
+    </div>
+  </div>
+
+  <!-- Tier progress -->
+  <div class="tier-progress">
+    <ion-progress-bar [value]="tierPercent / 100" class="progress-bar"></ion-progress-bar>
+    <div class="tier-labels">
+      <div *ngFor="let t of tiers" class="tier-label">{{ t }}</div>
+    </div>
+  </div>
+</ion-card>
+
 
   <!-- Action buttons -->
   <div class="action-grid">

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-benedict-rewards',
@@ -27,7 +28,7 @@ export class BENEDICTREWARDSPage implements OnInit {
   // bottom tiles / promo
   promoCount = 152;
   promoMult = 18;
-  constructor() {}
+  constructor(private router: Router) {}
 
   ngOnInit() {
     this.syncTierFromPoints();
@@ -82,5 +83,10 @@ export class BENEDICTREWARDSPage implements OnInit {
 
     this.tier = 'Platinum Member';
     this.tierColorClass = 'tier-platinum';
+  }
+
+  openTiers(){
+    this.router.navigate(['/membership-tiers']),
+    this.tier;
   }
 }
