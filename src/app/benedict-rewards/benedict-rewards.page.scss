@@ -322,6 +322,24 @@
   cursor: pointer;
 }
 
-.profile-card:active {
-  transform: scale(0.99);
+.profile-card.is-shaking {
+  animation: membership-card-shake 0.22s ease-in-out;
+}
+
+@keyframes membership-card-shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }

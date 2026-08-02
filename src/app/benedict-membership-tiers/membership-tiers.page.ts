@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-
-type TierKey = 'Blue' | 'Silver' | 'Gold';
+import {
+  BENEDICT_TIERS,
+  BenedictTier,
+  BenedictTierKey,
+  isBenedictTierKey,
+} from '../benedict-tier.config';
 
 @Component({
   selector: 'app-membership-tiers',
@@ -10,12 +14,27 @@ type TierKey = 'Blue' | 'Silver' | 'Gold';
   standalone: false
 })
 export class MembershipTiersPage implements OnInit {
-  currentTier?: TierKey;
+  tiers = BENEDICT_TIERS;
+  currentTier?: BenedictTier;
 
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
-    const t = this.route.snapshot.queryParamMap.get('tier') as TierKey | null;
-    this.currentTier = t ?? undefined;
+    const tierFromQuery = this.route.snapshot.queryParamMap.get('tier');
+
+    if (!tierFromQuery || !isBenedictTierKey(tierFromQuery)) {
+      this.currentTier = undefined;
+      return;
+    }
+
+    this.currentTier = this.findTierByKey(tierFromQuery);
+  }
+
+  isCurrentTier(tier: BenedictTier): boolean {
+    return tier.key === this.currentTier?.key;
+  }
+
+  private findTierByKey(key: BenedictTierKey): BenedictTier {
+    return this.tiers.find((tier) => tier.key === key) ?? this.tiers[0];
   }
 }

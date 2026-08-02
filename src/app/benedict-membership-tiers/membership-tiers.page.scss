@@ -7,6 +7,10 @@
   margin-bottom: 14px;
 }
 
+.tier-card.current {
+  box-shadow: 0 0 0 2px rgba(30, 102, 255, 0.24);
+}
+
 .tier-card.blue {
   border-left: 6px solid #1e66ff;
 }

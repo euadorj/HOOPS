@@ -10,7 +10,11 @@
 <ion-content class="ion-padding">
 
 <!-- Profile card -->
-<ion-card class="profile-card" [ngClass]="tierColorClass" (click)="openTiers()">
+<ion-card
+  class="profile-card"
+  [ngClass]="[tierColorClass, isCardShaking ? 'is-shaking' : '']"
+  (click)="openTiers()"
+>
   <div class="profile-header">
     <div class="profile-avatar"></div>
 
@@ -29,10 +33,15 @@
   <div class="points-row">
     <div class="points-pill">
       <div class="big">{{ points.toFixed(2) }}</div>
-      <div class="small">Blue</div>
+      <div class="small">{{ activeTier.label }}</div>
     </div>
 
-    <div class="points-controls">
+    <div
+      class="points-controls"
+      (click)="$event.stopPropagation()"
+      (mousedown)="$event.stopPropagation()"
+      (touchstart)="$event.stopPropagation()"
+    >
       <ion-button
         class="delta-btn"
         (click)="decreasePoints(); $event.stopPropagation()"
@@ -52,7 +61,7 @@
 
     <div class="points-pill">
       <div class="big">{{ pointsGold.toFixed(2) }}</div>
-      <div class="small">Gold</div>
+      <div class="small">{{ nextTierLabel }}</div>
     </div>
   </div>
 
@@ -60,7 +69,7 @@
   <div class="tier-progress">
     <ion-progress-bar [value]="tierPercent / 100" class="progress-bar"></ion-progress-bar>
     <div class="tier-labels">
-      <div *ngFor="let t of tiers" class="tier-label">{{ t }}</div>
+      <div *ngFor="let t of tiers" class="tier-label">{{ t.label }}</div>
     </div>
   </div>
 </ion-card>

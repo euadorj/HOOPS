@@ -1,5 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import {
+  BENEDICT_MAX_POINTS,
+  BENEDICT_TIERS,
+  BenedictTier,
+  resolveBenedictTierFromPoints,
+} from '../benedict-tier.config';
 
 @Component({
   selector: 'app-benedict-rewards',
@@ -9,21 +15,15 @@ import { Router } from '@angular/router';
 })
 export class BENEDICTREWARDSPage implements OnInit {
   name = 'John Smith';
-  tier = 'Silver Member';
 
   totalSavings = 110.54;
   points = 84.06;
   pointsGold = 5.94;
 
-  // fake tier progress (adjust as needed)
-  tiers = ['Blue', 'Silver', 'Gold', 'Platinum'];
-  tierPercent = 58;
-  tierColorClass = 'tier-silver';
-
-  private maxPoints = 150;
-  private blueMaxPoints = 49;
-  private silverMaxPoints = 99;
-  private platinumCutoffPoints = 120;
+  tiers = BENEDICT_TIERS;
+  tierPercent = 0;
+  activeTier: BenedictTier = BENEDICT_TIERS[0];
+  isCardShaking = false;
 
   // bottom tiles / promo
   promoCount = 152;
@@ -41,52 +41,49 @@ export class BENEDICTREWARDSPage implements OnInit {
 
   decreasePoints() {
     this.points -= 5;
-    if (this.points < 0) this.points = 0;
     this.syncTierFromPoints();
   }
 
-  private syncTierFromPoints() {
-    // Convert points -> percent for the progress bar + tier boundaries
-    this.tierPercent = Math.max(
-      0,
-      Math.min(100, (this.points / this.maxPoints) * 100),
-    );
-
-    const step = 100 / this.tiers.length;
-
-    let idx: number;
-    if (this.tierPercent < step)
-      idx = 0; // Blue
-    else if (this.tierPercent < step * 2)
-      idx = 1; // Silver
-    else if (this.tierPercent < step * 3)
-      idx = 2; // Gold
-    else idx = 3; // Platinum
-
-    if (this.points <= this.blueMaxPoints) {
-      this.tier = 'Blue Member';
-      this.tierColorClass = 'tier-blue';
-      return;
-    }
-
-    if (this.points <= this.silverMaxPoints) {
-      this.tier = 'Silver Member';
-      this.tierColorClass = 'tier-silver';
-      return;
-    }
-
-    if (this.points < this.platinumCutoffPoints) {
-      this.tier = 'Gold Member';
-      this.tierColorClass = 'tier-gold';
-      return;
-    }
-
-    this.tier = 'Platinum Member';
-    this.tierColorClass = 'tier-platinum';
+  get tier(): string {
+    return this.activeTier.memberLabel;
   }
 
-  openTiers(){
-    this.router.navigate(['/membership-tiers']),
-    this.tier;
+  get tierColorClass(): string {
+    return this.activeTier.profileClass;
+  }
+
+  get nextTierLabel(): string {
+    const activeIndex = this.tiers.findIndex(
+      (tier) => tier.key === this.activeTier.key,
+    );
+
+    if (activeIndex < 0 || activeIndex === this.tiers.length - 1) {
+      return this.activeTier.label;
+    }
+
+    return this.tiers[activeIndex + 1].label;
+  }
+
+  private syncTierFromPoints() {
+    const clampedPoints = Math.max(0, Math.min(this.points, BENEDICT_MAX_POINTS));
+
+    this.points = clampedPoints;
+    this.tierPercent = (clampedPoints / BENEDICT_MAX_POINTS) * 100;
+    this.activeTier = resolveBenedictTierFromPoints(clampedPoints);
+  }
+
+  openTiers() {
+    if (this.isCardShaking) {
+      return;
+    }
+
+    this.isCardShaking = true;
+
+    setTimeout(() => {
+      this.router.navigate(['/membership-tiers'], {
+        queryParams: { tier: this.activeTier.key },
+      });
+      this.isCardShaking = false;
+    }, 220);
   }
 }

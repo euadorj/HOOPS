@@ -35,55 +35,141 @@
   <!-- Bar chart area -->
   <ion-card class="chart-card">
     <div class="chart-bars-wrap">
+      <div *ngIf="selectedToolTipMonthIndex !== null" class="money-tooltip-panel" role="status">
+        <div class="tooltip-month">{{ months[selectedToolTipMonthIndex] }}</div>
+        <div class="tooltip-row">
+          <span>Total income:</span>
+          <span class="tooltip-value">{{ fmtCurrency(getMoneyIn(selectedToolTipMonthIndex)) }}</span>
+        </div>
+
+        <div class="tooltip-row">
+          <span>Total expenses:</span>
+          <span class="tooltip-value">{{ fmtCurrency(getMoneyOut(selectedToolTipMonthIndex)) }}</span>
+        </div>
+
+        <div
+          class="tooltip-row net"
+          [ngClass]="getNetProfitFor(selectedToolTipMonthIndex) >= 0 ? 'net-profit' : 'net-loss'"
+        >
+          <span>Net profit:</span>
+          <span class="tooltip-value">{{ fmtNetProfit(getNetProfitFor(selectedToolTipMonthIndex)) }}</span>
+        </div>
+      </div>
+
       <div class="chart-bars" role="list" aria-label="Expenses split by month">
         <button *ngFor="let m of months; let i = index" class="month-bar-btn" role="listitem" type="button"
           [style.opacity]="getMonthOpacity(i)">
-          <div class="bars-two-row">
-            <!-- Series A (green) -->
-            <div class="bar-slot" (click)="onMonthClick(i, 'A'); onMonthSingleClickTooltip(i); $event.stopPropagation()">
-              <div *ngIf="!isExpandedMonthA(i)" class="bar-single" [style.height.%]="monthTotalsA[i]"></div>
+          <div class="bars-area">
+            <div class="bars-two-row">
+              <!-- Red column: Money out -->
+              <div
+                class="bar-slot"
+                (click)="onMonthClick(i); onMonthSingleClickTooltip(i); $event.stopPropagation()"
+                (dblclick)="onBarDoubleClick(i, 'out'); $event.stopPropagation()"
+              >
+                <div *ngIf="!isBarExpanded(i, 'out')" class="bar-single bar-single-out" [style.height.%]="monthTotalsOut[i]"></div>
+                <div *ngIf="isBarExpanded(i, 'out')" class="bar-stack" [style.height.%]="monthTotalsOut[i]">
+                  <div
+                    *ngFor="let seg of getBarSegments(i, 'out')"
+                    class="seg"
+                    [style.height.%]="seg.percent"
+                    [style.backgroundColor]="seg.color"
+                    [attr.title]="seg.name + ' ' + seg.percentText"
+                  ></div>
+                </div>
+              </div>
 
-              <div *ngIf="isExpandedMonthA(i)" class="bar-stack" aria-hidden="true">
-                <div *ngFor="let seg of getStackSegmentsA(i)" class="seg" [style.height.%]="seg.percent"
-                  [style.backgroundColor]="seg.color"></div>
+              <!-- Green column: Money in -->
+              <div
+                class="bar-slot"
+                (click)="onMonthClick(i); onMonthSingleClickTooltip(i); $event.stopPropagation()"
+                (dblclick)="onBarDoubleClick(i, 'in'); $event.stopPropagation()"
+              >
+                <div *ngIf="!isBarExpanded(i, 'in')" class="bar-single bar-single-in" [style.height.%]="monthTotalsIn[i]"></div>
+                <div *ngIf="isBarExpanded(i, 'in')" class="bar-stack" [style.height.%]="monthTotalsIn[i]">
+                  <div
+                    *ngFor="let seg of getBarSegments(i, 'in')"
+                    class="seg"
+                    [style.height.%]="seg.percent"
+                    [style.backgroundColor]="seg.color"
+                    [attr.title]="seg.name + ' ' + seg.percentText"
+                  ></div>
+                </div>
               </div>
             </div>
 
-            <!-- Series B (purple/blue) -->
-            <div class="bar-slot" (click)="onMonthClick(i, 'B'); onMonthSingleClickTooltip(i); $event.stopPropagation()">
-              <div *ngIf="!isExpandedMonthB(i)" class="bar-single bar-single-b" [style.height.%]="monthTotalsB[i]">
-              </div>
-
-              <div *ngIf="isExpandedMonthB(i)" class="bar-stack" aria-hidden="true">
-                <div *ngFor="let seg of getStackSegmentsB(i)" class="seg" [style.height.%]="seg.percent"
-                  [style.backgroundColor]="seg.color"></div>
-              </div>
-            </div>
           </div>
 
           <div class="bar-label">{{ m }}</div>
-          <div *ngIf="isTooltipVisibleFor(i)" class="money-tooltip" role="status">
-            <div class="tooltip-row">
-              <span>Money in:</span>
-              <span class="tooltip-value">{{ fmtMoney(monthMoneyIn[i]) }}</span>
-            </div>
-
-            <div class="tooltip-row">
-              <span>Money out:</span>
-              <span class="tooltip-value">{{ fmtMoney(monthMoneyOut[i]) }}</span>
-            </div>
-
-            <div class="tooltip-row net">
-              <span>Net profit:</span>
-              <span class="tooltip-value">{{ fmtMoney(getNetProfitFor(i)) }}</span>
-            </div>
-          </div>
         </button>
 
       </div>
-      <p>Legend:
-        
-      </p>
+      <div class="legend-head">Legend ({{ selectedMonthLabel }} categories)</div>
+      <div class="legend-grid">
+        <div class="legend-item" *ngFor="let category of selectedMonthCategories">
+          <span class="legend-swatch" [style.backgroundColor]="category.color"></span>
+          <span class="legend-name">{{ category.name }}</span>
+          <span class="legend-type" [ngClass]="category.type">{{ category.type === 'in' ? 'Money in' : 'Money out' }}</span>
+        </div>
+      </div>
+
+      <div class="category-editor">
+        <div class="editor-title">Manage categories (Create / Update / Delete)</div>
+
+        <div class="editor-grid">
+          <label>
+            <span>Month</span>
+            <select [(ngModel)]="categoryForm.monthIndex">
+              <option *ngFor="let m of months; let i = index" [ngValue]="i">{{ m }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Category name</span>
+            <input [(ngModel)]="categoryForm.name" type="text" placeholder="e.g. Shopping" />
+          </label>
+
+          <label>
+            <span>Amount</span>
+            <input [(ngModel)]="categoryForm.amount" type="number" min="0" step="1" />
+          </label>
+
+          <label>
+            <span>Color</span>
+            <input [(ngModel)]="categoryForm.color" type="color" />
+          </label>
+
+          <label>
+            <span>Type</span>
+            <select [(ngModel)]="categoryForm.type">
+              <option value="out">Money out</option>
+              <option value="in">Money in</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="editor-actions">
+          <button type="button" (click)="saveCategory()">
+            {{ categoryForm.id ? 'Update category' : 'Create category' }}
+          </button>
+        </div>
+
+        <div class="category-list">
+          <div class="category-list-row" *ngFor="let category of getCategoriesForMonth(selectedMonthIndex)">
+            <div class="cat-meta">
+              <span class="cat-swatch" [style.backgroundColor]="category.color"></span>
+              <span class="cat-name">{{ category.name }}</span>
+              <span class="cat-amount">{{ category.type === 'in' ? '+' : '-' }}${{ category.amount }}</span>
+            </div>
+            <div class="cat-actions">
+              <button type="button" (click)="editCategory(selectedMonthIndex, category)">Edit</button>
+              <button type="button" class="danger" (click)="deleteCategory(selectedMonthIndex, category.id)">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="legend-row">
         <div class="today-label">Today</div>
@@ -91,26 +177,15 @@
 
       <!-- Transaction list -->
       <div class="tx">
-        <div class="tx-item">
+        <div class="tx-item" *ngFor="let tx of todayTransactions">
           <div class="tx-left">
-            <div class="dot"></div>
+            <div class="tx-color-box" [style.backgroundColor]="tx.color"></div>
             <div class="tx-text">
-              <div class="tx-title">{{ todayBadge }}</div>
-              <div class="tx-sub">{{ todayStatus }}</div>
+              <div class="tx-title">{{ tx.title }}</div>
+              <div class="tx-sub">{{ tx.subtitle }}</div>
             </div>
           </div>
-          <div class="tx-amt danger">{{ fmtInt(todayAmount) }}</div>
-        </div>
-
-        <div class="tx-item">
-          <div class="tx-left">
-            <div class="square"></div>
-            <div class="tx-text">
-              <div class="tx-title">{{ yesterdayTitle }}</div>
-              <div class="tx-sub">Yesterday</div>
-            </div>
-          </div>
-          <div class="tx-amt success">{{ fmtInt(yesterdayAmount) }}</div>
+          <div class="tx-amt" [ngClass]="tx.amount < 0 ? 'danger' : 'success'">{{ fmtInt(tx.amount) }}</div>
         </div>
       </div>
     </div>
