@@ -1,153 +1,255 @@
 <ion-header>
+
   <ion-toolbar class="pay-toolbar">
+
     <ion-buttons slot="start">
+
       <ion-back-button
         defaultHref="/tabs/tab1"
         text=""
         color="light"
       ></ion-back-button>
+
     </ion-buttons>
 
-    <ion-title>Pay</ion-title>
+
+    <ion-title>
+      Pay
+    </ion-title>
+
   </ion-toolbar>
+
 </ion-header>
+
 
 <ion-content
   [fullscreen]="true"
   class="pay-page"
 >
+
   <div class="pay-container">
 
+
+    <!-- PAGE HEADING -->
     <div class="page-heading">
-      <h1>Merchant Payment</h1>
+
+      <h1>
+        Merchant Payment
+      </h1>
 
       <p>
         Select a merchant and enter the amount
         you would like to pay.
       </p>
+
     </div>
 
-    <!-- Available balance -->
+
+    <!-- AVAILABLE BALANCE -->
     <div class="balance-card">
+
       <div>
-        <p>Available Balance</p>
+
+        <p>
+          Available Balance
+        </p>
 
         <h2>
+
           {{
             financeData.balance
               | currency:'SGD':'symbol-narrow':'1.2-2'
           }}
+
         </h2>
+
       </div>
+
 
       <ion-icon
         name="wallet-outline"
       ></ion-icon>
+
     </div>
 
-    <!-- Success message -->
+
+    <!-- SUCCESS -->
     <div
       class="page-message success-message"
       *ngIf="successMessage"
     >
+
       <ion-icon
         name="checkmark-circle-outline"
       ></ion-icon>
 
-      <span>{{ successMessage }}</span>
+      <span>
+        {{ successMessage }}
+      </span>
+
     </div>
 
-    <!-- Error message -->
+
+    <!-- ERROR -->
     <div
       class="page-message error-message"
       *ngIf="errorMessage"
     >
+
       <ion-icon
         name="alert-circle-outline"
       ></ion-icon>
 
-      <span>{{ errorMessage }}</span>
+      <span>
+        {{ errorMessage }}
+      </span>
+
     </div>
 
-    <!-- Merchant selection -->
+
+    <!-- ================================= -->
+    <!-- MERCHANTS -->
+    <!-- ================================= -->
+
     <section class="merchant-section">
-      <h2>Select Merchant</h2>
+
+      <h2>
+        Select Merchant
+      </h2>
+
 
       <div class="merchant-grid">
+
         <button
           type="button"
           class="merchant-card"
-          *ngFor="let merchant of merchants"
-          [class.selected]="
-            selectedMerchant?.name === merchant.name
+
+          *ngFor="
+            let merchant of merchants
           "
-          (click)="selectMerchant(merchant)"
+
+          [class.selected]="
+            selectedMerchant?.name ===
+            merchant.name
+          "
+
+          (click)="
+            selectMerchant(
+              merchant
+            )
+          "
         >
+
           <div class="merchant-icon">
+
             <ion-icon
               [name]="merchant.icon"
             ></ion-icon>
+
           </div>
 
-          <strong>{{ merchant.name }}</strong>
-          <span>{{ merchant.category }}</span>
+
+          <strong>
+            {{ merchant.name }}
+          </strong>
+
+
+          <span>
+            {{ merchant.category }}
+          </span>
+
         </button>
+
       </div>
+
     </section>
 
-    <!-- Payment form -->
+
+    <!-- ================================= -->
+    <!-- PAYMENT -->
+    <!-- ================================= -->
+
     <section class="payment-card">
-      <h2>Payment Details</h2>
+
+      <h2>
+        Payment Details
+      </h2>
+
 
       <form
         [formGroup]="paymentForm"
         (ngSubmit)="confirmPayment()"
         novalidate
       >
+
+
+        <!-- SELECTED MERCHANT -->
         <div class="input-group">
-          <label>Selected merchant</label>
+
+          <label>
+            Selected merchant
+          </label>
+
 
           <ion-item
             lines="none"
             class="rounded-input"
           >
+
             <ion-icon
               name="storefront-outline"
               slot="start"
             ></ion-icon>
+
 
             <ion-input
               formControlName="merchantName"
               placeholder="Select a merchant above"
               readonly="true"
             ></ion-input>
+
           </ion-item>
+
 
           <div
             class="validation-error"
             *ngIf="
-              (merchantControl?.touched ||
-                submitted) &&
+              (
+                merchantControl?.touched ||
+                submitted
+              )
+              &&
               merchantControl?.hasError(
                 'required'
               )
             "
           >
+
             Please select a merchant
+
           </div>
+
         </div>
 
+
+        <!-- PAYMENT AMOUNT -->
         <div class="input-group">
-          <label>Payment amount</label>
+
+          <label>
+            Payment amount
+          </label>
+
 
           <ion-item
             lines="none"
             class="rounded-input"
           >
+
             <ion-icon
               name="cash-outline"
               slot="start"
             ></ion-icon>
+
 
             <ion-input
               formControlName="amount"
@@ -156,187 +258,536 @@
               min="0.01"
               placeholder="0.00"
             ></ion-input>
+
           </ion-item>
+
 
           <div
             class="validation-error"
             *ngIf="
-              (amountControl?.touched ||
-                submitted) &&
+              (
+                amountControl?.touched ||
+                submitted
+              )
+              &&
               amountControl?.hasError(
                 'required'
               )
             "
           >
+
             Payment amount is required
+
           </div>
+
 
           <div
             class="validation-error"
             *ngIf="
-              (amountControl?.touched ||
-                submitted) &&
-              amountControl?.hasError('min')
+              (
+                amountControl?.touched ||
+                submitted
+              )
+              &&
+              amountControl?.hasError(
+                'min'
+              )
             "
           >
+
             Amount must be greater than $0
+
           </div>
+
         </div>
-<div class="input-group">
-  <label>Voucher</label>
 
-  <ion-item
-    lines="none"
-    class="rounded-input"
-  >
-    <ion-icon
-      name="ticket-outline"
-      slot="start"
-    ></ion-icon>
 
-    <ion-select
-      formControlName="voucherId"
-      placeholder="No voucher"
-      interface="popover"
-    >
-      <ion-select-option value="">
-        No voucher
-      </ion-select-option>
+        <!-- ================================= -->
+        <!-- VOUCHER SELECT -->
+        <!-- ================================= -->
 
-      <ion-select-option
-        *ngFor="
-          let voucher of applicableVouchers;
-          trackBy: trackByVoucherId
-        "
-        [value]="voucher.id"
-      >
-        {{ voucher.title }}
-        — Save ${{ voucher.discountAmount }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
+        <div class="input-group">
 
-  <div
-    class="voucher-help"
-    *ngIf="
-      originalAmount > 0 &&
-      applicableVouchers.length === 0
-    "
-  >
-    No eligible vouchers for this merchant and
-    payment amount.
-  </div>
-</div>
+          <label>
+            Voucher
+          </label>
 
-<div
-  class="payment-summary"
-  *ngIf="originalAmount > 0"
->
-  <div>
-    <span>Original amount</span>
-    <strong>
-      {{
-        originalAmount
-          | currency:'SGD':'symbol-narrow':'1.2-2'
-      }}
-    </strong>
-  </div>
 
-  <div *ngIf="selectedVoucher">
-    <span>Voucher discount</span>
-    <strong class="discount-value">
-      -{{
-        discountAmount
-          | currency:'SGD':'symbol-narrow':'1.2-2'
-      }}
-    </strong>
-  </div>
+          <ion-item
+            lines="none"
+            class="rounded-input"
+          >
 
-  <div class="final-row">
-    <span>Final payment</span>
-    <strong>
-      {{
-        finalAmount
-          | currency:'SGD':'symbol-narrow':'1.2-2'
-      }}
-    </strong>
-  </div>
-</div>
+            <ion-icon
+              name="ticket-outline"
+              slot="start"
+            ></ion-icon>
+
+
+            <ion-select
+              formControlName="voucherId"
+              placeholder="No voucher"
+              interface="popover"
+            >
+
+              <!-- NO VOUCHER -->
+              <ion-select-option
+                value=""
+              >
+                No voucher
+              </ion-select-option>
+
+
+              <!-- ALL MERCHANT VOUCHERS -->
+              <ion-select-option
+                *ngFor="
+                  let voucher of merchantVouchers;
+                  trackBy: trackByVoucherId
+                "
+
+                [value]="voucher.id"
+
+                [disabled]="
+                  !isVoucherEligible(
+                    voucher
+                  )
+                "
+              >
+
+                {{
+                  getVoucherOptionText(
+                    voucher
+                  )
+                }}
+
+              </ion-select-option>
+
+            </ion-select>
+
+          </ion-item>
+
+
+          <!-- NO VOUCHERS OWNED -->
+          <div
+            class="voucher-help"
+            *ngIf="
+              selectedMerchant &&
+              merchantVouchers.length === 0
+            "
+          >
+
+            You do not currently have any active
+            vouchers for {{ selectedMerchant.name }}.
+
+          </div>
+
+
+          <!-- VOUCHERS EXIST -->
+          <div
+            class="voucher-help"
+            *ngIf="
+              merchantVouchers.length > 0
+            "
+          >
+
+            Vouchers that do not meet the minimum
+            spend are still shown, but cannot be used yet.
+
+          </div>
+
+
+          <!-- ================================= -->
+          <!-- VOUCHER STATUS CARDS -->
+          <!-- ================================= -->
+
+          <div
+            *ngIf="
+              merchantVouchers.length > 0
+            "
+            style="
+              margin-top: 10px;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          >
+
+            <div
+              *ngFor="
+                let voucher of merchantVouchers;
+                trackBy: trackByVoucherId
+              "
+
+              style="
+                padding: 10px 12px;
+                border-radius: 10px;
+                background: #f7f8ff;
+                border: 1px solid #e3e7ff;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+              "
+            >
+
+              <div>
+
+                <strong
+                  style="
+                    display: block;
+                    color: #1e293b;
+                    margin-bottom: 3px;
+                  "
+                >
+
+                  {{ voucher.title }}
+
+                </strong>
+
+
+                <span
+                  style="
+                    display: block;
+                    color: #64748b;
+                    font-size: 0.82rem;
+                  "
+                >
+
+                  Save ${{ voucher.discountAmount }}
+                  · Minimum spend
+                  ${{ voucher.minimumSpend }}
+
+                </span>
+
+
+                <!-- NOT ELIGIBLE -->
+                <span
+                  *ngIf="
+                    !isVoucherEligible(
+                      voucher
+                    )
+                  "
+
+                  style="
+                    display: block;
+                    color: #dc2626;
+                    font-size: 0.8rem;
+                    margin-top: 3px;
+                    font-weight: 600;
+                  "
+                >
+
+                  Spend
+                  ${{
+                    getAmountNeededForVoucher(
+                      voucher
+                    )
+                      | number:'1.2-2'
+                  }}
+                  more to use this voucher.
+
+                </span>
+
+
+                <!-- ELIGIBLE -->
+                <span
+                  *ngIf="
+                    isVoucherEligible(
+                      voucher
+                    )
+                  "
+
+                  style="
+                    display: block;
+                    color: #16a34a;
+                    font-size: 0.8rem;
+                    margin-top: 3px;
+                    font-weight: 600;
+                  "
+                >
+
+                  ✓ Available to use
+
+                </span>
+
+              </div>
+
+
+              <!-- STATUS -->
+              <span
+                *ngIf="
+                  !isVoucherEligible(
+                    voucher
+                  )
+                "
+
+                style="
+                  flex-shrink: 0;
+                  padding: 5px 8px;
+                  border-radius: 7px;
+                  background: #fee2e2;
+                  color: #b91c1c;
+                  font-size: 0.75rem;
+                  font-weight: 700;
+                "
+              >
+
+                Locked
+
+              </span>
+
+
+              <span
+                *ngIf="
+                  isVoucherEligible(
+                    voucher
+                  )
+                "
+
+                style="
+                  flex-shrink: 0;
+                  padding: 5px 8px;
+                  border-radius: 7px;
+                  background: #dcfce7;
+                  color: #15803d;
+                  font-size: 0.75rem;
+                  font-weight: 700;
+                "
+              >
+
+                Available
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- PAYMENT SUMMARY -->
+        <!-- ================================= -->
+
+        <div
+          class="payment-summary"
+          *ngIf="
+            originalAmount > 0
+          "
+        >
+
+          <!-- ORIGINAL -->
+          <div>
+
+            <span>
+              Original amount
+            </span>
+
+
+            <strong>
+
+              {{
+                originalAmount
+                  | currency:'SGD':'symbol-narrow':'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <!-- DISCOUNT -->
+          <div
+            *ngIf="
+              selectedVoucher
+            "
+          >
+
+            <span>
+              Voucher discount
+            </span>
+
+
+            <strong
+              class="discount-value"
+            >
+
+              -{{
+                discountAmount
+                  | currency:'SGD':'symbol-narrow':'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <!-- SELECTED VOUCHER -->
+          <div
+            *ngIf="
+              selectedVoucher
+            "
+          >
+
+            <span>
+              Voucher used
+            </span>
+
+
+            <strong
+              class="discount-value"
+            >
+
+              {{ selectedVoucher.title }}
+
+            </strong>
+
+          </div>
+
+
+          <!-- FINAL -->
+          <div class="final-row">
+
+            <span>
+              Final payment
+            </span>
+
+
+            <strong>
+
+              {{
+                finalAmount
+                  | currency:'SGD':'symbol-narrow':'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- PAY BUTTON -->
         <ion-button
           expand="block"
           type="submit"
           class="pay-button"
         >
+
           <ion-icon
             name="card-outline"
             slot="start"
           ></ion-icon>
 
           Pay Merchant
+
         </ion-button>
+
       </form>
+
     </section>
 
-    <!-- Payment history -->
+
+    <!-- ================================= -->
+    <!-- PAYMENT HISTORY -->
+    <!-- ================================= -->
+
     <section class="history-section">
+
       <div class="section-heading">
-        <h2>Recent Payments</h2>
+
+        <h2>
+          Recent Payments
+        </h2>
+
 
         <span>
+
           {{ paymentHistory.length }}
           transactions
+
         </span>
+
       </div>
 
+
+      <!-- EMPTY -->
       <div
         class="empty-history"
-        *ngIf="paymentHistory.length === 0"
+        *ngIf="
+          paymentHistory.length === 0
+        "
       >
+
         <ion-icon
           name="receipt-outline"
         ></ion-icon>
 
-        <h3>No payments yet</h3>
+
+        <h3>
+          No payments yet
+        </h3>
+
 
         <p>
           Your merchant payments will appear here.
         </p>
+
       </div>
 
+
+      <!-- PAYMENT -->
       <div
         class="payment-history-card"
+
         *ngFor="
           let payment of paymentHistory;
           trackBy: trackByPaymentId
         "
       >
+
         <div class="history-icon">
+
           <ion-icon
             name="storefront-outline"
           ></ion-icon>
+
         </div>
 
+
         <div class="history-details">
+
           <strong>
             {{ payment.merchantName }}
           </strong>
 
+
           <span>
+
             {{
               payment.paidAt
                 | date:'dd MMM yyyy, h:mm a'
             }}
+
           </span>
+
         </div>
 
+
         <div class="history-amount">
+
           -{{
             payment.amount
               | currency:'SGD':'symbol-narrow':'1.2-2'
           }}
+
         </div>
+
       </div>
+
     </section>
 
   </div>
+
 </ion-content>

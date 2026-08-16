@@ -7,11 +7,13 @@
     <!-- Top user bar -->
     <div class="top-bar">
       <div class="user-profile">
+
         <ion-avatar class="profile-avatar">
           <span>{{ userInitial }}</span>
         </ion-avatar>
 
         <div class="profile-text">
+
           <p class="greeting">
             Welcome, {{ userName }}
           </p>
@@ -23,6 +25,7 @@
             {{ currentUser?.countryCode }}
             {{ currentUser?.phoneNumber }}
           </p>
+
         </div>
       </div>
 
@@ -41,15 +44,20 @@
       </button>
     </div>
 
-    <!-- Customisable dashboard -->
+
+    <!-- Customisable Dashboard -->
     <section class="custom-dashboard-section">
+
       <div class="dashboard-main-heading">
+
         <div>
           <p class="dashboard-eyebrow">
             My Dashboard
           </p>
 
-          <h1>Financial Overview</h1>
+          <h1>
+            Financial Overview
+          </h1>
         </div>
 
         <button
@@ -63,7 +71,9 @@
             name="settings-outline"
           ></ion-icon>
         </button>
+
       </div>
+
 
       <div
         class="dashboard-grid"
@@ -81,7 +91,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Savings Goals
@@ -101,13 +113,17 @@
             <ion-icon
               name="save-outline"
             ></ion-icon>
+
           </div>
+
 
           <div
             class="goal-row"
             *ngFor="let goal of savingGoals"
           >
+
             <div class="goal-meta">
+
               <strong>
                 {{ goal.name }}
               </strong>
@@ -129,6 +145,7 @@
                       '1.0-0'
                 }}
               </span>
+
             </div>
 
             <ion-progress-bar
@@ -139,7 +156,9 @@
             <span class="goal-percent">
               {{ getGoalPercent(goal) }}%
             </span>
+
           </div>
+
 
           <div
             class="widget-empty"
@@ -148,6 +167,7 @@
             No savings goals created yet.
           </div>
 
+
           <button
             type="button"
             class="widget-action-button"
@@ -155,7 +175,9 @@
           >
             View Savings
           </button>
+
         </article>
+
 
         <!-- Investment Tracking -->
         <article
@@ -166,7 +188,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Investment Tracking
@@ -186,10 +210,15 @@
             <ion-icon
               name="trending-up-outline"
             ></ion-icon>
+
           </div>
 
+
           <div class="investment-summary">
-            <span>Total profit/loss</span>
+
+            <span>
+              Total profit/loss
+            </span>
 
             <strong
               [class.positive-value]="
@@ -199,6 +228,7 @@
                 investmentProfitLoss < 0
               "
             >
+
               <span
                 *ngIf="
                   investmentProfitLoss >= 0
@@ -214,8 +244,11 @@
                     'symbol-narrow':
                     '1.2-2'
               }}
+
             </strong>
+
           </div>
+
 
           <div
             class="investment-row"
@@ -224,6 +257,7 @@
               trackBy: trackByInvestmentId
             "
           >
+
             <div>
               <strong>
                 {{ investment.name }}
@@ -246,6 +280,7 @@
                 ) < 0
               "
             >
+
               <span
                 *ngIf="
                   getInvestmentProfit(
@@ -265,8 +300,11 @@
                     'symbol-narrow':
                     '1.2-2'
               }}
+
             </strong>
+
           </div>
+
 
           <div
             class="widget-empty"
@@ -274,7 +312,19 @@
           >
             No investments available.
           </div>
+
+
+          <!-- NEW -->
+          <button
+            type="button"
+            class="widget-action-button"
+            routerLink="/investing"
+          >
+            View Investments
+          </button>
+
         </article>
+
 
         <!-- Spending Summary -->
         <article
@@ -285,7 +335,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Spending Summary
@@ -305,30 +357,46 @@
             <ion-icon
               name="pie-chart-outline"
             ></ion-icon>
+
           </div>
+
 
           <p class="widget-description">
             Total merchant spending this month
           </p>
 
+
           <div class="summary-row">
-            <span>Transactions</span>
+
+            <span>
+              Transactions
+            </span>
 
             <strong>
               {{ monthlyTransactionCount }}
             </strong>
+
           </div>
 
+
           <div class="summary-row">
-            <span>Top merchant</span>
+
+            <span>
+              Top merchant
+            </span>
 
             <strong>
               {{ topSpendingMerchant }}
             </strong>
+
           </div>
 
+
           <div class="summary-row">
-            <span>Average payment</span>
+
+            <span>
+              Average payment
+            </span>
 
             <strong>
               {{
@@ -344,7 +412,9 @@
                     '1.2-2'
               }}
             </strong>
+
           </div>
+
 
           <button
             type="button"
@@ -353,7 +423,9 @@
           >
             Make Payment
           </button>
+
         </article>
+
 
         <!-- Monthly Budget -->
         <article
@@ -364,7 +436,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Monthly Budget
@@ -384,9 +458,12 @@
             <ion-icon
               name="calculator-outline"
             ></ion-icon>
+
           </div>
 
+
           <div class="budget-labels">
+
             <span>
               Spent
               {{
@@ -408,7 +485,9 @@
                     '1.0-0'
               }}
             </span>
+
           </div>
+
 
           <ion-progress-bar
             [value]="budgetProgress"
@@ -421,6 +500,7 @@
             "
           ></ion-progress-bar>
 
+
           <p
             class="budget-warning"
             *ngIf="budgetProgress >= 1"
@@ -428,14 +508,19 @@
             You have reached your monthly budget.
           </p>
 
+
           <p
             class="widget-description"
             *ngIf="budgetProgress < 1"
           >
             You have used
-            {{ budgetProgress * 100 | number:'1.0-0' }}%
+            {{
+              budgetProgress * 100
+                | number:'1.0-0'
+            }}%
             of your monthly budget.
           </p>
+
 
           <button
             type="button"
@@ -444,7 +529,9 @@
           >
             Change Budget
           </button>
+
         </article>
+
 
         <!-- Rewards and Cashback -->
         <article
@@ -455,7 +542,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Rewards & Cashback
@@ -469,29 +558,40 @@
             <ion-icon
               name="gift-outline"
             ></ion-icon>
+
           </div>
 
+
           <div class="reward-metric">
+
             <div class="metric-icon">
               🪙
             </div>
 
             <div>
-              <span>Reward coins</span>
+              <span>
+                Reward coins
+              </span>
 
               <strong>
                 {{ rewardCoins }}
               </strong>
             </div>
+
           </div>
 
+
           <div class="reward-metric">
+
             <div class="metric-icon">
               💵
             </div>
 
             <div>
-              <span>Cashback balance</span>
+
+              <span>
+                Cashback balance
+              </span>
 
               <strong>
                 {{
@@ -502,22 +602,32 @@
                       '1.2-2'
                 }}
               </strong>
+
             </div>
+
           </div>
 
+
           <div class="reward-metric">
+
             <div class="metric-icon">
               🎫
             </div>
 
             <div>
-              <span>Available vouchers</span>
+
+              <span>
+                Available vouchers
+              </span>
 
               <strong>
                 {{ activeVoucherCount }}
               </strong>
+
             </div>
+
           </div>
+
 
           <button
             type="button"
@@ -526,7 +636,9 @@
           >
             View Rewards
           </button>
+
         </article>
+
 
         <!-- Upcoming Bills -->
         <article
@@ -537,7 +649,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Upcoming Bills
@@ -552,7 +666,9 @@
             <ion-icon
               name="calendar-outline"
             ></ion-icon>
+
           </div>
+
 
           <div
             class="bill-row"
@@ -561,7 +677,9 @@
               trackBy: trackByBillId
             "
           >
+
             <div>
+
               <strong>
                 {{ bill.name }}
               </strong>
@@ -573,9 +691,12 @@
                     | date:'dd MMM yyyy'
                 }}
               </span>
+
             </div>
 
+
             <div class="bill-actions">
+
               <strong>
                 {{
                   bill.amount
@@ -592,8 +713,11 @@
               >
                 Mark paid
               </button>
+
             </div>
+
           </div>
+
 
           <div
             class="widget-empty"
@@ -601,7 +725,9 @@
           >
             You have no upcoming bills.
           </div>
+
         </article>
+
 
         <!-- Recent Transactions -->
         <article
@@ -612,7 +738,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Recent Transactions
@@ -626,7 +754,9 @@
             <ion-icon
               name="receipt-outline"
             ></ion-icon>
+
           </div>
+
 
           <div
             class="transaction-row"
@@ -635,6 +765,7 @@
               trackBy: trackByPaymentId
             "
           >
+
             <div class="transaction-icon">
               <ion-icon
                 name="storefront-outline"
@@ -642,6 +773,7 @@
             </div>
 
             <div class="transaction-details">
+
               <strong>
                 {{ payment.merchantName }}
               </strong>
@@ -652,6 +784,7 @@
                     | date:'dd MMM, h:mm a'
                 }}
               </span>
+
             </div>
 
             <strong class="transaction-amount">
@@ -663,7 +796,9 @@
                     '1.2-2'
               }}
             </strong>
+
           </div>
+
 
           <div
             class="widget-empty"
@@ -674,6 +809,7 @@
             No merchant payments yet.
           </div>
 
+
           <button
             type="button"
             class="widget-action-button"
@@ -681,7 +817,9 @@
           >
             View Payments
           </button>
+
         </article>
+
 
         <!-- Financial Tips -->
         <article
@@ -692,7 +830,9 @@
             )
           "
         >
+
           <div class="widget-heading">
+
             <div>
               <p class="widget-label">
                 Financial Tips
@@ -706,7 +846,9 @@
             <ion-icon
               name="bulb-outline"
             ></ion-icon>
+
           </div>
+
 
           <div
             class="financial-tip"
@@ -715,6 +857,7 @@
               let tipIndex = index
             "
           >
+
             <span>
               {{ tipIndex + 1 }}
             </span>
@@ -722,21 +865,27 @@
             <p>
               {{ tip }}
             </p>
+
           </div>
+
         </article>
 
       </div>
     </section>
+
   </div>
 
-  <!-- Dashboard settings and logout buttons -->
+
+  <!-- Dashboard settings and logout -->
   <div class="settings-button-container">
+
     <button
       type="button"
       class="settings-btn"
       title="Customise dashboard"
       (click)="openDashboardSelector()"
     >
+
       <ion-icon
         name="settings-outline"
       ></ion-icon>
@@ -744,7 +893,9 @@
       <span>
         Customise Dashboard
       </span>
+
     </button>
+
 
     <button
       type="button"
@@ -752,6 +903,7 @@
       title="Logout"
       (click)="logout()"
     >
+
       <ion-icon
         name="log-out-outline"
       ></ion-icon>
@@ -759,17 +911,27 @@
       <span>
         Logout
       </span>
+
     </button>
+
   </div>
+
 
   <!-- Account card -->
   <div class="account-card">
+
     <div class="account-heading">
-      <h2>Account</h2>
+      <h2>
+        Account
+      </h2>
     </div>
 
+
     <div class="account-row">
-      <span>Net worth</span>
+
+      <span>
+        Net worth
+      </span>
 
       <strong>
         {{
@@ -780,10 +942,15 @@
               '1.0-0'
         }}
       </strong>
+
     </div>
 
+
     <div class="account-row">
-      <span>Available balance</span>
+
+      <span>
+        Available balance
+      </span>
 
       <strong>
         {{
@@ -794,10 +961,15 @@
               '1.0-0'
         }}
       </strong>
+
     </div>
 
+
     <div class="account-row">
-      <span>Total savings</span>
+
+      <span>
+        Total savings
+      </span>
 
       <strong>
         {{
@@ -808,10 +980,15 @@
               '1.0-0'
         }}
       </strong>
+
     </div>
 
+
     <div class="account-row">
-      <span>Investment value</span>
+
+      <span>
+        Investment value
+      </span>
 
       <strong>
         {{
@@ -822,11 +999,15 @@
               '1.0-0'
         }}
       </strong>
+
     </div>
+
   </div>
+
 
   <!-- Main action cards -->
   <div class="actions-grid">
+
     <button
       type="button"
       class="action-card"
@@ -834,6 +1015,7 @@
       [routerLink]="action.route"
       routerDirection="forward"
     >
+
       <ion-icon
         [name]="action.icon"
       ></ion-icon>
@@ -841,14 +1023,21 @@
       <span>
         {{ action.title }}
       </span>
+
     </button>
+
   </div>
 
-  <!-- More services -->
+
+  <!-- More Services -->
   <div class="quick-tabs-section">
-    <h2>More Services</h2>
+
+    <h2>
+      More Services
+    </h2>
 
     <div class="quick-tabs-grid">
+
       <button
         type="button"
         class="quick-tab-card"
@@ -857,6 +1046,7 @@
         [class.coming-soon]="!tab.route"
         (click)="openQuickTab(tab)"
       >
+
         <ion-icon
           [name]="tab.icon"
         ></ion-icon>
@@ -868,7 +1058,11 @@
         <small *ngIf="!tab.route">
           Coming soon
         </small>
+
       </button>
+
     </div>
+
   </div>
+
 </ion-content>

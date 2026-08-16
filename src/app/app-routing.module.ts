@@ -1,57 +1,197 @@
-import { NgModule } from '@angular/core';
-import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import {
+  NgModule,
+} from '@angular/core';
+
+import {
+  PreloadAllModules,
+  RouterModule,
+  Routes,
+} from '@angular/router';
+
 
 const routes: Routes = [
+
   {
     path: '',
-    redirectTo: '/sign-in',
-    pathMatch: 'full'
+    redirectTo:
+      '/sign-in',
+    pathMatch:
+      'full',
   },
+
+
   {
-    path: 'sign-in',
-    loadChildren: () => import('./auth/sign-in.module').then(m => m.SignInPageModule)
+    path:
+      'sign-in',
+
+    loadChildren:
+      () =>
+        import(
+          './auth/sign-in.module'
+        ).then(
+          m =>
+            m.SignInPageModule
+        ),
   },
+
+
   {
-    path: 'sign-up',
-    loadChildren: () => import('./auth/sign-up.module').then(m => m.SignUpPageModule)
+    path:
+      'sign-up',
+
+    loadChildren:
+      () =>
+        import(
+          './auth/sign-up.module'
+        ).then(
+          m =>
+            m.SignUpPageModule
+        ),
   },
+
+
   {
-    path: 'tabs',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+    path:
+      'tabs',
+
+    loadChildren:
+      () =>
+        import(
+          './tabs/tabs.module'
+        ).then(
+          m =>
+            m.TabsPageModule
+        ),
   },
+
+
+  /*
+   * NEW INVESTING PAGE
+   */
   {
-    path: 'game',
-    loadChildren: () => import('./game/game.module').then(m => m.GamePageModule)
+    path:
+      'investing',
+
+    loadChildren:
+      () =>
+        import(
+          './investing/investing.module'
+        ).then(
+          m =>
+            m.InvestingPageModule
+        ),
   },
+
+
   {
-    path: 'benedict-data-insights',
-    loadChildren: () => import('./benedict-data-insights/benedict-data-insights.module').then( m => m.BENEDICTDATAINSIGHTSPageModule)
+    path:
+      'game',
+
+    loadChildren:
+      () =>
+        import(
+          './game/game.module'
+        ).then(
+          m =>
+            m.GamePageModule
+        ),
   },
+
+
   {
-    path: 'benedict-rewards',
-    loadChildren: () => import('./benedict-rewards/benedict-rewards.module').then( m => m.BENEDICTREWARDSPageModule)
+    path:
+      'benedict-data-insights',
+
+    loadChildren:
+      () =>
+        import(
+          './benedict-data-insights/benedict-data-insights.module'
+        ).then(
+          m =>
+            m.BENEDICTDATAINSIGHTSPageModule
+        ),
   },
+
+
   {
-    path: 'membership-tiers',
-    loadChildren: () => import('./benedict-membership-tiers/membership-tiers.module').then( m => m.MembershipTiersPageModule)
+    path:
+      'benedict-rewards',
+
+    loadChildren:
+      () =>
+        import(
+          './benedict-rewards/benedict-rewards.module'
+        ).then(
+          m =>
+            m.BENEDICTREWARDSPageModule
+        ),
   },
+
+
   {
-  path: 'shop-details/:id',
-  loadChildren: () =>
-    import('./HIDAYAT/shop-details/shop-details.module')
-      .then(m => m.ShopDetailsPageModule)
-},
-{
-  path: 'cart',
-  loadChildren: () =>
-    import('./HIDAYAT/cart/cart.module').then(m => m.CartPageModule)
-},
+    path:
+      'membership-tiers',
+
+    loadChildren:
+      () =>
+        import(
+          './benedict-membership-tiers/membership-tiers.module'
+        ).then(
+          m =>
+            m.MembershipTiersPageModule
+        ),
+  },
+
+
+  {
+    path:
+      'shop-details/:id',
+
+    loadChildren:
+      () =>
+        import(
+          './HIDAYAT/shop-details/shop-details.module'
+        ).then(
+          m =>
+            m.ShopDetailsPageModule
+        ),
+  },
+
+
+  {
+    path:
+      'cart',
+
+    loadChildren:
+      () =>
+        import(
+          './HIDAYAT/cart/cart.module'
+        ).then(
+          m =>
+            m.CartPageModule
+        ),
+  },
 
 ];
+
+
 @NgModule({
+
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
+    RouterModule.forRoot(
+      routes,
+      {
+        preloadingStrategy:
+          PreloadAllModules,
+      }
+    ),
   ],
-  exports: [RouterModule]
+
+  exports: [
+    RouterModule,
+  ],
+
 })
+
+
 export class AppRoutingModule {}

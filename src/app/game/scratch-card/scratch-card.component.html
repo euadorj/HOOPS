@@ -1,35 +1,48 @@
 <div class="scratch-overlay">
+
   <div class="scratch-card-panel">
+
+    <!-- HEADER -->
     <div class="scratch-header">
+
       <div class="scratch-title">
         Scratch Card
       </div>
 
       <div class="scratch-sub">
-        Tap to reveal your reward
+        Scratch to reveal your reward
       </div>
+
     </div>
 
+
     <div class="scratch-body">
+
+      <!-- TITLE -->
       <h3 class="center">
+
         <ng-container *ngIf="revealed">
-          You won
-          {{ selectedReward?.label }}!
+          You won {{ selectedReward?.label }}!
         </ng-container>
+
 
         <ng-container
           *ngIf="!revealed && availableNow"
         >
-          Reveal your scratch card
+          Scratch your card to reveal your reward
         </ng-container>
+
 
         <ng-container
           *ngIf="!revealed && !availableNow"
         >
           No scratch cards available
         </ng-container>
+
       </h3>
 
+
+      <!-- AVAILABLE MESSAGE -->
       <p
         class="available-text"
         *ngIf="availableNow && !revealed"
@@ -37,6 +50,8 @@
         You have 1 scratch card available.
       </p>
 
+
+      <!-- COOLDOWN MESSAGE -->
       <p
         class="available-text"
         *ngIf="!availableNow && !revealed"
@@ -46,52 +61,187 @@
         after 30 seconds.
       </p>
 
-      <div
-        class="card-area"
-        (click)="reveal()"
-        [class.disabled]="
-          !availableNow || revealed
-        "
-      >
-        <div
-          class="ticket-card"
-          [class.revealed]="revealed"
-          [class.unavailable]="!availableNow"
-        >
-          <div class="ticket-inner">
-            <div class="ticket-emoji">
-              {{
-                revealed
-                  ? selectedReward?.emoji
-                  : availableNow
-                    ? '🪪'
-                    : '🔒'
-              }}
-            </div>
 
-            <div class="ticket-label">
-              {{
-                revealed
-                  ? selectedReward?.label
-                  : availableNow
-                    ? 'Tap to Reveal'
-                    : 'Already Claimed'
-              }}
-            </div>
+      <!-- SCRATCH CARD -->
+      <div class="card-area">
+
+        <div
+          class="scratch-stage"
+          [class.disabled]="
+            !availableNow && !revealed
+          "
+        >
+
+          <!-- REWARD UNDERNEATH -->
+          <div
+            class="prize-layer"
+            [class.locked]="
+              !availableNow && !revealed
+            "
+          >
+
+            <!-- SHOW REWARD -->
+            <ng-container
+              *ngIf="availableNow || revealed"
+            >
+
+              <div class="prize-small-text">
+                YOUR REWARD
+              </div>
+
+
+              <div class="prize-emoji">
+                {{ selectedReward?.emoji }}
+              </div>
+
+
+              <div class="prize-label">
+                {{ selectedReward?.label }}
+              </div>
+
+
+              <div class="prize-subtitle">
+
+                {{
+                  revealed
+                    ? 'Congratulations!'
+                    : 'Keep scratching!'
+                }}
+
+              </div>
+
+            </ng-container>
+
+
+            <!-- LOCKED CARD -->
+            <ng-container
+              *ngIf="!availableNow && !revealed"
+            >
+
+              <div class="prize-emoji">
+                🔒
+              </div>
+
+
+              <div class="prize-label">
+                Already Claimed
+              </div>
+
+
+              <div class="prize-subtitle">
+                Come back when your next card is ready.
+              </div>
+
+            </ng-container>
+
           </div>
+
+
+          <!-- ACTUAL SCRATCHABLE LAYER -->
+          <canvas
+            #scratchCanvas
+            class="scratch-canvas"
+
+            [class.canvas-hidden]="
+              revealed ||
+              !availableNow
+            "
+
+            (pointerdown)="startScratching($event)"
+            (pointermove)="scratch($event)"
+            (pointerup)="stopScratching($event)"
+            (pointercancel)="stopScratching($event)"
+            (pointerleave)="stopScratching($event)"
+          >
+          </canvas>
+
         </div>
+
       </div>
 
+
+      <!-- INSTRUCTIONS -->
+      <div
+        class="scratch-instructions"
+        *ngIf="availableNow && !revealed"
+      >
+
+        <div class="scratch-hand">
+          ☝️
+        </div>
+
+
+        <div>
+
+          <strong>
+            Scratch to reveal
+          </strong>
+
+          <span>
+            Drag your mouse or finger across the card
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- SCRATCH PROGRESS -->
+      <div
+        class="scratch-progress-section"
+        *ngIf="availableNow && !revealed"
+      >
+
+        <div class="scratch-progress-text">
+
+          <span>
+            Scratch progress
+          </span>
+
+          <strong>
+            {{
+              scratchPercent
+                | number:'1.0-0'
+            }}%
+          </strong>
+
+        </div>
+
+
+        <div class="scratch-progress-track">
+
+          <div
+            class="scratch-progress-fill"
+            [style.width.%]="scratchPercent"
+          >
+          </div>
+
+        </div>
+
+
+        <small>
+          Scratch about 45% of the card
+          to claim your reward.
+        </small>
+
+      </div>
+
+
+      <!-- REWARD DETAILS -->
       <div
         class="reward-detail"
         *ngIf="revealed && selectedReward"
       >
+
         <div class="reward-left">
+
           <div class="reward-emoji">
             {{ selectedReward.emoji }}
           </div>
 
+
           <div>
+
             <div class="reward-title">
               Your Reward
             </div>
@@ -99,30 +249,45 @@
             <div class="reward-desc">
               {{ rewardMessage }}
             </div>
+
           </div>
+
         </div>
+
 
         <div class="reward-amount">
-          +<span>
+
+          +
+
+          <span>
             {{ rewardAmountDisplay }}
           </span>
+
         </div>
+
       </div>
 
+
+      <!-- RECENT REWARDS -->
       <div
         class="recent"
         *ngIf="recentRewards.length > 0"
       >
+
         <div class="recent-title">
           Recent Rewards
         </div>
 
+
         <div class="recent-list">
+
           <div
             class="recent-item"
             *ngFor="let reward of recentRewards"
           >
+
             <div class="recent-left">
+
               <div class="recent-emoji">
                 {{ reward.emoji }}
               </div>
@@ -130,16 +295,24 @@
               <div class="recent-text">
                 {{ reward.label }}
               </div>
+
             </div>
+
 
             <div class="recent-status">
               {{ reward.status }}
             </div>
+
           </div>
+
         </div>
+
       </div>
 
+
+      <!-- BUTTONS -->
       <div class="actions">
+
         <button
           type="button"
           class="btn outline"
@@ -148,6 +321,7 @@
           Close
         </button>
 
+
         <button
           type="button"
           class="btn primary"
@@ -155,7 +329,11 @@
         >
           Done
         </button>
+
       </div>
+
     </div>
+
   </div>
+
 </div>

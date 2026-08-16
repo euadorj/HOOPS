@@ -1,0 +1,729 @@
+<ion-header>
+
+  <ion-toolbar
+    class="investing-toolbar"
+  >
+
+    <ion-buttons slot="start">
+
+      <ion-back-button
+        defaultHref="/tabs/tab1"
+        color="light"
+      ></ion-back-button>
+
+    </ion-buttons>
+
+
+    <ion-title>
+      Investing
+    </ion-title>
+
+  </ion-toolbar>
+
+</ion-header>
+
+
+<ion-content
+  [fullscreen]="true"
+  class="investing-page"
+>
+
+  <div class="investing-container">
+
+
+    <!-- PAGE HEADING -->
+    <div class="page-heading">
+
+      <div>
+
+        <p>
+          Investment Centre
+        </p>
+
+        <h1>
+          My Portfolio
+        </h1>
+
+      </div>
+
+
+      <div class="heading-icon">
+
+        <ion-icon
+          name="trending-up-outline"
+        ></ion-icon>
+
+      </div>
+
+    </div>
+
+
+    <!-- PORTFOLIO -->
+    <section class="portfolio-card">
+
+      <p class="portfolio-label">
+        Total Portfolio Value
+      </p>
+
+
+      <h2>
+
+        S${{
+          totalInvestmentValue
+            | number:'1.2-2'
+        }}
+
+      </h2>
+
+
+      <div class="portfolio-profit-row">
+
+        <span>
+          Total Profit / Loss
+        </span>
+
+
+        <strong
+          [class.positive-profit]="
+            totalProfitLoss >= 0
+          "
+          [class.negative-profit]="
+            totalProfitLoss < 0
+          "
+        >
+
+          <span
+            *ngIf="
+              totalProfitLoss >= 0
+            "
+          >
+            +
+          </span>
+
+
+          S${{
+            totalProfitLoss
+              | number:'1.2-2'
+          }}
+
+
+          <small>
+
+            (
+
+            <span
+              *ngIf="
+                totalProfitLossPercent >= 0
+              "
+            >
+              +
+            </span>
+
+            {{
+              totalProfitLossPercent
+                | number:'1.2-2'
+            }}%
+
+            )
+
+          </small>
+
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+
+          <ion-icon
+            name="wallet-outline"
+          ></ion-icon>
+
+        </div>
+
+
+        <span>
+          Available Balance
+        </span>
+
+
+        <strong>
+
+          S${{
+            availableBalance
+              | number:'1.2-2'
+          }}
+
+        </strong>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+
+          <ion-icon
+            name="cash-outline"
+          ></ion-icon>
+
+        </div>
+
+
+        <span>
+          Amount Invested
+        </span>
+
+
+        <strong>
+
+          S${{
+            totalInvestedAmount
+              | number:'1.2-2'
+          }}
+
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- STOCK MARKET -->
+    <section class="market-section">
+
+
+      <div class="section-heading">
+
+        <div>
+
+          <p>
+            Explore
+          </p>
+
+          <h2>
+            Stocks
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="refresh-button"
+          [disabled]="loadingPrices"
+          (click)="refreshPrices(true)"
+        >
+
+
+          <ion-spinner
+            *ngIf="loadingPrices"
+            name="crescent"
+          ></ion-spinner>
+
+
+          <ion-icon
+            *ngIf="!loadingPrices"
+            name="refresh-outline"
+          ></ion-icon>
+
+
+          <span>
+            Refresh
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <!-- STATUS -->
+      <div class="market-status">
+
+        <div
+          class="status-dot"
+          [class.live]="
+            priceStatus ===
+            'Live market prices'
+          "
+        ></div>
+
+
+        <span>
+          {{ priceStatus }}
+        </span>
+
+      </div>
+
+
+      <p class="currency-note">
+
+        Stock prices are shown
+        in Singapore Dollars.
+
+        You can only buy and sell
+        <strong>whole units</strong>.
+
+      </p>
+
+
+      <!-- LOADING -->
+      <div
+        class="loading-market"
+        *ngIf="
+          loadingPrices &&
+          marketStocks.length === 0
+        "
+      >
+
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+
+        <span>
+          Loading stock prices...
+        </span>
+
+      </div>
+
+
+      <!-- STOCK CARDS -->
+      <div class="stocks-grid">
+
+
+        <article
+          class="stock-card"
+          *ngFor="
+            let stock of marketStocks;
+            trackBy: trackByStockSymbol
+          "
+        >
+
+
+          <div class="stock-top">
+
+
+            <div class="stock-identity">
+
+
+              <div class="stock-logo">
+
+                {{
+                  stock.symbol
+                    .charAt(0)
+                }}
+
+              </div>
+
+
+              <div>
+
+                <strong>
+                  {{ stock.symbol }}
+                </strong>
+
+                <span>
+                  {{ stock.name }}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <span
+              class="price-source"
+              [class.live-source]="
+                stock.isLive
+              "
+            >
+
+              {{
+                stock.isLive
+                  ? 'LIVE'
+                  : 'DEMO'
+              }}
+
+            </span>
+
+          </div>
+
+
+          <!-- PRICE -->
+          <div class="stock-price">
+
+            <span>
+              Price per unit
+            </span>
+
+
+            <strong>
+
+              S${{
+                stock.priceSgd
+                  | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <!-- DAILY CHANGE -->
+          <div class="stock-change">
+
+            <span>
+              Today
+            </span>
+
+
+            <strong
+              [class.positive-value]="
+                stock.changePercent >= 0
+              "
+              [class.negative-value]="
+                stock.changePercent < 0
+              "
+            >
+
+
+              <span
+                *ngIf="
+                  stock.changePercent >= 0
+                "
+              >
+                +
+              </span>
+
+
+              {{
+                stock.changePercent
+                  | number:'1.2-2'
+              }}%
+
+            </strong>
+
+          </div>
+
+
+          <!-- BUY -->
+          <button
+            type="button"
+            class="invest-button"
+            (click)="buyUnits(stock)"
+          >
+
+            <ion-icon
+              name="add-circle-outline"
+            ></ion-icon>
+
+            Buy Units
+
+          </button>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- MY INVESTMENTS -->
+    <section class="holdings-section">
+
+
+      <div class="section-heading">
+
+        <div>
+
+          <p>
+            Portfolio
+          </p>
+
+          <h2>
+            My Investments
+          </h2>
+
+        </div>
+
+
+        <span class="holdings-count">
+
+          {{ investments.length }}
+
+          {{
+            investments.length === 1
+              ? 'holding'
+              : 'holdings'
+          }}
+
+        </span>
+
+      </div>
+
+
+      <!-- INVESTMENT -->
+      <article
+        class="investment-card"
+        *ngFor="
+          let investment of investments;
+          trackBy: trackByInvestmentId
+        "
+      >
+
+
+        <div class="investment-top">
+
+
+          <div class="investment-name-section">
+
+
+            <div class="investment-logo">
+
+              {{
+                investment.symbol
+                  .charAt(0)
+                  .toUpperCase()
+              }}
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                {{ investment.name }}
+              </strong>
+
+              <span>
+                {{ investment.symbol }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- VALUE -->
+          <div class="investment-value">
+
+            <strong>
+
+              S${{
+                investment.currentValue
+                  | number:'1.2-2'
+              }}
+
+            </strong>
+
+
+            <span
+              [class.positive-value]="
+                getInvestmentProfit(
+                  investment
+                ) >= 0
+              "
+              [class.negative-value]="
+                getInvestmentProfit(
+                  investment
+                ) < 0
+              "
+            >
+
+
+              <span
+                *ngIf="
+                  getInvestmentProfit(
+                    investment
+                  ) >= 0
+                "
+              >
+                +
+              </span>
+
+
+              {{
+                getInvestmentProfitPercent(
+                  investment
+                )
+                  | number:'1.2-2'
+              }}%
+
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- DETAILS -->
+        <div class="holding-details">
+
+
+          <div>
+
+            <span>
+              Units Owned
+            </span>
+
+            <strong>
+              {{ investment.shares }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Total Invested
+            </span>
+
+            <strong>
+
+              S${{
+                investment.investedAmount
+                  | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Average Buy Price
+            </span>
+
+            <strong>
+
+              S${{
+                investment.averageBuyPriceSgd
+                  | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Current Unit Price
+            </span>
+
+            <strong>
+
+              S${{
+                investment.lastPriceSgd
+                  | number:'1.2-2'
+              }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- PROFIT -->
+        <div class="profit-row">
+
+          <span>
+            Profit / Loss
+          </span>
+
+
+          <strong
+            [class.positive-value]="
+              getInvestmentProfit(
+                investment
+              ) >= 0
+            "
+            [class.negative-value]="
+              getInvestmentProfit(
+                investment
+              ) < 0
+            "
+          >
+
+
+            <span
+              *ngIf="
+                getInvestmentProfit(
+                  investment
+                ) >= 0
+              "
+            >
+              +
+            </span>
+
+
+            S${{
+              getInvestmentProfit(
+                investment
+              )
+                | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </div>
+
+
+        <!-- SELL SELECTED UNITS -->
+        <button
+          type="button"
+          class="sell-button"
+          (click)="sellUnits(investment)"
+        >
+
+          Sell Units
+
+        </button>
+
+      </article>
+
+
+      <!-- EMPTY -->
+      <div
+        class="empty-investments"
+        *ngIf="
+          investments.length === 0
+        "
+      >
+
+        <ion-icon
+          name="trending-up-outline"
+        ></ion-icon>
+
+
+        <h3>
+          No investments yet
+        </h3>
+
+
+        <p>
+          Select a stock above
+          to make your first purchase.
+        </p>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</ion-content>
