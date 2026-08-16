@@ -91,7 +91,7 @@ export class SavingsPage implements OnInit {
     );
   }
 
-  createGoal(): void {
+  async createGoal(): Promise<void> {
     this.submitted = true;
     this.clearMessages();
 
@@ -108,7 +108,7 @@ export class SavingsPage implements OnInit {
       this.goalForm.get('targetAmount')?.value
     );
 
-    const result = this.savingsService.createGoal(
+    const result = await this.savingsService.createGoal(
       name,
       targetAmount
     );
@@ -137,7 +137,7 @@ export class SavingsPage implements OnInit {
       event.detail?.value ?? '';
   }
 
-  deposit(goalId: string): void {
+  async deposit(goalId: string): Promise<void> {
     this.clearMessages();
 
     const amount = Number(
@@ -145,7 +145,7 @@ export class SavingsPage implements OnInit {
     );
 
     const result =
-      this.savingsService.depositToGoal(
+      await this.savingsService.depositToGoal(
         goalId,
         amount
       );
@@ -179,7 +179,7 @@ export class SavingsPage implements OnInit {
     this.editGoalForm.reset();
   }
 
-  saveEditedGoal(): void {
+  async saveEditedGoal(): Promise<void> {
     this.editSubmitted = true;
     this.clearMessages();
 
@@ -200,7 +200,7 @@ export class SavingsPage implements OnInit {
       this.editGoalForm.get('targetAmount')?.value
     );
 
-    const result = this.savingsService.updateGoal(
+    const result = await this.savingsService.updateGoal(
       this.editingGoalId,
       name,
       targetAmount
@@ -235,9 +235,9 @@ export class SavingsPage implements OnInit {
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
+          handler: async () => {
             const result =
-              this.savingsService.deleteGoal(goal.id);
+              await this.savingsService.deleteGoal(goal.id);
 
             if (result.success) {
               this.successMessage = result.message;
@@ -279,9 +279,9 @@ export class SavingsPage implements OnInit {
     return goal.id;
   }
 
-  private loadFinanceData(): void {
+  private async loadFinanceData(): Promise<void> {
     this.financeData =
-      this.savingsService.getFinanceData();
+      await this.savingsService.getFinanceData();
   }
 
   private clearMessages(): void {

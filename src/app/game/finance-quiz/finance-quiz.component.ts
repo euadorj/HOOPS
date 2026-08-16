@@ -184,7 +184,7 @@ export class FinanceQuizComponent
     this.close.emit();
   }
 
-  private finishQuiz(finalScore: number): void {
+  private async finishQuiz(finalScore: number): Promise<void> {
     this.finished = true;
     this.quizStarted = false;
 
@@ -199,7 +199,7 @@ export class FinanceQuizComponent
     this.earnedCoins =
       correctAnswerReward + perfectScoreBonus;
 
-    this.coinService.addCoins(this.earnedCoins);
+    await this.coinService.addCoins(this.earnedCoins);
 
     localStorage.setItem(
       this.getLastQuizStorageKey(),

@@ -28,9 +28,9 @@ export class WalletWithdrawPage implements OnInit {
     this.loadWallet();
   }
 
-  loadWallet(): void {
+  async loadWallet(): Promise<void> {
     const walletId = this.route.snapshot.paramMap.get('id');
-    this.wallet = walletId ? this.sharedWalletService.getWalletById(walletId) : null;
+    this.wallet = walletId ? await this.sharedWalletService.getWalletById(walletId) : null;
     if (!this.wallet) {
       this.router.navigate(['/tabs/shared-wallets'], { queryParams: { accessDenied: 'true' } });
     }
@@ -51,7 +51,7 @@ export class WalletWithdrawPage implements OnInit {
     this.errorMessage = '';
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (!this.wallet || this.submitting) {
       return;
     }
@@ -79,7 +79,7 @@ export class WalletWithdrawPage implements OnInit {
     }
 
     this.submitting = true;
-    const result = this.sharedWalletService.withdrawFunds({
+    const result = await this.sharedWalletService.withdrawFunds({
       walletId: this.wallet.id,
       amountCents,
       category: this.selectedCategory,
@@ -91,7 +91,7 @@ export class WalletWithdrawPage implements OnInit {
       this.errorMessage = result.message === 'Amount cannot exceed the current wallet balance.'
         ? 'Insufficient wallet balance.'
         : (result.message || 'Unable to record this withdrawal.');
-      this.loadWallet();
+      await this.loadWallet();
       return;
     }
 

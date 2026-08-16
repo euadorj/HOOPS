@@ -18,12 +18,12 @@ export class WalletTransactionSuccessPage implements OnInit {
     private sharedWalletService: SharedWalletService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const walletId = this.route.snapshot.paramMap.get('id');
     const txId = this.route.snapshot.paramMap.get('txId');
 
-    this.wallet = walletId ? this.sharedWalletService.getWalletById(walletId) : null;
-    this.transaction = txId ? this.sharedWalletService.getWalletTransactionById(txId) : null;
+    this.wallet = walletId ? await this.sharedWalletService.getWalletById(walletId) : null;
+    this.transaction = txId ? await this.sharedWalletService.getWalletTransactionById(txId) : null;
 
     if (!this.wallet || !this.transaction || this.transaction.walletId !== this.wallet.id) {
       this.router.navigate(['/tabs/shared-wallets'], { queryParams: { accessDenied: 'true' } });

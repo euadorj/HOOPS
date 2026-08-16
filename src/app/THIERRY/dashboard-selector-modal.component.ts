@@ -83,9 +83,9 @@ export class DashboardSelectorModalComponent
     this.loadSavedSelections();
   }
 
-  loadSavedSelections(): void {
+  async loadSavedSelections(): Promise<void> {
     const savedItems =
-      this.dashboardService.getSelectedItems();
+      await this.dashboardService.getSelectedItems();
 
     this.dashboardItems.forEach((item) => {
       item.selected =
@@ -143,7 +143,7 @@ export class DashboardSelectorModalComponent
         .map((item) => item.id);
 
     const savedItems =
-      this.dashboardService.saveSelectedItems(
+      await this.dashboardService.saveSelectedItems(
         selectedItems
       );
 

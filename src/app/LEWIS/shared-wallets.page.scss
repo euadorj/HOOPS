@@ -1,17 +1,19 @@
 .shared-header {
-  --background: linear-gradient(135deg,#2939b8 0%,#1989ef 100%);
-  color: white;
+  --background: linear-gradient(135deg, #2f1fae 0%, #4d3df4 100%);
+  --color: white;
   border-bottom-left-radius: 28px;
   border-bottom-right-radius: 28px;
+  box-shadow: 0 12px 28px rgba(47, 31, 174, 0.18);
 }
 
 .header-content {
   padding: 0 16px;
+  color: white;
 }
 
 .shared-content {
-  --background: #f6f7fb;
-  background: #f6f7fb;
+  --background: #f4f6ff;
+  background: #f4f6ff;
 }
 
 .shared-container {
@@ -21,59 +23,274 @@
 .hero-card {
   border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
   background: white;
   margin-bottom: 18px;
 }
 
-.join-wallet .card-top, .create-wallet .card-top {
-  display:flex;
-  gap:12px;
-  align-items:center;
-  margin-bottom:12px;
+.join-wallet .card-top,
+.create-wallet .card-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 22px;
 }
 
-.icon{
-  width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#31c0e8,#3386ef);color:white;font-size:1.7rem;
+.icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #eeecff;
+  color: #4938dc;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
 }
 
-.create-wallet{background:linear-gradient(135deg,#5740bf,#8b82d9);color:white}
-.create-wallet .icon{background:rgba(255,255,255,0.15)}
-.create-wallet .outline{margin-top:12px;background:rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;border:none;color:white}
+.create-wallet {
+  background: linear-gradient(135deg, #2f1fae 0%, #4d3df4 100%);
+  color: white;
+  box-shadow: 0 14px 30px rgba(47, 31, 174, 0.22);
+}
 
-.input-row label{font-size:0.85rem;color:#334155;margin-bottom:6px;display:block}
-.input-row input{width:100%;padding:14px;border-radius:12px;border:none;background:#f1f0f8;margin-bottom:12px;box-sizing:border-box;text-align:center}
-.input-row .primary{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(90deg,#9187d3,#82c6f5);color:white;font-weight:700}
+.create-wallet .icon {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+}
 
-.or{text-align:center;color:#94a3b8;font-weight:700;margin:6px 0}
+.create-wallet .outline {
+  width: 100%;
+  margin-top: 4px;
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  border: none;
+  color: #2f1fae;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
 
-.recent-title{margin:10px 0 12px 4px;color:#334155}
-.wallet-list .wallet-item{width:100%;display:flex;gap:12px;align-items:center;background:white;padding:14px;border:0;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,0.05);text-align:left;color:#1e293b}
-.wallet-list .avatar{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#ffb3a7,#ff8b6b);display:flex;align-items:center;justify-content:center}
-.wallet-info h5{margin:0;font-size:0.95rem}
-.wallet-info p{margin:0;color:#94a3b8;font-size:0.85rem}
-.chev{margin-left:auto;color:#cbd5e1;font-size:20px}
+  ion-icon {
+    font-size: 1.1rem;
+  }
+}
+
+.text h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.text p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #7c869a;
+}
+
+.text.white h3 {
+  color: white;
+}
+
+.text.white p {
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.85;
+}
+
+.input-row label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-row input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 13px;
+  border: 1px solid #dce1ec;
+  background: #f8f9fd;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #0f172a;
+  font-family: inherit;
+
+  &::placeholder {
+    color: #b7bfd4;
+    font-weight: 500;
+    letter-spacing: normal;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4938dc;
+    background: white;
+  }
+}
+
+.input-row .primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 13px;
+  border: none;
+  background: #4432d7;
+  color: white;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(68, 50, 215, 0.28);
+
+  ion-icon {
+    font-size: 1.15rem;
+  }
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  span {
+    color: #8991a1;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+}
+
+.recent-title {
+  margin: 10px 0 14px 4px;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.wallet-list .wallet-item {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: white;
+  padding: 16px;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  text-align: left;
+  color: #1e293b;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  margin-bottom: 12px;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.wallet-list .avatar {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2f1fae, #4d3df4);
+  color: white;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wallet-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wallet-info h5 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.wallet-info p {
+  margin: 0;
+  color: #8991a1;
+  font-size: 0.85rem;
+}
+
+.chev {
+  margin-left: auto;
+  color: #c7cee0;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
 
 .form-error,
 .access-message {
   color: #dc2626;
   font-size: 0.85rem;
   font-weight: 700;
-  margin: 0 0 12px;
+  margin: -4px 0 12px;
 }
 
 .form-message {
-  color: #0f766e;
+  color: #16a34a;
   font-size: 0.85rem;
   font-weight: 700;
-  margin: 0 0 12px;
+  margin: -4px 0 12px;
 }
 
 .state-message {
   background: white;
   border-radius: 18px;
   padding: 22px;
-  color: #64748b;
+  color: #7c869a;
   text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #8991a1;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+
+  ion-icon {
+    font-size: 2rem;
+    color: #c7cee0;
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
 }

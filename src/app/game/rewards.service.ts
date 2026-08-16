@@ -1,7 +1,19 @@
 import { Injectable } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  runTransaction,
+  setDoc,
+  updateDoc,
+  where
+} from '@angular/fire/firestore';
 
 import { AuthService } from '../auth/auth.service';
-import { CoinService } from './coin.service';
+import { GAME_COINS_COLLECTION } from './coin.service';
 
 
 export interface VoucherOption {
@@ -43,6 +55,7 @@ export interface VoucherResult {
   providedIn: 'root',
 })
 export class RewardsService {
+  private readonly vouchersCollection = 'userVouchers';
 
   private readonly voucherCatalog: VoucherOption[] = [
 
@@ -129,7 +142,7 @@ export class RewardsService {
 
   constructor(
     private authService: AuthService,
-    private coinService: CoinService
+    private firestore: Firestore
   ) {}
 
 
@@ -138,14 +151,8 @@ export class RewardsService {
    * CATALOG
    * =====================================
    */
-
   getVoucherCatalog(): VoucherOption[] {
-
-    return this.voucherCatalog.map(
-      (voucher) => ({
-        ...voucher,
-      })
-    );
+    return this.voucherCatalog.map((voucher) => ({ ...voucher }));
   }
 
 
@@ -154,52 +161,13 @@ export class RewardsService {
    * ALL USER VOUCHERS
    * =====================================
    */
-
-  getUserVouchers(): UserVoucher[] {
-
-    try {
-
-      const storedValue =
-        localStorage.getItem(
-          this.getVoucherStorageKey()
-        );
-
-
-      if (!storedValue) {
-        return [];
-      }
-
-
-      const parsedValue: unknown =
-        JSON.parse(
-          storedValue
-        );
-
-
-      if (!Array.isArray(parsedValue)) {
-        return [];
-      }
-
-
-      return parsedValue.filter(
-        (
-          item
-        ): item is UserVoucher =>
-          this.isUserVoucher(
-            item
-          )
-      );
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to load user vouchers:',
-        error
-      );
-
-
-      return [];
-    }
+  async getUserVouchers(): Promise<UserVoucher[]> {
+    const vouchersQuery = query(
+      collection(this.firestore, this.vouchersCollection),
+      where('username', '==', this.currentUsername())
+    );
+    const snapshot = await getDocs(vouchersQuery);
+    return snapshot.docs.map((docSnapshot) => this.toUserVoucher(docSnapshot.id, docSnapshot.data()));
   }
 
 
@@ -207,27 +175,12 @@ export class RewardsService {
    * =====================================
    * ACTIVE VOUCHERS
    * =====================================
-   *
-   * Active means:
-   *
-   * - not used
-   * - not expired
+   * Active means: not used, not expired.
    */
-
-  getActiveVouchers(): UserVoucher[] {
-
-    const currentTime =
-      Date.now();
-
-
-    return this
-      .getUserVouchers()
-      .filter(
-        (voucher) =>
-          voucher.usedAt === null &&
-          voucher.expiresAt >
-            currentTime
-      );
+  async getActiveVouchers(): Promise<UserVoucher[]> {
+    const currentTime = Date.now();
+    const vouchers = await this.getUserVouchers();
+    return vouchers.filter((voucher) => voucher.usedAt === null && voucher.expiresAt > currentTime);
   }
 
 
@@ -235,41 +188,20 @@ export class RewardsService {
    * =====================================
    * ALL ACTIVE VOUCHERS FOR MERCHANT
    * =====================================
-   *
-   * IMPORTANT:
-   *
-   * This DOES NOT check minimum spend.
-   *
-   * The Pay page uses this so vouchers
-   * still appear even when the user has
-   * not met the minimum spend yet.
+   * IMPORTANT: this does NOT check minimum spend, so the Pay page can
+   * still show vouchers the user hasn't met the minimum spend for yet.
    */
-
-  getMerchantVouchers(
-    merchantName: string
-  ): UserVoucher[] {
-
-    const normalizedMerchant =
-      merchantName
-        .trim()
-        .toLowerCase();
-
+  async getMerchantVouchers(merchantName: string): Promise<UserVoucher[]> {
+    const normalizedMerchant = merchantName.trim().toLowerCase();
 
     if (!normalizedMerchant) {
       return [];
     }
 
-
-    return this
-      .getActiveVouchers()
-      .filter(
-        (voucher) =>
-          voucher
-            .merchantName
-            .trim()
-            .toLowerCase() ===
-          normalizedMerchant
-      );
+    const activeVouchers = await this.getActiveVouchers();
+    return activeVouchers.filter(
+      (voucher) => voucher.merchantName.trim().toLowerCase() === normalizedMerchant
+    );
   }
 
 
@@ -277,25 +209,10 @@ export class RewardsService {
    * =====================================
    * ELIGIBLE VOUCHERS
    * =====================================
-   *
-   * Keep this because other parts of
-   * your app may already use it.
    */
-
-  getApplicableVouchers(
-    merchantName: string,
-    purchaseAmount: number
-  ): UserVoucher[] {
-
-    return this
-      .getMerchantVouchers(
-        merchantName
-      )
-      .filter(
-        (voucher) =>
-          purchaseAmount >=
-          voucher.minimumSpend
-      );
+  async getApplicableVouchers(merchantName: string, purchaseAmount: number): Promise<UserVoucher[]> {
+    const merchantVouchers = await this.getMerchantVouchers(merchantName);
+    return merchantVouchers.filter((voucher) => purchaseAmount >= voucher.minimumSpend);
   }
 
 
@@ -303,67 +220,41 @@ export class RewardsService {
    * =====================================
    * REDEEM USING COINS
    * =====================================
+   * Spending the coins and creating the voucher happen as one Firestore
+   * transaction, so a redemption can never charge coins without granting
+   * the voucher (or vice versa).
    */
-
-  redeemVoucher(
-    voucherId: string
-  ): VoucherResult {
-
-    const catalogVoucher =
-      this.voucherCatalog.find(
-        (voucher) =>
-          voucher.id ===
-          voucherId
-      );
-
+  async redeemVoucher(voucherId: string): Promise<VoucherResult> {
+    const catalogVoucher = this.voucherCatalog.find((voucher) => voucher.id === voucherId);
 
     if (!catalogVoucher) {
-
-      return {
-        success: false,
-        message:
-          'Voucher could not be found.',
-      };
+      return { success: false, message: 'Voucher could not be found.' };
     }
 
+    const username = this.currentUsername();
+    const coinsRef = doc(this.firestore, GAME_COINS_COLLECTION, username);
+    const voucherRef = doc(collection(this.firestore, this.vouchersCollection));
+    const userVoucher = this.createUserVoucher(catalogVoucher, voucherRef.id);
 
-    const spendResult =
-      this.coinService.spendCoins(
-        catalogVoucher.coinCost
-      );
+    return runTransaction(this.firestore, async (transaction) => {
+      const coinsSnapshot = await transaction.get(coinsRef);
+      const currentCoins = coinsSnapshot.exists() && typeof coinsSnapshot.data()['coins'] === 'number'
+        ? (coinsSnapshot.data()['coins'] as number)
+        : 0;
 
+      if (catalogVoucher.coinCost > currentCoins) {
+        return { success: false, message: 'You do not have enough coins.' };
+      }
 
-    if (!spendResult.success) {
+      transaction.set(coinsRef, { coins: currentCoins - catalogVoucher.coinCost });
+      transaction.set(voucherRef, { ...userVoucher, username });
 
       return {
-        success: false,
-        message:
-          spendResult.message,
+        success: true,
+        message: `${catalogVoucher.title} was redeemed for ${catalogVoucher.coinCost} coins.`,
+        voucher: userVoucher,
       };
-    }
-
-
-    const userVoucher =
-      this.createUserVoucher(
-        catalogVoucher
-      );
-
-
-    this.addVoucherToWallet(
-      userVoucher
-    );
-
-
-    return {
-      success: true,
-
-      message:
-        `${catalogVoucher.title} was redeemed for ` +
-        `${catalogVoucher.coinCost} coins.`,
-
-      voucher:
-        userVoucher,
-    };
+    });
   }
 
 
@@ -371,58 +262,15 @@ export class RewardsService {
    * =====================================
    * FREE RANDOM SCRATCH-CARD VOUCHER
    * =====================================
-   *
    * No coins are deducted.
    */
-
-  awardRandomVoucher(): VoucherResult {
-
-    if (
-      this.voucherCatalog.length === 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'No vouchers are currently available.',
-      };
+  async awardRandomVoucher(): Promise<VoucherResult> {
+    if (this.voucherCatalog.length === 0) {
+      return { success: false, message: 'No vouchers are currently available.' };
     }
 
-
-    const randomIndex =
-      Math.floor(
-        Math.random() *
-        this.voucherCatalog.length
-      );
-
-
-    const catalogVoucher =
-      this.voucherCatalog[
-        randomIndex
-      ];
-
-
-    const userVoucher =
-      this.createUserVoucher(
-        catalogVoucher
-      );
-
-
-    this.addVoucherToWallet(
-      userVoucher
-    );
-
-
-    return {
-      success: true,
-
-      message:
-        `You won ${catalogVoucher.title}! ` +
-        'It has been added to your vouchers.',
-
-      voucher:
-        userVoucher,
-    };
+    const randomIndex = Math.floor(Math.random() * this.voucherCatalog.length);
+    return this.awardVoucher(this.voucherCatalog[randomIndex].id);
   }
 
 
@@ -431,49 +279,22 @@ export class RewardsService {
    * FREE SPECIFIC VOUCHER
    * =====================================
    */
-
-  awardVoucher(
-    voucherId: string
-  ): VoucherResult {
-
-    const catalogVoucher =
-      this.voucherCatalog.find(
-        (voucher) =>
-          voucher.id ===
-          voucherId
-      );
-
+  async awardVoucher(voucherId: string): Promise<VoucherResult> {
+    const catalogVoucher = this.voucherCatalog.find((voucher) => voucher.id === voucherId);
 
     if (!catalogVoucher) {
-
-      return {
-        success: false,
-        message:
-          'Voucher could not be found.',
-      };
+      return { success: false, message: 'Voucher could not be found.' };
     }
 
+    const voucherRef = doc(collection(this.firestore, this.vouchersCollection));
+    const userVoucher = this.createUserVoucher(catalogVoucher, voucherRef.id);
 
-    const userVoucher =
-      this.createUserVoucher(
-        catalogVoucher
-      );
-
-
-    this.addVoucherToWallet(
-      userVoucher
-    );
-
+    await setDoc(voucherRef, { ...userVoucher, username: this.currentUsername() });
 
     return {
       success: true,
-
-      message:
-        `You won ${catalogVoucher.title}! ` +
-        'It has been added to your vouchers.',
-
-      voucher:
-        userVoucher,
+      message: `You won ${catalogVoucher.title}! It has been added to your vouchers.`,
+      voucher: userVoucher,
     };
   }
 
@@ -483,329 +304,75 @@ export class RewardsService {
    * MARK VOUCHER USED
    * =====================================
    */
+  async markVoucherUsed(userVoucherId: string): Promise<VoucherResult> {
+    const ref = doc(this.firestore, this.vouchersCollection, userVoucherId);
+    const snapshot = await getDoc(ref);
 
-  markVoucherUsed(
-    userVoucherId: string
-  ): VoucherResult {
-
-    const userVouchers =
-      this.getUserVouchers();
-
-
-    const voucher =
-      userVouchers.find(
-        (item) =>
-          item.id ===
-          userVoucherId
-      );
-
-
-    if (!voucher) {
-
-      return {
-        success: false,
-        message:
-          'Voucher could not be found.',
-      };
+    if (!snapshot.exists()) {
+      return { success: false, message: 'Voucher could not be found.' };
     }
 
+    const voucher = this.toUserVoucher(snapshot.id, snapshot.data());
 
-    if (
-      voucher.usedAt !== null
-    ) {
-
-      return {
-        success: false,
-        message:
-          'This voucher has already been used.',
-      };
+    if (voucher.usedAt !== null) {
+      return { success: false, message: 'This voucher has already been used.' };
     }
 
-
-    if (
-      voucher.expiresAt <=
-      Date.now()
-    ) {
-
-      return {
-        success: false,
-        message:
-          'This voucher has expired.',
-      };
+    if (voucher.expiresAt <= Date.now()) {
+      return { success: false, message: 'This voucher has expired.' };
     }
 
+    const usedAt = Date.now();
+    await updateDoc(ref, { usedAt });
+    voucher.usedAt = usedAt;
 
-    voucher.usedAt =
-      Date.now();
-
-
-    this.saveUserVouchers(
-      userVouchers
-    );
-
-
-    return {
-      success: true,
-      message:
-        'Voucher used successfully.',
-      voucher,
-    };
+    return { success: true, message: 'Voucher used successfully.', voucher };
   }
 
 
-  /*
-   * =====================================
-   * CREATE USER VOUCHER
-   * =====================================
-   */
-
-  private createUserVoucher(
-    catalogVoucher: VoucherOption
-  ): UserVoucher {
-
-    const redeemedAt =
-      Date.now();
-
+  private createUserVoucher(catalogVoucher: VoucherOption, id: string): UserVoucher {
+    const redeemedAt = Date.now();
 
     return {
-
-      id:
-        `user-voucher-${redeemedAt}-` +
-        `${Math.floor(
-          Math.random() *
-          100000
-        )}`,
-
-      voucherId:
-        catalogVoucher.id,
-
-      title:
-        catalogVoucher.title,
-
-      merchantName:
-        catalogVoucher.merchantName,
-
-      description:
-        catalogVoucher.description,
-
-      discountAmount:
-        catalogVoucher.discountAmount,
-
-      minimumSpend:
-        catalogVoucher.minimumSpend,
-
-      code:
-        this.generateVoucherCode(),
-
+      id,
+      voucherId: catalogVoucher.id,
+      title: catalogVoucher.title,
+      merchantName: catalogVoucher.merchantName,
+      description: catalogVoucher.description,
+      discountAmount: catalogVoucher.discountAmount,
+      minimumSpend: catalogVoucher.minimumSpend,
+      code: this.generateVoucherCode(),
       redeemedAt,
-
-      expiresAt:
-        redeemedAt +
-        (
-          catalogVoucher.validityDays *
-          24 *
-          60 *
-          60 *
-          1000
-        ),
-
-      usedAt:
-        null,
+      expiresAt: redeemedAt + (catalogVoucher.validityDays * 24 * 60 * 60 * 1000),
+      usedAt: null,
     };
   }
 
 
-  /*
-   * =====================================
-   * ADD TO WALLET
-   * =====================================
-   */
-
-  private addVoucherToWallet(
-    voucher: UserVoucher
-  ): void {
-
-    const vouchers =
-      this.getUserVouchers();
-
-
-    vouchers.unshift(
-      voucher
-    );
-
-
-    this.saveUserVouchers(
-      vouchers
-    );
+  private toUserVoucher(id: string, data: Record<string, unknown>): UserVoucher {
+    return {
+      id,
+      voucherId: (data['voucherId'] as string) || '',
+      title: (data['title'] as string) || '',
+      merchantName: (data['merchantName'] as string) || '',
+      description: (data['description'] as string) || '',
+      discountAmount: (data['discountAmount'] as number) || 0,
+      minimumSpend: (data['minimumSpend'] as number) || 0,
+      code: (data['code'] as string) || '',
+      redeemedAt: (data['redeemedAt'] as number) || 0,
+      expiresAt: (data['expiresAt'] as number) || 0,
+      usedAt: (data['usedAt'] as number | null) ?? null,
+    };
   }
 
-
-  /*
-   * =====================================
-   * SAVE
-   * =====================================
-   */
-
-  private saveUserVouchers(
-    vouchers: UserVoucher[]
-  ): void {
-
-    try {
-
-      localStorage.setItem(
-        this.getVoucherStorageKey(),
-        JSON.stringify(
-          vouchers
-        )
-      );
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to save vouchers:',
-        error
-      );
-    }
-  }
-
-
-  /*
-   * =====================================
-   * STORAGE KEY
-   * =====================================
-   */
-
-  private getVoucherStorageKey(): string {
-
-    return (
-      `userVouchers_${this.getCurrentUsername()}`
-    );
-  }
-
-
-  private getCurrentUsername(): string {
-
-    return (
-      this.authService
-        .getCurrentUser()
-        ?.username
-        .trim()
-        .toLowerCase()
-      ??
-      'guest'
-    );
-  }
-
-
-  /*
-   * =====================================
-   * CODE GENERATION
-   * =====================================
-   */
 
   private generateVoucherCode(): string {
-
-    const randomPart =
-      Math.random()
-        .toString(36)
-        .substring(
-          2,
-          8
-        )
-        .toUpperCase();
-
-
-    return (
-      `HOOPS-${randomPart}`
-    );
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `HOOPS-${randomPart}`;
   }
 
 
-  /*
-   * =====================================
-   * VALIDATE STORED DATA
-   * =====================================
-   */
-
-  private isUserVoucher(
-    value: unknown
-  ): value is UserVoucher {
-
-    if (
-      !value ||
-      typeof value !== 'object'
-    ) {
-
-      return false;
-    }
-
-
-    const voucher =
-      value as
-        Partial<UserVoucher>;
-
-
-    return (
-
-      typeof voucher.id ===
-        'string'
-
-      &&
-
-      typeof voucher.voucherId ===
-        'string'
-
-      &&
-
-      typeof voucher.title ===
-        'string'
-
-      &&
-
-      typeof voucher.merchantName ===
-        'string'
-
-      &&
-
-      typeof voucher.description ===
-        'string'
-
-      &&
-
-      typeof voucher.discountAmount ===
-        'number'
-
-      &&
-
-      typeof voucher.minimumSpend ===
-        'number'
-
-      &&
-
-      typeof voucher.code ===
-        'string'
-
-      &&
-
-      typeof voucher.redeemedAt ===
-        'number'
-
-      &&
-
-      typeof voucher.expiresAt ===
-        'number'
-
-      &&
-
-      (
-        typeof voucher.usedAt ===
-          'number'
-
-        ||
-
-        voucher.usedAt ===
-          null
-      )
-    );
+  private currentUsername(): string {
+    return this.authService.getCurrentUser()?.username.trim().toLowerCase() ?? 'guest';
   }
 }

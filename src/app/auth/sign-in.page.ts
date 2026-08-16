@@ -65,7 +65,7 @@ export class SignInPage implements OnInit {
 
   console.log('Sign In pressed:', username);
 
-  const result = this.authService.login(username, password);
+  const result = await this.authService.login(username, password);
 
   if (!result.success) {
     this.loginError =

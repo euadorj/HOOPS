@@ -43,7 +43,7 @@ export class SignUpPage implements OnInit {
     this.signUpForm.get(controlName)?.setValue(value, { emitEvent: true });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.submitted = true;
     this.duplicateUsernameError = '';
 
@@ -53,7 +53,7 @@ export class SignUpPage implements OnInit {
     }
 
     const { username, countryCode, phoneNumber, password } = this.signUpForm.value;
-    const registrationResult = this.authService.register({
+    const registrationResult = await this.authService.register({
       username,
       password,
       countryCode,

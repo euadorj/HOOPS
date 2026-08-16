@@ -377,11 +377,11 @@ export class Tab1Page
   }
 
 
-  loadFinanceData():
-    void {
+  async loadFinanceData():
+    Promise<void> {
 
     const financeData =
-      this.savingsService
+      await this.savingsService
         .getFinanceData();
 
 
@@ -401,24 +401,24 @@ export class Tab1Page
   }
 
 
-  loadDashboardSettings():
-    void {
+  async loadDashboardSettings():
+    Promise<void> {
 
     this.selectedDashboardItems =
-      this.dashboardService
+      await this.dashboardService
         .getSelectedItems();
   }
 
 
-  loadDashboardInformation():
-    void {
+  async loadDashboardInformation():
+    Promise<void> {
 
     /*
      * Get latest investment values
      * every time dashboard reloads.
      */
     this.investments =
-      this.dashboardService
+      await this.dashboardService
         .getInvestments();
 
 
@@ -452,13 +452,13 @@ export class Tab1Page
 
 
     this.monthlyBudget =
-      this.dashboardService
+      await this.dashboardService
         .getMonthlyBudget();
 
 
     this.upcomingBills =
-      this.dashboardService
-        .getUpcomingBills()
+      (await this.dashboardService
+        .getUpcomingBills())
         .filter(
           (bill) =>
             !bill.paid
@@ -489,12 +489,8 @@ export class Tab1Page
         .getFinancialTips();
 
 
-    this.coinService
-      .refreshCoins();
-
-
     this.rewardCoins =
-      this.coinService
+      await this.coinService
         .getCoins();
 
 
@@ -504,13 +500,13 @@ export class Tab1Page
 
 
     this.activeVoucherCount =
-      this.rewardsService
-        .getActiveVouchers()
+      (await this.rewardsService
+        .getActiveVouchers())
         .length;
 
 
     const paymentHistory =
-      this.savingsService
+      await this.savingsService
         .getPaymentHistory();
 
 
@@ -699,7 +695,7 @@ export class Tab1Page
                 'Save',
 
               handler:
-                (data) => {
+                async (data) => {
 
                   const amount =
                     Number(
@@ -708,7 +704,7 @@ export class Tab1Page
 
 
                   const saved =
-                    this.dashboardService
+                    await this.dashboardService
                       .setMonthlyBudget(
                         amount
                       );
@@ -719,7 +715,7 @@ export class Tab1Page
                   }
 
 
-                  this
+                  await this
                     .loadDashboardInformation();
 
 
@@ -735,13 +731,13 @@ export class Tab1Page
   }
 
 
-  markBillPaid(
+  async markBillPaid(
     billId:
       string
-  ): void {
+  ): Promise<void> {
 
     const updated =
-      this.dashboardService
+      await this.dashboardService
         .markBillPaid(
           billId
         );
@@ -749,7 +745,7 @@ export class Tab1Page
 
     if (updated) {
 
-      this
+      await this
         .loadDashboardInformation();
     }
   }
@@ -772,10 +768,10 @@ export class Tab1Page
   }
 
 
-  logout():
-    void {
+  async logout():
+    Promise<void> {
 
-    this.authService
+    await this.authService
       .logout();
 
 

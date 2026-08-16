@@ -18,7 +18,7 @@ export class CreateSharedWalletPage {
 
   constructor(private router: Router, private sharedWalletService: SharedWalletService) {}
 
-  create(): void {
+  async create(): Promise<void> {
     if (this.submitting) {
       return;
     }
@@ -33,7 +33,7 @@ export class CreateSharedWalletPage {
     }
     if (!/^\d{6}$/.test(code)) {
       errors.push('Enter a valid six-digit wallet code.');
-    } else if (this.sharedWalletService.hasWalletCode(code)) {
+    } else if (await this.sharedWalletService.hasWalletCode(code)) {
       errors.push('That wallet code is already in use. Choose another one.');
     }
 
@@ -43,13 +43,13 @@ export class CreateSharedWalletPage {
     }
 
     this.submitting = true;
-    const wallet = this.sharedWalletService.createWallet(name, code, this.description);
+    const wallet = await this.sharedWalletService.createWallet(name, code, this.description);
+    this.submitting = false;
+
     if (!wallet) {
-      this.creationError = 'Unable to create wallet right now.';
-      this.submitting = false;
+      this.creationError = 'That wallet code was just taken. Choose another one.';
       return;
     }
-    this.submitting = false;
     this.router.navigate(['/tabs/shared-wallets/wallet', wallet.id]);
   }
 }

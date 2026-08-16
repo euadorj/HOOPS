@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from '../environments/environment';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
@@ -21,7 +22,8 @@ import { AppComponent } from './app.component';
     
 
   provideFirebaseApp(() => initializeApp(environment.firebase)),
-  provideFirestore(() => getFirestore())
+  provideFirestore(() => getFirestore()),
+  provideAuth(() => getAuth())
   ],
   bootstrap: [AppComponent],
 })

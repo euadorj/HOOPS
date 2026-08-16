@@ -32,9 +32,9 @@ export class WalletAddFundsPage implements OnInit {
     this.loadWallet();
   }
 
-  loadWallet(): void {
+  async loadWallet(): Promise<void> {
     const walletId = this.route.snapshot.paramMap.get('id');
-    this.wallet = walletId ? this.sharedWalletService.getWalletById(walletId) : null;
+    this.wallet = walletId ? await this.sharedWalletService.getWalletById(walletId) : null;
     if (!this.wallet) {
       this.router.navigate(['/tabs/shared-wallets'], { queryParams: { accessDenied: 'true' } });
     }
@@ -58,7 +58,7 @@ export class WalletAddFundsPage implements OnInit {
     this.selectedPaymentMethod = methodName;
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (!this.wallet || this.submitting) {
       return;
     }
@@ -76,7 +76,7 @@ export class WalletAddFundsPage implements OnInit {
     }
 
     this.submitting = true;
-    const result = this.sharedWalletService.addFunds({
+    const result = await this.sharedWalletService.addFunds({
       walletId: this.wallet.id,
       amountCents,
       paymentMethod: this.selectedPaymentMethod,

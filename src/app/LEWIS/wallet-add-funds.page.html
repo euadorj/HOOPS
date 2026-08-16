@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" class="wallet-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="wallet-header">
     <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="wallet ? '/tabs/shared-wallets/wallet/' + wallet.id : '/tabs/shared-wallets'"></ion-back-button>
+      <ion-back-button [defaultHref]="wallet ? '/tabs/shared-wallets/wallet/' + wallet.id : '/tabs/shared-wallets'" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-content">
       <ion-title class="header-title">Add Funds</ion-title>
@@ -45,7 +45,10 @@
       </button>
     </section>
 
-    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <div class="error-message" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      {{ errorMessage }}
+    </div>
     <ion-button expand="block" class="submit-button" [disabled]="submitting" (click)="submit()">
       {{ submitting ? 'Processing...' : ('Add ' + (amountInput ? ('$' + amountInput) : '$0.00')) }}
     </ion-button>

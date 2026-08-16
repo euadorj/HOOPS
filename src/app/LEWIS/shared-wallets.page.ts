@@ -35,13 +35,13 @@ export class SharedWalletsPage implements OnInit {
     this.refreshWallets();
   }
 
-  refreshWallets(): void {
+  async refreshWallets(): Promise<void> {
     this.loading = true;
-    this.wallets = this.sharedWalletService.getWalletsForCurrentUser();
+    this.wallets = await this.sharedWalletService.getWalletsForCurrentUser();
     this.loading = false;
   }
 
-  joinWallet(): void {
+  async joinWallet(): Promise<void> {
     const code = this.walletCode.trim();
     this.joinError = '';
     this.joinMessage = '';
@@ -51,7 +51,7 @@ export class SharedWalletsPage implements OnInit {
       return;
     }
 
-    const result = this.sharedWalletService.joinWallet(code);
+    const result = await this.sharedWalletService.joinWallet(code);
     if (!result.wallet) {
       this.joinError = result.message || 'No wallet was found with that code.';
       return;
@@ -64,7 +64,7 @@ export class SharedWalletsPage implements OnInit {
     }
 
     this.joinMessage = 'Wallet joined successfully.';
-    this.refreshWallets();
+    await this.refreshWallets();
     this.router.navigate(['/tabs/shared-wallets/wallet', result.wallet.id]);
   }
 

@@ -1,4 +1,23 @@
 import { Injectable } from '@angular/core';
+import {
+  Auth,
+  User as FirebaseUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut
+} from '@angular/fire/auth';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where
+} from '@angular/fire/firestore';
 
 export interface User {
   id?: string;
@@ -19,207 +38,182 @@ export interface CurrentUser {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly hardcodedAccounts: User[] = [
-    { id: 'account-thierry', username: 'Thierry', password: '123456' },
-    { id: 'account-user', username: 'user', password: '123456' },
-  ];
+  private readonly emailDomain = 'hoops.app';
+  private readonly usernamesCollection = 'usernames';
+  private readonly profilesCollection = 'userProfiles';
 
-  private readonly registeredUsersStorageKey = 'registeredUsers';
-  private readonly currentUserStorageKey = 'currentUser';
+  private currentUser: CurrentUser | null = null;
 
-  login(username: string, password: string): { success: boolean; message?: string; user?: CurrentUser } {
-    const normalizedUsername = this.normalizeUsername(username);
-    const account = this.getAllAccounts().find((entry) => this.normalizeUsername(entry.username) === normalizedUsername);
+  /** Resolves once the initial Firebase Auth session (if any) has been rehydrated. */
+  readonly authReady: Promise<void>;
 
-    if (!account) {
-      return { success: false, message: 'Incorrect username or password' };
-    }
-
-    if (account.password !== password) {
-      return { success: false, message: 'Incorrect username or password' };
-    }
-
-    const currentUser: CurrentUser = {
-      id: this.getUserId(account),
-      username: account.username,
-      countryCode: account.countryCode,
-      phoneNumber: account.phoneNumber,
-    };
-
-    this.saveCurrentUser(currentUser);
-    return { success: true, user: currentUser };
+  constructor(private auth: Auth, private firestore: Firestore) {
+    this.authReady = new Promise((resolve) => {
+      let settled = false;
+      onAuthStateChanged(this.auth, async (firebaseUser) => {
+        await this.syncCurrentUser(firebaseUser);
+        if (!settled) {
+          settled = true;
+          resolve();
+        }
+      });
+    });
   }
 
-  register(user: User): { success: boolean; message?: string } {
-    const normalizedUsername = this.normalizeUsername(user.username);
-    const existingUser = this.getAllAccounts().find((entry) => this.normalizeUsername(entry.username) === normalizedUsername);
-
-    if (existingUser) {
-      return { success: false, message: 'Username already exists' };
+  async login(username: string, password: string): Promise<{ success: boolean; message?: string; user?: CurrentUser }> {
+    const normalizedUsername = this.normalizeUsername(username);
+    if (!normalizedUsername || !password) {
+      return { success: false, message: 'Incorrect username or password' };
     }
 
-    const registeredUsers = this.readRegisteredUsers();
-    registeredUsers.push({
-      id: `account-${this.normalizeUsername(user.username)}`,
-      username: user.username.trim(),
-      password: user.password,
-      countryCode: user.countryCode,
-      phoneNumber: user.phoneNumber,
-    });
+    try {
+      const credential = await signInWithEmailAndPassword(this.auth, this.toEmail(normalizedUsername), password);
+      await this.syncCurrentUser(credential.user);
+      return { success: true, user: this.currentUser ?? undefined };
+    } catch {
+      return { success: false, message: 'Incorrect username or password' };
+    }
+  }
 
-    this.saveRegisteredUsers(registeredUsers);
-    return { success: true };
+  async register(user: User): Promise<{ success: boolean; message?: string }> {
+    const normalizedUsername = this.normalizeUsername(user.username);
+    if (!normalizedUsername) {
+      return { success: false, message: 'Username is required' };
+    }
+
+    try {
+      const credential = await createUserWithEmailAndPassword(this.auth, this.toEmail(normalizedUsername), user.password);
+      const cleanUsername = user.username.trim();
+
+      await updateProfile(credential.user, { displayName: cleanUsername });
+
+      await setDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername), {
+        uid: credential.user.uid,
+        username: cleanUsername
+      });
+
+      await setDoc(doc(this.firestore, this.profilesCollection, credential.user.uid), {
+        countryCode: user.countryCode || '',
+        phoneNumber: user.phoneNumber || ''
+      });
+
+      await this.syncCurrentUser(credential.user);
+      return { success: true };
+    } catch (error) {
+      const code = this.firebaseErrorCode(error);
+      if (code === 'auth/email-already-in-use') {
+        return { success: false, message: 'Username already exists' };
+      }
+      if (code === 'auth/operation-not-allowed') {
+        return { success: false, message: 'Sign-up is temporarily unavailable. Please try again later.' };
+      }
+      if (code === 'auth/weak-password') {
+        return { success: false, message: 'Password is too weak. Use at least 6 characters.' };
+      }
+      return { success: false, message: 'Unable to create account. Please try again.' };
+    }
   }
 
   isAuthenticated(): boolean {
-    return this.getCurrentUser() !== null;
+    return this.currentUser !== null;
   }
 
   getCurrentUser(): CurrentUser | null {
-    const storedUser = this.readCurrentUser();
-    return storedUser;
+    return this.currentUser;
   }
 
-  getAccountDisplayName(username: string): string {
+  async logout(): Promise<void> {
+    await signOut(this.auth);
+    this.currentUser = null;
+  }
+
+  async getAccountDisplayName(username: string): Promise<string> {
+    return (await this.getAccountUsername(username)) ?? username;
+  }
+
+  async getAccountId(username: string): Promise<string | null> {
     const normalizedUsername = this.normalizeUsername(username);
-    const account = this.getAllAccounts().find(
-      (entry) => this.normalizeUsername(entry.username) === normalizedUsername
-    );
-    return account?.username ?? username;
-  }
-
-  getAccountId(username: string): string | null {
-    const normalizedUsername = this.normalizeUsername(username);
-    const account = this.getAllAccounts().find(
-      (entry) => this.normalizeUsername(entry.username) === normalizedUsername
-    );
-    return account ? this.getUserId(account) : null;
-  }
-
-  
-
-  logout(): void {
-    this.clearCurrentUser();
-  }
-
-  private getAllAccounts(): User[] {
-    return [...this.hardcodedAccounts, ...this.readRegisteredUsers()];
-  }
-
-  private readRegisteredUsers(): User[] {
-    if (typeof window === 'undefined') {
-      return [];
-    }
-
-    try {
-      const storedValue = window.localStorage.getItem(this.registeredUsersStorageKey);
-      if (!storedValue) {
-        return [];
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      if (!Array.isArray(parsedValue)) {
-        return [];
-      }
-
-      return parsedValue.filter((entry): entry is User => this.isUser(entry));
-    } catch (error) {
-      console.warn('Unable to read registered users from localStorage', error);
-      return [];
-    }
-  }
-
-  private saveRegisteredUsers(users: User[]): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.localStorage.setItem(this.registeredUsersStorageKey, JSON.stringify(users));
-  }
-
-  private readCurrentUser(): CurrentUser | null {
-    if (typeof window === 'undefined') {
+    if (!normalizedUsername) {
       return null;
     }
 
-    try {
-      const storedValue = window.localStorage.getItem(this.currentUserStorageKey);
-      if (!storedValue) {
-        return null;
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      if (!this.isCurrentUser(parsedValue)) {
-        return null;
-      }
-
-      return {
-        ...parsedValue,
-        id: parsedValue.id || this.getAccountId(parsedValue.username) || `account-${this.normalizeUsername(parsedValue.username)}`
-      };
-    } catch (error) {
-      console.warn('Unable to read current user from localStorage', error);
+    const snapshot = await getDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername));
+    if (!snapshot.exists()) {
       return null;
     }
+    return (snapshot.data()['uid'] as string) || null;
   }
 
-  private saveCurrentUser(user: CurrentUser): void {
-    if (typeof window === 'undefined') {
+  async getUsernameById(id: string): Promise<string | null> {
+    if (!id) {
+      return null;
+    }
+
+    const lookupQuery = query(collection(this.firestore, this.usernamesCollection), where('uid', '==', id));
+    const snapshot = await getDocs(lookupQuery);
+    if (snapshot.empty) {
+      return null;
+    }
+    return (snapshot.docs[0].data()['username'] as string) || null;
+  }
+
+  async accountExists(username: string): Promise<boolean> {
+    return (await this.getAccountUsername(username)) !== null;
+  }
+
+  async getAccountUsername(username: string): Promise<string | null> {
+    const normalizedUsername = this.normalizeUsername(username);
+    if (!normalizedUsername) {
+      return null;
+    }
+
+    const snapshot = await getDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername));
+    if (!snapshot.exists()) {
+      return null;
+    }
+    return (snapshot.data()['username'] as string) || null;
+  }
+
+  private async syncCurrentUser(firebaseUser: FirebaseUser | null): Promise<void> {
+    if (!firebaseUser) {
+      this.currentUser = null;
       return;
     }
 
-    window.localStorage.setItem(this.currentUserStorageKey, JSON.stringify(user));
-  }
+    let countryCode: string | undefined;
+    let phoneNumber: string | undefined;
 
-  private clearCurrentUser(): void {
-    if (typeof window === 'undefined') {
-      return;
+    try {
+      const profileSnapshot = await getDoc(doc(this.firestore, this.profilesCollection, firebaseUser.uid));
+      if (profileSnapshot.exists()) {
+        const data = profileSnapshot.data();
+        countryCode = (data['countryCode'] as string) || undefined;
+        phoneNumber = (data['phoneNumber'] as string) || undefined;
+      }
+    } catch (error) {
+      console.warn('Unable to load user profile:', error);
     }
 
-    window.localStorage.removeItem(this.currentUserStorageKey);
+    this.currentUser = {
+      id: firebaseUser.uid,
+      username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'user',
+      countryCode,
+      phoneNumber
+    };
+  }
+
+  private toEmail(normalizedUsername: string): string {
+    return `${normalizedUsername}@${this.emailDomain}`;
   }
 
   private normalizeUsername(username: string): string {
-    return username.trim().toLowerCase();
+    return (username || '').trim().toLowerCase();
   }
 
-  private getUserId(user: User): string {
-    return user.id || `account-${this.normalizeUsername(user.username)}`;
+  private firebaseErrorCode(error: unknown): string | null {
+    if (error && typeof error === 'object' && 'code' in error && typeof (error as { code: unknown }).code === 'string') {
+      return (error as { code: string }).code;
+    }
+    return null;
   }
-
-  private isUser(value: unknown): value is User {
-    return Boolean(
-      value &&
-        typeof value === 'object' &&
-        'username' in value &&
-        'password' in value &&
-        typeof (value as User).username === 'string' &&
-        typeof (value as User).password === 'string'
-    );
-  }
-
-  private isCurrentUser(value: unknown): value is CurrentUser {
-    return Boolean(
-      value &&
-        typeof value === 'object' &&
-        'username' in value &&
-        typeof (value as CurrentUser).username === 'string'
-    );
-  }
-  accountExists(username: string): boolean {
-  return this.getAccountUsername(username) !== null;
-}
-
-getAccountUsername(username: string): string | null {
-  const normalizedUsername =
-    this.normalizeUsername(username);
-
-  const account = this.getAllAccounts().find(
-    (entry) =>
-      this.normalizeUsername(entry.username) ===
-      normalizedUsername
-  );
-
-  return account?.username ?? null;
-}
 }

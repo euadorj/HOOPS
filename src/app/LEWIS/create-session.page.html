@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" class="create-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="create-header">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab2"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab2" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-content">
       <ion-title class="header-title">Create Session</ion-title>
@@ -45,23 +45,23 @@
         />
       </div>
 
-      <div class="field-group">
-        <label>Menu Categories</label>
+      <div class="section-divider">
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <span>Menu Categories</span>
       </div>
 
       <div class="category-card" *ngFor="let category of categories; let catIndex = index">
         <div class="category-header">
-          <h3>{{ category.title }}</h3>
-          <button class="category-action" type="button" (click)="removeCategory(catIndex)">Remove</button>
-        </div>
-
-        <div class="field-group">
           <input
             type="text"
+            class="category-title-input"
             [(ngModel)]="category.title"
             placeholder="Category title"
             name="categoryTitle{{ catIndex }}"
           />
+          <button class="icon-button danger" type="button" (click)="removeCategory(catIndex)" aria-label="Remove category">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
         </div>
 
         <div class="menu-item-card" *ngFor="let item of category.items; let itemIndex = index">
@@ -78,16 +78,32 @@
               placeholder="Price"
               name="itemPrice{{ catIndex }}-{{ itemIndex }}"
             />
+            <button class="icon-button" type="button" (click)="removeItem(category, itemIndex)" aria-label="Remove item">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
           </div>
-          <button class="category-action" type="button" (click)="removeItem(category, itemIndex)">Remove item</button>
         </div>
 
-        <button class="add-button" type="button" (click)="addItem(category)">Add Item</button>
+        <button class="add-item-button" type="button" (click)="addItem(category)">
+          <ion-icon name="add-outline"></ion-icon>
+          Add Item
+        </button>
       </div>
 
-      <button class="add-button" type="button" (click)="addCategory()">Add Category</button>
-      <div class="validation-error" *ngIf="validationMessage">{{ validationMessage }}</div>
-      <ion-button class="create-button" expand="block" (click)="create()">Create Session</ion-button>
+      <button class="add-button" type="button" (click)="addCategory()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        Add Category
+      </button>
+
+      <div class="validation-error" *ngIf="validationMessage">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ validationMessage }}
+      </div>
+
+      <ion-button class="create-button" expand="block" [disabled]="submitting" (click)="create()">
+        {{ submitting ? 'Creating...' : 'Create Session' }}
+        <ion-icon *ngIf="!submitting" name="arrow-forward-outline" slot="end"></ion-icon>
+      </ion-button>
     </div>
   </div>
 </ion-content>

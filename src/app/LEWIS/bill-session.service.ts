@@ -1,4 +1,15 @@
 import { Injectable } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  runTransaction,
+  arrayRemove
+} from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
 
 export interface MenuItem {
@@ -27,205 +38,155 @@ export interface BillSession {
   providedIn: 'root'
 })
 export class BillSessionService {
-  private readonly sessionsStorageKey = 'billSplittingSessions';
-  private sessions: BillSession[] = [];
+  private readonly collectionName = 'billSessions';
 
-  constructor(private authService: AuthService) {
-    this.sessions = this.readSessions();
-    if (!this.sessions.length) {
-      this.sessions = [
-        {
-          id: '123456',
-          title: 'Dinner at Mario\'s',
-          restaurant: 'Mario\'s Italian Restaurant',
-          ownerId: this.currentUserId(),
-          memberIds: [this.currentUserId()],
-          menuCategories: [
-        {
-          title: 'Appetizers',
-          items: [
-            { id: 'caesar', title: 'Caesar Salad', description: 'Romaine, parmesan, house dressing', price: 12.99 },
-            { id: 'garlic', title: 'Garlic Bread', description: 'Buttery garlic toast with herbs', price: 6.99 }
-          ]
-        },
-        {
-          title: 'Main Course',
-          items: [
-            { id: 'pizza', title: 'Margherita Pizza', description: 'Fresh basil, mozzarella, tomato', price: 18.5 },
-            { id: 'steak', title: 'Steak Frites', description: 'Grilled steak with crispy fries', price: 28.9 }
-          ]
-        },
-        {
-          title: 'Desserts',
-          items: [
-            { id: 'lava-cake', title: 'Chocolate Lava Cake', description: 'Warm chocolate cake with ice cream', price: 9.5 },
-            { id: 'latte', title: 'Iced Latte', description: 'Cold brew coffee with milk', price: 5.5 }
-          ]
+  constructor(private authService: AuthService, private firestore: Firestore) {}
+
+  async getSessions(): Promise<BillSession[]> {
+    const userId = this.currentUserId();
+    if (!userId) {
+      return [];
+    }
+
+    const sessionsQuery = query(
+      collection(this.firestore, this.collectionName),
+      where('memberIds', 'array-contains', userId)
+    );
+    const snapshot = await getDocs(sessionsQuery);
+    return snapshot.docs.map((docSnapshot) => this.toSession(docSnapshot.id, docSnapshot.data()));
+  }
+
+  async getSessionById(id: string): Promise<BillSession | null> {
+    const snapshot = await getDoc(doc(this.firestore, this.collectionName, id));
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const session = this.toSession(snapshot.id, snapshot.data());
+    return session.memberIds.includes(this.currentUserId()) ? session : null;
+  }
+
+  async addSession(session: BillSession): Promise<boolean> {
+    const userId = this.currentUserId();
+    const sessionRef = doc(this.firestore, this.collectionName, session.id);
+
+    return runTransaction(this.firestore, async (transaction) => {
+      const existing = await transaction.get(sessionRef);
+      if (existing.exists()) {
+        return false;
+      }
+
+      transaction.set(sessionRef, {
+        title: session.title,
+        restaurant: session.restaurant,
+        menuCategories: session.menuCategories,
+        ownerId: userId,
+        memberIds: [userId]
+      });
+      return true;
+    });
+  }
+
+  async hasSession(id: string): Promise<boolean> {
+    const snapshot = await getDoc(doc(this.firestore, this.collectionName, id));
+    return snapshot.exists();
+  }
+
+  async joinSession(code: string): Promise<boolean> {
+    const userId = this.currentUserId();
+    const sessionRef = doc(this.firestore, this.collectionName, code);
+
+    return runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(sessionRef);
+      if (!snapshot.exists()) {
+        return false;
+      }
+
+      const data = snapshot.data();
+      const memberIds: string[] = Array.isArray(data['memberIds']) ? data['memberIds'] : [];
+      if (!memberIds.includes(userId)) {
+        transaction.update(sessionRef, { memberIds: [...memberIds, userId] });
+      }
+      return true;
+    });
+  }
+
+  async canAccessSession(id: string): Promise<boolean> {
+    return (await this.getSessionById(id)) !== null;
+  }
+
+  async leaveSession(sessionId: string): Promise<{ success: boolean; message?: string }> {
+    const userId = this.currentUserId();
+    const sessionRef = doc(this.firestore, this.collectionName, sessionId);
+
+    const result = await runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(sessionRef);
+      if (!snapshot.exists()) {
+        return { success: false, message: 'This session no longer exists.' };
+      }
+
+      const session = this.toSession(snapshot.id, snapshot.data());
+      if (!session.memberIds.includes(userId)) {
+        return { success: false, message: 'You are not a member of this session.' };
+      }
+
+      const hasUnpaidItems = session.menuCategories.some((category) => category.items.length > 0);
+      const isCreator = session.ownerId === userId;
+      const otherMembersRemain = session.memberIds.some((memberId) => memberId !== userId);
+
+      if (isCreator && otherMembersRemain && hasUnpaidItems) {
+        return { success: false, message: 'You created this session. There are still unpaid items!' };
+      }
+
+      if (!otherMembersRemain) {
+        if (hasUnpaidItems) {
+          return { success: false, message: 'There are still unpaid items in this session.' };
         }
-          ]
-        }
-      ];
-      this.saveSessions();
-    }
+
+        transaction.delete(sessionRef);
+        return { success: true };
+      }
+
+      transaction.update(sessionRef, { memberIds: arrayRemove(userId) });
+      return { success: true };
+    });
+
+    return result;
   }
 
-  getSessions() {
-    return this.getVisibleSessions();
+  async removeSelectedItems(sessionId: string): Promise<void> {
+    const sessionRef = doc(this.firestore, this.collectionName, sessionId);
+
+    await runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(sessionRef);
+      if (!snapshot.exists()) {
+        return;
+      }
+
+      const session = this.toSession(snapshot.id, snapshot.data());
+      const menuCategories = session.menuCategories
+        .map((category) => ({
+          ...category,
+          items: category.items.filter((item) => !item.selected)
+        }))
+        .filter((category) => category.items.length > 0);
+
+      transaction.update(sessionRef, { menuCategories });
+    });
   }
 
-  getSessionById(id: string) {
-    return this.getVisibleSessions().find((session) => session.id === id);
-  }
-
-  addSession(session: BillSession) {
-    const userId = this.currentUserId();
-    session.ownerId = userId;
-    session.memberIds = [userId];
-    this.sessions.unshift(session);
-    this.saveSessions();
-  }
-
-  hasSession(id: string) {
-    return this.sessions.some((session) => session.id === id);
-  }
-
-  joinSession(code: string) {
-    const session = this.sessions.find((entry) => entry.id === code);
-    if (!session) {
-      return false;
-    }
-
-    const userId = this.currentUserId();
-    if (!session.memberIds.includes(userId)) {
-      session.memberIds.push(userId);
-      this.saveSessions();
-    }
-    return true;
-  }
-
-  canAccessSession(id: string) {
-    return this.getVisibleSessions().some((session) => session.id === id);
-  }
-
-  leaveSession(sessionId: string): { success: boolean; message?: string } {
-    const session = this.getSessionById(sessionId);
-    const userId = this.currentUserId();
-    if (!session || !session.memberIds.includes(userId)) {
-      return { success: false, message: 'You are not a member of this session.' };
-    }
-
-    const hasUnpaidItems = session.menuCategories.some((category) => category.items.length > 0);
-    const isCreator = session.ownerId === userId;
-    const otherMembersRemain = session.memberIds.some((memberId) => memberId !== userId);
-
-    if (isCreator && otherMembersRemain && hasUnpaidItems) {
-      return { success: false, message: 'You created this session. There are still unpaid items!' };
-    }
-
-    session.memberIds = session.memberIds.filter((memberId) => memberId !== userId);
-    this.saveSessions();
-    return { success: true };
-  }
-
-  removeSelectedItems(sessionId: string) {
-    const session = this.getSessionById(sessionId);
-    if (!session) {
-      return;
-    }
-
-    session.menuCategories = session.menuCategories
-      .map((category) => ({
-        ...category,
-        items: category.items.filter((item) => !item.selected)
-      }))
-      .filter((category) => category.items.length > 0);
-
-    this.clearSelection(sessionId);
-  this.saveSessions();
-  }
-
-  clearSelection(sessionId: string) {
-    const session = this.getSessionById(sessionId);
-    if (!session) {
-      return;
-    }
-    session.menuCategories.forEach((category) => category.items.forEach((item) => (item.selected = false)));
-  }
-
-  private getVisibleSessions() {
-    const userId = this.currentUserId();
-    return this.sessions.filter((session) => session.memberIds.includes(userId));
-  }
-
-  private currentUserId() {
+  private currentUserId(): string {
     return this.authService.getCurrentUser()?.id || '';
   }
 
-  private readSessions(): BillSession[] {
-    if (typeof window === 'undefined') {
-      return [];
-    }
-
-    try {
-      const storedValue = window.localStorage.getItem(this.sessionsStorageKey);
-      if (!storedValue) {
-        return [];
-      }
-      const parsedValue = JSON.parse(storedValue);
-      if (!Array.isArray(parsedValue)) {
-        return [];
-      }
-      return parsedValue
-        .map((session) => this.migrateSession(session))
-        .filter((session): session is BillSession => this.isSession(session));
-    } catch {
-      return [];
-    }
-  }
-
-  private saveSessions() {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(this.sessionsStorageKey, JSON.stringify(this.sessions));
-    }
-  }
-
-  private isSession(value: unknown): value is BillSession {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-    const session = value as Partial<BillSession>;
-    return typeof session.id === 'string' &&
-      /^\d{6}$/.test(session.id) &&
-      typeof session.title === 'string' &&
-      typeof session.restaurant === 'string' &&
-      typeof session.ownerId === 'string' &&
-      Array.isArray(session.memberIds) &&
-      Array.isArray(session.menuCategories);
-  }
-
-  private migrateSession(value: unknown): unknown {
-    if (!value || typeof value !== 'object') {
-      return value;
-    }
-
-    const legacySession = value as Partial<BillSession> & {
-      ownerUsername?: string;
-      memberUsernames?: string[];
+  private toSession(id: string, data: Record<string, unknown>): BillSession {
+    return {
+      id,
+      title: (data['title'] as string) || '',
+      restaurant: (data['restaurant'] as string) || '',
+      menuCategories: (data['menuCategories'] as MenuCategory[]) || [],
+      ownerId: (data['ownerId'] as string) || '',
+      memberIds: (data['memberIds'] as string[]) || []
     };
-    if (Array.isArray(legacySession.memberIds) && typeof legacySession.ownerId === 'string') {
-      return legacySession;
-    }
-
-    const memberIds = (legacySession.memberUsernames || [])
-      .map((username) => this.authService.getAccountId(username))
-      .filter((id): id is string => Boolean(id));
-    const ownerId = legacySession.ownerUsername
-      ? this.authService.getAccountId(legacySession.ownerUsername)
-      : memberIds[0];
-
-    if (!ownerId || !memberIds.length) {
-      return value;
-    }
-    return { ...legacySession, ownerId, memberIds };
   }
 }

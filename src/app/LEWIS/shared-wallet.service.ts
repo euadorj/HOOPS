@@ -1,4 +1,15 @@
 import { Injectable } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  runTransaction,
+  writeBatch
+} from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
 
 export type WalletTransactionType = 'deposit' | 'withdrawal';
@@ -42,47 +53,56 @@ export interface ContributorSummary {
   providedIn: 'root'
 })
 export class SharedWalletService {
-  private readonly walletStorageKey = 'sharedWallets';
-  private readonly txStorageKey = 'sharedWalletTransactions';
-  private wallets: SharedWallet[] = [];
-  private transactions: WalletTransaction[] = [];
+  private readonly walletsCollection = 'sharedWallets';
+  private readonly txCollection = 'walletTransactions';
 
-  constructor(private authService: AuthService) {
-    this.wallets = this.readWallets();
-    this.transactions = this.readTransactions();
-  }
+  constructor(private authService: AuthService, private firestore: Firestore) {}
 
-  getWalletsForCurrentUser(): SharedWallet[] {
+  async getWalletsForCurrentUser(): Promise<SharedWallet[]> {
     const userId = this.currentUserId();
-    return this.wallets.filter((wallet) => wallet.memberIds.includes(userId));
-  }
-
-  getWalletById(id: string): SharedWallet | null {
-    const wallet = this.wallets.find((entry) => entry.id === id);
-    if (!wallet || !wallet.memberIds.includes(this.currentUserId())) {
-      return null;
-    }
-    return wallet;
-  }
-
-  getWalletTransactionById(txId: string): WalletTransaction | null {
-    const tx = this.transactions.find((entry) => entry.id === txId);
-    if (!tx) {
-      return null;
+    if (!userId) {
+      return [];
     }
 
-    const wallet = this.getWalletById(tx.walletId);
+    const walletsQuery = query(
+      collection(this.firestore, this.walletsCollection),
+      where('memberIds', 'array-contains', userId)
+    );
+    const snapshot = await getDocs(walletsQuery);
+    return snapshot.docs.map((docSnapshot) => this.toWallet(docSnapshot.id, docSnapshot.data()));
+  }
+
+  async getWalletById(id: string): Promise<SharedWallet | null> {
+    const snapshot = await getDoc(doc(this.firestore, this.walletsCollection, id));
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const wallet = this.toWallet(snapshot.id, snapshot.data());
+    return wallet.memberIds.includes(this.currentUserId()) ? wallet : null;
+  }
+
+  async getWalletTransactionById(txId: string): Promise<WalletTransaction | null> {
+    const snapshot = await getDoc(doc(this.firestore, this.txCollection, txId));
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    const tx = this.toTransaction(snapshot.id, snapshot.data());
+    const wallet = await this.getWalletById(tx.walletId);
     return wallet ? tx : null;
   }
 
-  getRecentCompletedTransactions(walletId: string, limit = 3): WalletTransaction[] {
-    return this.getCompletedTransactions(walletId)
+  async getRecentCompletedTransactions(walletId: string, limit = 3): Promise<WalletTransaction[]> {
+    const transactions = await this.getTransactionsForWallet(walletId);
+    return transactions
+      .filter((tx) => tx.status === 'completed')
       .sort((a, b) => b.createdAt - a.createdAt)
       .slice(0, limit);
   }
 
-  getContributorSummaries(walletId: string): ContributorSummary[] {
-    const wallet = this.getWalletById(walletId);
+  async getContributorSummaries(walletId: string): Promise<ContributorSummary[]> {
+    const wallet = await this.getWalletById(walletId);
     if (!wallet) {
       return [];
     }
@@ -90,8 +110,8 @@ export class SharedWalletService {
     const currentUserId = this.currentUserId();
     const totalIn = wallet.totalInCents;
 
-    return wallet.memberIds.map((memberId) => {
-      const displayName = this.getDisplayNameForUser(memberId);
+    return Promise.all(wallet.memberIds.map(async (memberId) => {
+      const displayName = await this.getDisplayNameForUser(memberId);
       const amountAddedCents = wallet.contributionCentsByUser[memberId] || 0;
       const percentageOfTotalIn = totalIn > 0 ? (amountAddedCents / totalIn) * 100 : 0;
       return {
@@ -101,99 +121,155 @@ export class SharedWalletService {
         percentageOfTotalIn,
         isCurrentUser: memberId === currentUserId
       };
-    });
+    }));
   }
 
-  hasWalletCode(code: string): boolean {
-    return this.wallets.some((wallet) => wallet.code === code);
+  async hasWalletCode(code: string): Promise<boolean> {
+    const walletsQuery = query(collection(this.firestore, this.walletsCollection), where('code', '==', code));
+    const snapshot = await getDocs(walletsQuery);
+    return !snapshot.empty;
   }
 
-  createWallet(name: string, code: string, description: string): SharedWallet {
+  async createWallet(name: string, code: string, description: string): Promise<SharedWallet | null> {
     const userId = this.currentUserId();
-    const wallet: SharedWallet = {
-      id: this.createWalletId(),
-      code,
-      name: name.trim(),
-      description: description.trim(),
-      balanceCents: 0,
-      totalInCents: 0,
-      totalOutCents: 0,
-      createdBy: userId,
-      memberIds: [userId],
-      contributionCentsByUser: {
-        [userId]: 0
-      }
-    };
+    const id = this.createWalletId();
+    const walletRef = doc(this.firestore, this.walletsCollection, id);
 
-    this.wallets.unshift(wallet);
-    this.saveAll();
-    return wallet;
+    const created = await runTransaction(this.firestore, async (transaction) => {
+      const codeQuery = query(collection(this.firestore, this.walletsCollection), where('code', '==', code));
+      const existing = await getDocs(codeQuery);
+      if (!existing.empty) {
+        return false;
+      }
+
+      transaction.set(walletRef, {
+        code,
+        name: name.trim(),
+        description: description.trim(),
+        balanceCents: 0,
+        totalInCents: 0,
+        totalOutCents: 0,
+        createdBy: userId,
+        memberIds: [userId],
+        contributionCentsByUser: { [userId]: 0 }
+      });
+      return true;
+    });
+
+    if (!created) {
+      return null;
+    }
+
+    return this.getWalletById(id);
   }
 
-  joinWallet(code: string): { wallet?: SharedWallet; message?: string; joined?: boolean } {
-    const wallet = this.wallets.find((entry) => entry.code === code);
-    if (!wallet) {
+  async joinWallet(code: string): Promise<{ wallet?: SharedWallet; message?: string; joined?: boolean }> {
+    const walletsQuery = query(collection(this.firestore, this.walletsCollection), where('code', '==', code));
+    const snapshot = await getDocs(walletsQuery);
+    if (snapshot.empty) {
       return { message: 'No wallet was found with that code.' };
     }
 
+    const walletDoc = snapshot.docs[0];
     const userId = this.currentUserId();
-    if (wallet.memberIds.includes(userId)) {
-      return { wallet, message: 'You are already a member of this wallet.', joined: false };
-    }
+    const walletRef = doc(this.firestore, this.walletsCollection, walletDoc.id);
 
-    wallet.memberIds.push(userId);
-    wallet.contributionCentsByUser[userId] = wallet.contributionCentsByUser[userId] || 0;
-    this.saveAll();
-    return { wallet, joined: true };
-  }
+    const result = await runTransaction(this.firestore, async (transaction) => {
+      const current = await transaction.get(walletRef);
+      const wallet = this.toWallet(current.id, current.data() || {});
 
-  leaveWallet(walletId: string): { success: boolean; message?: string } {
-    const wallet = this.getWalletById(walletId);
-    const userId = this.currentUserId();
-    if (!wallet || !wallet.memberIds.includes(userId)) {
-      return { success: false, message: 'You do not have access to this wallet.' };
-    }
-
-    const isCreator = wallet.createdBy === userId;
-    const otherMembersRemain = wallet.memberIds.some((memberId) => memberId !== userId);
-
-    if (isCreator && otherMembersRemain) {
-      return { success: false, message: 'You created this wallet.' };
-    }
-
-    if (isCreator && !otherMembersRemain) {
-      if (wallet.balanceCents === 0) {
-        this.wallets = this.wallets.filter((entry) => entry.id !== walletId);
-        this.transactions = this.transactions.filter((entry) => entry.walletId !== walletId);
-        this.saveAll();
-        return { success: true };
+      if (wallet.memberIds.includes(userId)) {
+        return { wallet, joined: false };
       }
 
-      return {
-        success: false,
-        message: 'You created this wallet. Withdraw remaining funds before leaving.'
-      };
-    }
+      transaction.update(walletRef, {
+        memberIds: [...wallet.memberIds, userId],
+        [`contributionCentsByUser.${userId}`]: wallet.contributionCentsByUser[userId] || 0
+      });
+      return { wallet: { ...wallet, memberIds: [...wallet.memberIds, userId] }, joined: true };
+    });
 
-    wallet.memberIds = wallet.memberIds.filter((memberId) => memberId !== userId);
-    this.saveAll();
-    return { success: true };
+    if (!result.joined) {
+      return { wallet: result.wallet, message: 'You are already a member of this wallet.', joined: false };
+    }
+    return { wallet: result.wallet, joined: true };
   }
 
-  addFunds(input: {
+  async leaveWallet(walletId: string): Promise<{ success: boolean; message?: string }> {
+    const userId = this.currentUserId();
+    const walletRef = doc(this.firestore, this.walletsCollection, walletId);
+
+    const result = await runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(walletRef);
+      if (!snapshot.exists()) {
+        return { success: false, message: 'This wallet no longer exists.' };
+      }
+
+      const wallet = this.toWallet(snapshot.id, snapshot.data());
+      if (!wallet.memberIds.includes(userId)) {
+        return { success: false, message: 'You do not have access to this wallet.' };
+      }
+
+      const isCreator = wallet.createdBy === userId;
+      const otherMembersRemain = wallet.memberIds.some((memberId) => memberId !== userId);
+
+      if (isCreator && otherMembersRemain) {
+        return { success: false, message: 'You created this wallet.' };
+      }
+
+      if (isCreator && !otherMembersRemain) {
+        if (wallet.balanceCents !== 0) {
+          return {
+            success: false,
+            message: 'You created this wallet. Withdraw remaining funds before leaving.'
+          };
+        }
+
+        transaction.delete(walletRef);
+        return { success: true, deleted: true };
+      }
+
+      transaction.update(walletRef, {
+        memberIds: wallet.memberIds.filter((memberId) => memberId !== userId)
+      });
+      return { success: true, deleted: false };
+    });
+
+    if (result.success && result.deleted) {
+      await this.deleteTransactionsForWallet(walletId);
+    }
+
+    return { success: result.success, message: result.message };
+  }
+
+  async addFunds(input: {
     walletId: string;
     amountCents: number;
     paymentMethod: string;
     description: string;
-  }): { success: boolean; message?: string; transaction?: WalletTransaction } {
+  }): Promise<{ success: boolean; message?: string; transaction?: WalletTransaction }> {
     if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
       return { success: false, message: 'Enter a valid amount greater than zero.' };
     }
 
-    return this.runAtomicWalletUpdate(input.walletId, (wallet) => {
-      const userId = this.currentUserId();
+    const userId = this.currentUserId();
+    const walletRef = doc(this.firestore, this.walletsCollection, input.walletId);
+    const txId = this.createTransactionId();
+    const txRef = doc(this.firestore, this.txCollection, txId);
+
+    return runTransaction(this.firestore, async (dbTransaction) => {
+      const snapshot = await dbTransaction.get(walletRef);
+      if (!snapshot.exists()) {
+        return { success: false, message: 'You do not have access to this wallet.' };
+      }
+
+      const wallet = this.toWallet(snapshot.id, snapshot.data());
+      if (!wallet.memberIds.includes(userId)) {
+        return { success: false, message: 'You do not have access to this wallet.' };
+      }
+
       const tx: WalletTransaction = {
-        id: this.createTransactionId(),
+        id: txId,
         walletId: wallet.id,
         type: 'deposit',
         amountCents: input.amountCents,
@@ -204,20 +280,23 @@ export class SharedWalletService {
         createdAt: Date.now()
       };
 
-      wallet.balanceCents += input.amountCents;
-      wallet.totalInCents += input.amountCents;
-      wallet.contributionCentsByUser[userId] = (wallet.contributionCentsByUser[userId] || 0) + input.amountCents;
-      this.transactions.push(tx);
+      dbTransaction.set(txRef, tx);
+      dbTransaction.update(walletRef, {
+        balanceCents: wallet.balanceCents + input.amountCents,
+        totalInCents: wallet.totalInCents + input.amountCents,
+        [`contributionCentsByUser.${userId}`]: (wallet.contributionCentsByUser[userId] || 0) + input.amountCents
+      });
+
       return { success: true, transaction: tx };
     });
   }
 
-  withdrawFunds(input: {
+  async withdrawFunds(input: {
     walletId: string;
     amountCents: number;
     category: string;
     description: string;
-  }): { success: boolean; message?: string; transaction?: WalletTransaction } {
+  }): Promise<{ success: boolean; message?: string; transaction?: WalletTransaction }> {
     if (!Number.isInteger(input.amountCents) || input.amountCents <= 0) {
       return { success: false, message: 'Enter a valid amount greater than zero.' };
     }
@@ -230,32 +309,50 @@ export class SharedWalletService {
       return { success: false, message: 'Enter a description for this expense.' };
     }
 
-    return this.runAtomicWalletUpdate(input.walletId, (wallet) => {
+    const userId = this.currentUserId();
+    const walletRef = doc(this.firestore, this.walletsCollection, input.walletId);
+    const txId = this.createTransactionId();
+    const txRef = doc(this.firestore, this.txCollection, txId);
+
+    return runTransaction(this.firestore, async (dbTransaction) => {
+      const snapshot = await dbTransaction.get(walletRef);
+      if (!snapshot.exists()) {
+        return { success: false, message: 'You do not have access to this wallet.' };
+      }
+
+      const wallet = this.toWallet(snapshot.id, snapshot.data());
+      if (!wallet.memberIds.includes(userId)) {
+        return { success: false, message: 'You do not have access to this wallet.' };
+      }
+
       if (wallet.balanceCents < input.amountCents) {
         return { success: false, message: 'Amount cannot exceed the current wallet balance.' };
       }
 
       const tx: WalletTransaction = {
-        id: this.createTransactionId(),
+        id: txId,
         walletId: wallet.id,
         type: 'withdrawal',
         amountCents: input.amountCents,
-        userId: this.currentUserId(),
+        userId,
         description: input.description.trim(),
         category: input.category,
         status: 'completed',
         createdAt: Date.now()
       };
 
-      wallet.balanceCents -= input.amountCents;
-      wallet.totalOutCents += input.amountCents;
-      this.transactions.push(tx);
+      dbTransaction.set(txRef, tx);
+      dbTransaction.update(walletRef, {
+        balanceCents: wallet.balanceCents - input.amountCents,
+        totalOutCents: wallet.totalOutCents + input.amountCents
+      });
+
       return { success: true, transaction: tx };
     });
   }
 
-  getDisplayNameForUser(userId: string): string {
-    const username = this.authService.getAccountUsername(userId);
+  async getDisplayNameForUser(userId: string): Promise<string> {
+    const username = await this.authService.getUsernameById(userId);
     return username || 'Member';
   }
 
@@ -274,10 +371,22 @@ export class SharedWalletService {
     return Number.isNaN(cents) ? null : cents;
   }
 
-  private getCompletedTransactions(walletId: string): WalletTransaction[] {
-    return this.transactions.filter(
-      (tx) => tx.walletId === walletId && tx.status === 'completed'
-    );
+  private async getTransactionsForWallet(walletId: string): Promise<WalletTransaction[]> {
+    const txQuery = query(collection(this.firestore, this.txCollection), where('walletId', '==', walletId));
+    const snapshot = await getDocs(txQuery);
+    return snapshot.docs.map((docSnapshot) => this.toTransaction(docSnapshot.id, docSnapshot.data()));
+  }
+
+  private async deleteTransactionsForWallet(walletId: string): Promise<void> {
+    const txQuery = query(collection(this.firestore, this.txCollection), where('walletId', '==', walletId));
+    const snapshot = await getDocs(txQuery);
+    if (snapshot.empty) {
+      return;
+    }
+
+    const batch = writeBatch(this.firestore);
+    snapshot.docs.forEach((docSnapshot) => batch.delete(docSnapshot.ref));
+    await batch.commit();
   }
 
   private currentUserId(): string {
@@ -292,146 +401,33 @@ export class SharedWalletService {
     return `txn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
-  private runAtomicWalletUpdate(
-    walletId: string,
-    mutation: (wallet: SharedWallet) => { success: boolean; message?: string; transaction?: WalletTransaction }
-  ): { success: boolean; message?: string; transaction?: WalletTransaction } {
-    const wallet = this.getWalletById(walletId);
-    if (!wallet) {
-      return { success: false, message: 'You do not have access to this wallet.' };
-    }
-
-    const walletSnapshot = JSON.stringify(this.wallets);
-    const transactionSnapshot = JSON.stringify(this.transactions);
-
-    try {
-      const result = mutation(wallet);
-      if (!result.success) {
-        this.wallets = JSON.parse(walletSnapshot) as SharedWallet[];
-        this.transactions = JSON.parse(transactionSnapshot) as WalletTransaction[];
-        return result;
-      }
-
-      this.saveAll();
-      return result;
-    } catch {
-      this.wallets = JSON.parse(walletSnapshot) as SharedWallet[];
-      this.transactions = JSON.parse(transactionSnapshot) as WalletTransaction[];
-      return { success: false, message: 'Something went wrong. Please try again.' };
-    }
-  }
-
-  private readWallets(): SharedWallet[] {
-    if (typeof window === 'undefined') {
-      return [];
-    }
-
-    try {
-      const value = window.localStorage.getItem(this.walletStorageKey);
-      if (!value) {
-        return [];
-      }
-      const parsed = JSON.parse(value);
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-      return parsed
-        .map((wallet) => this.migrateWallet(wallet))
-        .filter((wallet): wallet is SharedWallet => this.isWallet(wallet));
-    } catch {
-      return [];
-    }
-  }
-
-  private readTransactions(): WalletTransaction[] {
-    if (typeof window === 'undefined') {
-      return [];
-    }
-
-    try {
-      const value = window.localStorage.getItem(this.txStorageKey);
-      if (!value) {
-        return [];
-      }
-      const parsed = JSON.parse(value);
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-      return parsed.filter((tx): tx is WalletTransaction => this.isTransaction(tx));
-    } catch {
-      return [];
-    }
-  }
-
-  private saveAll(): void {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(this.walletStorageKey, JSON.stringify(this.wallets));
-      window.localStorage.setItem(this.txStorageKey, JSON.stringify(this.transactions));
-    }
-  }
-
-  private isWallet(value: unknown): value is SharedWallet {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-    const wallet = value as Partial<SharedWallet>;
-    return typeof wallet.id === 'string' &&
-      /^\d{6}$/.test(wallet.code || '') &&
-      typeof wallet.name === 'string' &&
-      typeof wallet.description === 'string' &&
-      Number.isInteger(wallet.balanceCents) &&
-      Number.isInteger(wallet.totalInCents) &&
-      Number.isInteger(wallet.totalOutCents) &&
-      typeof wallet.createdBy === 'string' &&
-      Array.isArray(wallet.memberIds) &&
-      Boolean(wallet.contributionCentsByUser && typeof wallet.contributionCentsByUser === 'object');
-  }
-
-  private isTransaction(value: unknown): value is WalletTransaction {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const tx = value as Partial<WalletTransaction>;
-    return typeof tx.id === 'string' &&
-      typeof tx.walletId === 'string' &&
-      (tx.type === 'deposit' || tx.type === 'withdrawal') &&
-      Number.isInteger(tx.amountCents) &&
-      typeof tx.userId === 'string' &&
-      typeof tx.description === 'string' &&
-      (tx.status === 'pending' || tx.status === 'completed' || tx.status === 'failed') &&
-      Number.isInteger(tx.createdAt);
-  }
-
-  private migrateWallet(value: unknown): unknown {
-    if (!value || typeof value !== 'object') {
-      return value;
-    }
-
-    const wallet = value as Partial<SharedWallet>;
-    if (
-      Number.isInteger(wallet.totalInCents) &&
-      Number.isInteger(wallet.totalOutCents) &&
-      wallet.contributionCentsByUser &&
-      typeof wallet.contributionCentsByUser === 'object'
-    ) {
-      return wallet;
-    }
-
-    const balance = Number.isInteger(wallet.balanceCents) ? wallet.balanceCents : 0;
-    const memberIds = Array.isArray(wallet.memberIds) ? wallet.memberIds : [];
-    const createdBy = typeof wallet.createdBy === 'string' ? wallet.createdBy : memberIds[0] || '';
-
+  private toWallet(id: string, data: Record<string, unknown>): SharedWallet {
     return {
-      ...wallet,
-      balanceCents: balance,
-      totalInCents: balance,
-      totalOutCents: 0,
-      createdBy,
-      memberIds,
-      contributionCentsByUser: {
-        [createdBy]: balance
-      }
+      id,
+      code: (data['code'] as string) || '',
+      name: (data['name'] as string) || '',
+      description: (data['description'] as string) || '',
+      balanceCents: (data['balanceCents'] as number) || 0,
+      totalInCents: (data['totalInCents'] as number) || 0,
+      totalOutCents: (data['totalOutCents'] as number) || 0,
+      createdBy: (data['createdBy'] as string) || '',
+      memberIds: (data['memberIds'] as string[]) || [],
+      contributionCentsByUser: (data['contributionCentsByUser'] as Record<string, number>) || {}
+    };
+  }
+
+  private toTransaction(id: string, data: Record<string, unknown>): WalletTransaction {
+    return {
+      id,
+      walletId: (data['walletId'] as string) || '',
+      type: (data['type'] as WalletTransactionType) || 'deposit',
+      amountCents: (data['amountCents'] as number) || 0,
+      userId: (data['userId'] as string) || '',
+      description: (data['description'] as string) || '',
+      category: data['category'] as string | undefined,
+      paymentMethod: data['paymentMethod'] as string | undefined,
+      status: (data['status'] as WalletTransactionStatus) || 'completed',
+      createdAt: (data['createdAt'] as number) || Date.now()
     };
   }
 }

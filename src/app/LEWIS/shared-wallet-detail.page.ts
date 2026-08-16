@@ -18,6 +18,7 @@ export class SharedWalletDetailPage implements OnInit {
   wallet: SharedWallet | null = null;
   contributors: ContributorSummary[] = [];
   recentActivity: WalletTransaction[] = [];
+  activityDisplayNames: Record<string, string> = {};
   loading = true;
   leaveError = '';
 
@@ -36,10 +37,10 @@ export class SharedWalletDetailPage implements OnInit {
     this.loadWallet();
   }
 
-  loadWallet(): void {
+  async loadWallet(): Promise<void> {
     this.loading = true;
     const id = this.route.snapshot.paramMap.get('id');
-    this.wallet = id ? this.sharedWalletService.getWalletById(id) : null;
+    this.wallet = id ? await this.sharedWalletService.getWalletById(id) : null;
 
     if (!this.wallet) {
       this.loading = false;
@@ -47,8 +48,18 @@ export class SharedWalletDetailPage implements OnInit {
       return;
     }
 
-    this.contributors = this.sharedWalletService.getContributorSummaries(this.wallet.id);
-    this.recentActivity = this.sharedWalletService.getRecentCompletedTransactions(this.wallet.id, 3);
+    this.contributors = await this.sharedWalletService.getContributorSummaries(this.wallet.id);
+    this.recentActivity = await this.sharedWalletService.getRecentCompletedTransactions(this.wallet.id, 3);
+
+    const uniqueUserIds = [...new Set(this.recentActivity.map((tx) => tx.userId))];
+    const displayNames = await Promise.all(
+      uniqueUserIds.map((userId) => this.sharedWalletService.getDisplayNameForUser(userId))
+    );
+    this.activityDisplayNames = uniqueUserIds.reduce((names, userId, index) => {
+      names[userId] = displayNames[index];
+      return names;
+    }, {} as Record<string, string>);
+
     this.loading = false;
   }
 
@@ -62,7 +73,7 @@ export class SharedWalletDetailPage implements OnInit {
         await navigator.clipboard.writeText(this.wallet.code);
       }
     } catch {
-      // Clipboard support can vary by runtime.
+    
     }
   }
 
@@ -103,7 +114,7 @@ export class SharedWalletDetailPage implements OnInit {
       return;
     }
 
-    const result = this.sharedWalletService.leaveWallet(this.wallet.id);
+    const result = await this.sharedWalletService.leaveWallet(this.wallet.id);
     if (!result.success) {
       this.leaveError = result.message || 'Unable to leave wallet.';
       return;
@@ -123,7 +134,7 @@ export class SharedWalletDetailPage implements OnInit {
   }
 
   formatActivityMeta(tx: WalletTransaction): string {
-    const name = this.sharedWalletService.getDisplayNameForUser(tx.userId);
+    const name = this.activityDisplayNames[tx.userId] || 'Member';
     const typeLabel = tx.type === 'deposit' ? 'Deposit' : 'Withdrawal';
     return `${typeLabel} · ${name} · ${new Date(tx.createdAt).toLocaleString()}`;
   }

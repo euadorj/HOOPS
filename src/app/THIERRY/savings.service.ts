@@ -1,4 +1,15 @@
 import { Injectable } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  runTransaction,
+  setDoc,
+  where
+} from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
 
 
@@ -41,13 +52,6 @@ export interface FinanceData {
 }
 
 
-/*
- * UPDATED
- *
- * balance is optional because some actions,
- * such as investing, need to return the
- * user's updated available balance.
- */
 export interface SavingsResult {
   success: boolean;
   message: string;
@@ -55,469 +59,206 @@ export interface SavingsResult {
 }
 
 
+/*
+ * Shared with DashboardService, which needs to read/write the same
+ * per-user balance document inside its own buy/sell stock transactions.
+ */
+export const FINANCE_COLLECTION = 'financeAccounts';
+
+
 @Injectable({
   providedIn: 'root',
 })
 export class SavingsService {
+  private readonly financeCollection = FINANCE_COLLECTION;
+  private readonly paymentsCollection = 'merchantPayments';
 
   constructor(
-    private authService: AuthService
+    private authService: AuthService,
+    private firestore: Firestore
   ) {}
 
 
   /*
    * GET CURRENT USER FINANCE DATA
    */
-  getFinanceData(): FinanceData {
-
-    const currentUser =
-      this.authService.getCurrentUser();
-
-
-    const username =
-      currentUser?.username ?? 'guest';
-
-
-    return this.getFinanceDataForUsername(
-      username
-    );
+  async getFinanceData(): Promise<FinanceData> {
+    return this.getFinanceDataForUsername(this.currentUsername());
   }
 
 
   /*
    * CREATE SAVINGS GOAL
    */
-  createGoal(
-    name: string,
-    targetAmount: number
-  ): SavingsResult {
-
-    const cleanedName =
-      name.trim();
-
+  async createGoal(name: string, targetAmount: number): Promise<SavingsResult> {
+    const cleanedName = name.trim();
 
     if (!cleanedName) {
-
-      return {
-        success: false,
-        message: 'Goal name is required.',
-      };
+      return { success: false, message: 'Goal name is required.' };
     }
 
-
-    if (
-      !Number.isFinite(targetAmount) ||
-      targetAmount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Enter a valid target amount.',
-      };
+    if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+      return { success: false, message: 'Enter a valid target amount.' };
     }
 
+    const ref = this.financeRef(this.currentUsername());
 
-    const financeData =
-      this.getFinanceData();
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
 
-
-    const duplicateGoal =
-      financeData.goals.some(
-        (goal) =>
-          goal.name.toLowerCase() ===
-          cleanedName.toLowerCase()
+      const duplicateGoal = financeData.goals.some(
+        (goal) => goal.name.toLowerCase() === cleanedName.toLowerCase()
       );
 
+      if (duplicateGoal) {
+        return { success: false, message: 'A savings goal with this name already exists.' };
+      }
 
-    if (duplicateGoal) {
-
-      return {
-        success: false,
-        message:
-          'A savings goal with this name already exists.',
+      const availableColors = ['success', 'warning', 'tertiary', 'primary', 'secondary'];
+      const newGoal: SavingsGoal = {
+        id: `goal-${Date.now()}`,
+        name: cleanedName,
+        targetAmount: this.roundMoney(targetAmount),
+        savedAmount: 0,
+        color: availableColors[financeData.goals.length % availableColors.length],
       };
-    }
 
+      financeData.goals.push(newGoal);
+      transaction.set(ref, financeData);
 
-    const availableColors = [
-      'success',
-      'warning',
-      'tertiary',
-      'primary',
-      'secondary',
-    ];
-
-
-    const newGoal: SavingsGoal = {
-
-      id:
-        `goal-${Date.now()}`,
-
-      name:
-        cleanedName,
-
-      targetAmount:
-        this.roundMoney(
-          targetAmount
-        ),
-
-      savedAmount:
-        0,
-
-      color:
-        availableColors[
-          financeData.goals.length %
-          availableColors.length
-        ],
-    };
-
-
-    financeData.goals.push(
-      newGoal
-    );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-      success: true,
-      message:
-        'Savings goal created successfully.',
-    };
+      return { success: true, message: 'Savings goal created successfully.' };
+    });
   }
 
 
   /*
    * UPDATE SAVINGS GOAL
    */
-  updateGoal(
-    goalId: string,
-    name: string,
-    targetAmount: number
-  ): SavingsResult {
+  async updateGoal(goalId: string, name: string, targetAmount: number): Promise<SavingsResult> {
+    const cleanedName = name.trim();
+    const ref = this.financeRef(this.currentUsername());
 
-    const cleanedName =
-      name.trim();
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
+      const goal = financeData.goals.find((currentGoal) => currentGoal.id === goalId);
 
+      if (!goal) {
+        return { success: false, message: 'Savings goal was not found.' };
+      }
 
-    const financeData =
-      this.getFinanceData();
+      if (!cleanedName) {
+        return { success: false, message: 'Goal name is required.' };
+      }
 
+      if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+        return { success: false, message: 'Enter a valid target amount.' };
+      }
 
-    const goal =
-      financeData.goals.find(
-        (currentGoal) =>
-          currentGoal.id === goalId
+      if (targetAmount < goal.savedAmount) {
+        return { success: false, message: 'The target cannot be lower than the amount already saved.' };
+      }
+
+      const duplicateGoal = financeData.goals.some(
+        (currentGoal) => currentGoal.id !== goalId && currentGoal.name.toLowerCase() === cleanedName.toLowerCase()
       );
 
+      if (duplicateGoal) {
+        return { success: false, message: 'A savings goal with this name already exists.' };
+      }
 
-    if (!goal) {
+      goal.name = cleanedName;
+      goal.targetAmount = this.roundMoney(targetAmount);
+      transaction.set(ref, financeData);
 
-      return {
-        success: false,
-        message:
-          'Savings goal was not found.',
-      };
-    }
-
-
-    if (!cleanedName) {
-
-      return {
-        success: false,
-        message:
-          'Goal name is required.',
-      };
-    }
-
-
-    if (
-      !Number.isFinite(targetAmount) ||
-      targetAmount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Enter a valid target amount.',
-      };
-    }
-
-
-    if (
-      targetAmount <
-      goal.savedAmount
-    ) {
-
-      return {
-        success: false,
-        message:
-          'The target cannot be lower than the amount already saved.',
-      };
-    }
-
-
-    const duplicateGoal =
-      financeData.goals.some(
-        (currentGoal) =>
-          currentGoal.id !== goalId &&
-          currentGoal.name.toLowerCase() ===
-            cleanedName.toLowerCase()
-      );
-
-
-    if (duplicateGoal) {
-
-      return {
-        success: false,
-        message:
-          'A savings goal with this name already exists.',
-      };
-    }
-
-
-    goal.name =
-      cleanedName;
-
-
-    goal.targetAmount =
-      this.roundMoney(
-        targetAmount
-      );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-      success: true,
-      message:
-        'Savings goal updated successfully.',
-    };
+      return { success: true, message: 'Savings goal updated successfully.' };
+    });
   }
 
 
   /*
    * DEPOSIT MONEY INTO SAVINGS GOAL
    */
-  depositToGoal(
-    goalId: string,
-    amount: number
-  ): SavingsResult {
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Enter an amount greater than $0.',
-      };
+  async depositToGoal(goalId: string, amount: number): Promise<SavingsResult> {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { success: false, message: 'Enter an amount greater than $0.' };
     }
 
+    const ref = this.financeRef(this.currentUsername());
 
-    const financeData =
-      this.getFinanceData();
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
+      const goal = financeData.goals.find((currentGoal) => currentGoal.id === goalId);
 
+      if (!goal) {
+        return { success: false, message: 'Savings goal was not found.' };
+      }
 
-    const goal =
-      financeData.goals.find(
-        (currentGoal) =>
-          currentGoal.id === goalId
-      );
+      if (amount > financeData.balance) {
+        return { success: false, message: 'You do not have enough available balance.' };
+      }
 
+      const amountRemaining = goal.targetAmount - goal.savedAmount;
 
-    if (!goal) {
+      if (amountRemaining <= 0) {
+        return { success: false, message: 'This savings goal is already completed.' };
+      }
 
-      return {
-        success: false,
-        message:
-          'Savings goal was not found.',
-      };
-    }
+      if (amount > amountRemaining) {
+        return {
+          success: false,
+          message: `You can only add up to $${amountRemaining.toFixed(2)} to this goal.`,
+        };
+      }
 
-
-    if (
-      amount >
-      financeData.balance
-    ) {
-
-      return {
-        success: false,
-        message:
-          'You do not have enough available balance.',
-      };
-    }
-
-
-    const amountRemaining =
-      goal.targetAmount -
-      goal.savedAmount;
-
-
-    if (
-      amountRemaining <= 0
-    ) {
+      financeData.balance = this.roundMoney(financeData.balance - amount);
+      goal.savedAmount = this.roundMoney(goal.savedAmount + amount);
+      transaction.set(ref, financeData);
 
       return {
-        success: false,
-        message:
-          'This savings goal is already completed.',
+        success: true,
+        message: `$${amount.toFixed(2)} was added to ${goal.name}.`,
+        balance: financeData.balance,
       };
-    }
-
-
-    if (
-      amount >
-      amountRemaining
-    ) {
-
-      return {
-        success: false,
-
-        message:
-          `You can only add up to $${amountRemaining.toFixed(2)} ` +
-          'to this goal.',
-      };
-    }
-
-
-    financeData.balance =
-      this.roundMoney(
-        financeData.balance -
-        amount
-      );
-
-
-    goal.savedAmount =
-      this.roundMoney(
-        goal.savedAmount +
-        amount
-      );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-      success: true,
-
-      message:
-        `$${amount.toFixed(2)} was added to ${goal.name}.`,
-
-      balance:
-        financeData.balance,
-    };
+    });
   }
 
 
   /*
    * DELETE SAVINGS GOAL
    *
-   * Saved money is returned
-   * to the user's balance.
+   * Saved money is returned to the user's balance.
    */
-  deleteGoal(
-    goalId: string
-  ): SavingsResult {
+  async deleteGoal(goalId: string): Promise<SavingsResult> {
+    const ref = this.financeRef(this.currentUsername());
 
-    const financeData =
-      this.getFinanceData();
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
+      const goalIndex = financeData.goals.findIndex((goal) => goal.id === goalId);
 
+      if (goalIndex === -1) {
+        return { success: false, message: 'Savings goal was not found.' };
+      }
 
-    const goalIndex =
-      financeData.goals.findIndex(
-        (goal) =>
-          goal.id === goalId
-      );
-
-
-    if (
-      goalIndex === -1
-    ) {
+      const deletedGoal = financeData.goals[goalIndex];
+      financeData.balance = this.roundMoney(financeData.balance + deletedGoal.savedAmount);
+      financeData.goals.splice(goalIndex, 1);
+      transaction.set(ref, financeData);
 
       return {
-        success: false,
-        message:
-          'Savings goal was not found.',
+        success: true,
+        message: `${deletedGoal.name} was deleted. Its saved money was returned to your balance.`,
+        balance: financeData.balance,
       };
-    }
-
-
-    const deletedGoal =
-      financeData.goals[
-        goalIndex
-      ];
-
-
-    financeData.balance =
-      this.roundMoney(
-        financeData.balance +
-        deletedGoal.savedAmount
-      );
-
-
-    financeData.goals.splice(
-      goalIndex,
-      1
-    );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-      success: true,
-
-      message:
-        `${deletedGoal.name} was deleted. ` +
-        'Its saved money was returned to your balance.',
-
-      balance:
-        financeData.balance,
-    };
+    });
   }
 
 
   /*
    * TOTAL SAVINGS
    */
-  getTotalSaved(
-    financeData?: FinanceData
-  ): number {
-
-    const data =
-      financeData ??
-      this.getFinanceData();
-
-
-    const total =
-      data.goals.reduce(
-        (
-          currentTotal,
-          goal
-        ) =>
-          currentTotal +
-          goal.savedAmount,
-        0
-      );
-
-
-    return this.roundMoney(
-      total
-    );
+  getTotalSaved(financeData: FinanceData): number {
+    const total = financeData.goals.reduce((currentTotal, goal) => currentTotal + goal.savedAmount, 0);
+    return this.roundMoney(total);
   }
 
 
@@ -527,174 +268,72 @@ export class SavingsService {
    * =====================================
    */
 
-
   /*
    * DEDUCT MONEY FROM AVAILABLE BALANCE
-   *
    * Used when the user BUYS stocks.
-   *
-   * Example:
-   *
-   * Balance = S$900,000
-   * Invest = S$500
-   *
-   * New balance = S$899,500
    */
-  deductFromBalance(
-    amount: number
-  ): SavingsResult {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
+  async deductFromBalance(amount: number): Promise<SavingsResult> {
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-
-      return {
-        success: false,
-        message:
-          'You must be signed in.',
-      };
+      return { success: false, message: 'You must be signed in.' };
     }
 
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Enter an amount greater than S$0.',
-      };
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { success: false, message: 'Enter an amount greater than S$0.' };
     }
 
+    const roundedAmount = this.roundMoney(amount);
+    const ref = this.financeRef(this.currentUsername());
 
-    const roundedAmount =
-      this.roundMoney(
-        amount
-      );
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
 
+      if (roundedAmount > financeData.balance) {
+        return { success: false, message: 'You do not have enough available balance.' };
+      }
 
-    const financeData =
-      this.getFinanceData();
-
-
-    if (
-      roundedAmount >
-      financeData.balance
-    ) {
+      financeData.balance = this.roundMoney(financeData.balance - roundedAmount);
+      transaction.set(ref, financeData);
 
       return {
-        success: false,
-        message:
-          'You do not have enough available balance.',
+        success: true,
+        message: `S$${roundedAmount.toFixed(2)} was deducted from your balance.`,
+        balance: financeData.balance,
       };
-    }
-
-
-    financeData.balance =
-      this.roundMoney(
-        financeData.balance -
-        roundedAmount
-      );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-
-      success:
-        true,
-
-      message:
-        `S$${roundedAmount.toFixed(2)} was deducted from your balance.`,
-
-      balance:
-        financeData.balance,
-    };
+    });
   }
 
 
   /*
    * ADD MONEY BACK TO AVAILABLE BALANCE
-   *
-   * Used when:
-   *
-   * - stocks are sold
-   * - an investment fails and
-   *   money needs to be returned
+   * Used when stocks are sold, or an investment fails and money needs to be returned.
    */
-  addToBalance(
-    amount: number
-  ): SavingsResult {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
+  async addToBalance(amount: number): Promise<SavingsResult> {
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-
-      return {
-        success: false,
-        message:
-          'You must be signed in.',
-      };
+      return { success: false, message: 'You must be signed in.' };
     }
 
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Invalid amount.',
-      };
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { success: false, message: 'Invalid amount.' };
     }
 
+    const roundedAmount = this.roundMoney(amount);
+    const ref = this.financeRef(this.currentUsername());
 
-    const roundedAmount =
-      this.roundMoney(
-        amount
-      );
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, ref);
+      financeData.balance = this.roundMoney(financeData.balance + roundedAmount);
+      transaction.set(ref, financeData);
 
-
-    const financeData =
-      this.getFinanceData();
-
-
-    financeData.balance =
-      this.roundMoney(
-        financeData.balance +
-        roundedAmount
-      );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    return {
-
-      success:
-        true,
-
-      message:
-        `S$${roundedAmount.toFixed(2)} was added to your balance.`,
-
-      balance:
-        financeData.balance,
-    };
+      return {
+        success: true,
+        message: `S$${roundedAmount.toFixed(2)} was added to your balance.`,
+        balance: financeData.balance,
+      };
+    });
   }
 
 
@@ -703,152 +342,55 @@ export class SavingsService {
    * TRANSFER MONEY
    * =====================================
    */
-  transferMoney(
-    recipientInput: string,
-    amount: number
-  ): TransferResult {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
+  async transferMoney(recipientInput: string, amount: number): Promise<TransferResult> {
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-
-      return {
-        success: false,
-        message:
-          'You must be signed in.',
-      };
+      return { success: false, message: 'You must be signed in.' };
     }
 
-
-    const recipientUsername =
-      this.authService
-        .getAccountUsername(
-          recipientInput
-        );
-
+    const recipientUsername = await this.authService.getAccountUsername(recipientInput);
 
     if (!recipientUsername) {
-
-      return {
-        success: false,
-        message:
-          'Recipient username does not exist.',
-      };
+      return { success: false, message: 'Recipient username does not exist.' };
     }
 
+    const senderUsername = currentUser.username;
 
-    const senderUsername =
-      currentUser.username;
-
-
-    if (
-      senderUsername
-        .trim()
-        .toLowerCase() ===
-      recipientUsername
-        .trim()
-        .toLowerCase()
-    ) {
-
-      return {
-        success: false,
-
-        message:
-          'You cannot transfer money to your own account.',
-      };
+    if (senderUsername.trim().toLowerCase() === recipientUsername.trim().toLowerCase()) {
+      return { success: false, message: 'You cannot transfer money to your own account.' };
     }
 
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-
-      return {
-        success: false,
-
-        message:
-          'Enter an amount greater than $0.',
-      };
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { success: false, message: 'Enter an amount greater than $0.' };
     }
 
+    const roundedAmount = this.roundMoney(amount);
+    const senderRef = this.financeRef(senderUsername);
+    const recipientRef = this.financeRef(recipientUsername);
 
-    const roundedAmount =
-      this.roundMoney(
-        amount
-      );
+    return runTransaction(this.firestore, async (transaction) => {
+      const senderData = await this.readFinanceData(transaction, senderRef);
 
+      if (roundedAmount > senderData.balance) {
+        return { success: false, message: 'You do not have enough available balance.' };
+      }
 
-    const senderData =
-      this.getFinanceDataForUsername(
-        senderUsername
-      );
+      const recipientData = await this.readFinanceData(transaction, recipientRef);
 
+      senderData.balance = this.roundMoney(senderData.balance - roundedAmount);
+      recipientData.balance = this.roundMoney(recipientData.balance + roundedAmount);
 
-    if (
-      roundedAmount >
-      senderData.balance
-    ) {
+      transaction.set(senderRef, senderData);
+      transaction.set(recipientRef, recipientData);
 
       return {
-        success: false,
-
-        message:
-          'You do not have enough available balance.',
-      };
-    }
-
-
-    const recipientData =
-      this.getFinanceDataForUsername(
-        recipientUsername
-      );
-
-
-    senderData.balance =
-      this.roundMoney(
-        senderData.balance -
-        roundedAmount
-      );
-
-
-    recipientData.balance =
-      this.roundMoney(
-        recipientData.balance +
-        roundedAmount
-      );
-
-
-    this.saveFinanceDataForUsername(
-      senderUsername,
-      senderData
-    );
-
-
-    this.saveFinanceDataForUsername(
-      recipientUsername,
-      recipientData
-    );
-
-
-    return {
-
-      success:
-        true,
-
-      message:
-        `$${roundedAmount.toFixed(2)} was transferred ` +
-        `to ${recipientUsername}.`,
-
-      senderBalance:
-        senderData.balance,
-
-      recipientUsername:
+        success: true,
+        message: `$${roundedAmount.toFixed(2)} was transferred to ${recipientUsername}.`,
+        senderBalance: senderData.balance,
         recipientUsername,
-    };
+      };
+    });
   }
 
 
@@ -857,140 +399,52 @@ export class SavingsService {
    * MERCHANT PAYMENT
    * =====================================
    */
-  payMerchant(
-    merchantName: string,
-    amount: number
-  ): MerchantPaymentResult {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
+  async payMerchant(merchantName: string, amount: number): Promise<MerchantPaymentResult> {
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-
-      return {
-        success: false,
-        message:
-          'You must be signed in.',
-      };
+      return { success: false, message: 'You must be signed in.' };
     }
 
-
-    const cleanedMerchantName =
-      merchantName.trim();
-
+    const cleanedMerchantName = merchantName.trim();
 
     if (!cleanedMerchantName) {
-
-      return {
-        success: false,
-        message:
-          'Please select a merchant.',
-      };
+      return { success: false, message: 'Please select a merchant.' };
     }
 
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-
-      return {
-        success: false,
-        message:
-          'Enter an amount greater than $0.',
-      };
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { success: false, message: 'Enter an amount greater than $0.' };
     }
 
+    const roundedAmount = this.roundMoney(amount);
+    const financeRef = this.financeRef(this.currentUsername());
+    const paymentRef = doc(collection(this.firestore, this.paymentsCollection));
 
-    const roundedAmount =
-      this.roundMoney(
-        amount
-      );
-
-
-    const financeData =
-      this.getFinanceData();
-
-
-    if (
-      roundedAmount >
-      financeData.balance
-    ) {
-
-      return {
-        success: false,
-
-        message:
-          'You do not have enough available balance.',
-      };
-    }
-
-
-    financeData.balance =
-      this.roundMoney(
-        financeData.balance -
-        roundedAmount
-      );
-
-
-    this.saveFinanceData(
-      financeData
-    );
-
-
-    const payment:
-      MerchantPayment = {
-
-      id:
-        `payment-${Date.now()}-` +
-        `${Math.floor(
-          Math.random() *
-          100000
-        )}`,
-
-      merchantName:
-        cleanedMerchantName,
-
-      amount:
-        roundedAmount,
-
-      paidAt:
-        Date.now(),
+    const payment: MerchantPayment = {
+      id: paymentRef.id,
+      merchantName: cleanedMerchantName,
+      amount: roundedAmount,
+      paidAt: Date.now(),
     };
 
+    return runTransaction(this.firestore, async (transaction) => {
+      const financeData = await this.readFinanceData(transaction, financeRef);
 
-    const paymentHistory =
-      this.getPaymentHistory();
+      if (roundedAmount > financeData.balance) {
+        return { success: false, message: 'You do not have enough available balance.' };
+      }
 
+      financeData.balance = this.roundMoney(financeData.balance - roundedAmount);
+      transaction.set(financeRef, financeData);
+      transaction.set(paymentRef, { ...payment, username: this.currentUsername() });
 
-    paymentHistory.unshift(
-      payment
-    );
-
-
-    this.savePaymentHistory(
-      currentUser.username,
-      paymentHistory
-    );
-
-
-    return {
-
-      success:
-        true,
-
-      message:
-        `$${roundedAmount.toFixed(2)} was paid ` +
-        `to ${cleanedMerchantName}.`,
-
-      balance:
-        financeData.balance,
-
-      payment:
+      return {
+        success: true,
+        message: `$${roundedAmount.toFixed(2)} was paid to ${cleanedMerchantName}.`,
+        balance: financeData.balance,
         payment,
-    };
+      };
+    });
   }
 
 
@@ -999,106 +453,30 @@ export class SavingsService {
    * PAYMENT HISTORY
    * =====================================
    */
-  getPaymentHistory():
-    MerchantPayment[] {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
+  async getPaymentHistory(): Promise<MerchantPayment[]> {
+    const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-
       return [];
     }
 
+    const paymentsQuery = query(
+      collection(this.firestore, this.paymentsCollection),
+      where('username', '==', this.currentUsername())
+    );
+    const snapshot = await getDocs(paymentsQuery);
 
-    try {
-
-      const storedValue =
-        localStorage.getItem(
-          this.getPaymentHistoryStorageKey(
-            currentUser.username
-          )
-        );
-
-
-      if (!storedValue) {
-
-        return [];
-      }
-
-
-      const parsedValue:
-        unknown =
-        JSON.parse(
-          storedValue
-        );
-
-
-      if (
-        !Array.isArray(
-          parsedValue
-        )
-      ) {
-
-        return [];
-      }
-
-
-      return parsedValue.filter(
-        (
-          payment
-        ): payment is MerchantPayment => {
-
-          if (
-            !payment ||
-            typeof payment !== 'object'
-          ) {
-
-            return false;
-          }
-
-
-          const item =
-            payment as
-              Partial<MerchantPayment>;
-
-
-          return (
-
-            typeof item.id ===
-              'string'
-
-            &&
-
-            typeof item.merchantName ===
-              'string'
-
-            &&
-
-            typeof item.amount ===
-              'number'
-
-            &&
-
-            typeof item.paidAt ===
-              'number'
-
-          );
-        }
-      );
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to read payment history:',
-        error
-      );
-
-
-      return [];
-    }
+    return snapshot.docs
+      .map((docSnapshot) => {
+        const data = docSnapshot.data();
+        return {
+          id: docSnapshot.id,
+          merchantName: (data['merchantName'] as string) || '',
+          amount: (data['amount'] as number) || 0,
+          paidAt: (data['paidAt'] as number) || 0,
+        };
+      })
+      .sort((a, b) => b.paidAt - a.paidAt);
   }
 
 
@@ -1107,318 +485,87 @@ export class SavingsService {
    * USER FINANCE DATA
    * =====================================
    */
-  getFinanceDataForUsername(
-    username: string
-  ): FinanceData {
+  async getFinanceDataForUsername(username: string): Promise<FinanceData> {
+    const ref = this.financeRef(username);
+    const snapshot = await getDoc(ref);
 
-    const storageKey =
-      this.getStorageKeyForUsername(
-        username
-      );
-
-
-    try {
-
-      const savedData =
-        localStorage.getItem(
-          storageKey
-        );
-
-
-      if (!savedData) {
-
-        const defaultData =
-          this.createDefaultFinanceData();
-
-
-        this.saveFinanceDataForUsername(
-          username,
-          defaultData
-        );
-
-
-        return defaultData;
-      }
-
-
-      const parsedData:
-        unknown =
-        JSON.parse(
-          savedData
-        );
-
-
-      if (
-        !this.isFinanceData(
-          parsedData
-        )
-      ) {
-
-        const defaultData =
-          this.createDefaultFinanceData();
-
-
-        this.saveFinanceDataForUsername(
-          username,
-          defaultData
-        );
-
-
-        return defaultData;
-      }
-
-
-      return parsedData;
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to load finance data:',
-        error
-      );
-
-
-      const defaultData =
-        this.createDefaultFinanceData();
-
-
-      this.saveFinanceDataForUsername(
-        username,
-        defaultData
-      );
-
-
+    if (!snapshot.exists()) {
+      const defaultData = this.createDefaultFinanceData();
+      await setDoc(ref, defaultData);
       return defaultData;
     }
+
+    return this.toFinanceData(snapshot.data());
   }
 
 
-  /*
-   * SAVE CURRENT USER FINANCE DATA
-   */
-  private saveFinanceData(
-    financeData: FinanceData
-  ): void {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
-
-    const username =
-      currentUser?.username ??
-      'guest';
-
-
-    this.saveFinanceDataForUsername(
-      username,
-      financeData
-    );
+  private async readFinanceData(
+    transaction: Parameters<Parameters<typeof runTransaction>[1]>[0],
+    ref: ReturnType<SavingsService['financeRef']>
+  ): Promise<FinanceData> {
+    const snapshot = await transaction.get(ref);
+    return snapshot.exists() ? this.toFinanceData(snapshot.data()) : this.createDefaultFinanceData();
   }
 
 
-  /*
-   * SAVE FINANCE DATA FOR A USER
-   */
-  private saveFinanceDataForUsername(
-    username: string,
-    financeData: FinanceData
-  ): void {
+  private financeRef(username: string) {
+    return doc(this.firestore, this.financeCollection, this.normalizeUsername(username));
+  }
 
-    try {
 
-      localStorage.setItem(
-
-        this.getStorageKeyForUsername(
-          username
-        ),
-
-        JSON.stringify(
-          financeData
-        )
-
-      );
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to save finance data:',
-        error
-      );
+  private toFinanceData(data: Record<string, unknown> | undefined): FinanceData {
+    if (!data || typeof data['balance'] !== 'number' || !Array.isArray(data['goals'])) {
+      return this.createDefaultFinanceData();
     }
+    return {
+      balance: data['balance'] as number,
+      goals: data['goals'] as SavingsGoal[],
+    };
   }
 
 
-  /*
-   * SAVE MERCHANT PAYMENT HISTORY
-   */
-  private savePaymentHistory(
-    username: string,
-    payments:
-      MerchantPayment[]
-  ): void {
-
-    try {
-
-      localStorage.setItem(
-
-        this.getPaymentHistoryStorageKey(
-          username
-        ),
-
-        JSON.stringify(
-          payments
-        )
-
-      );
-
-    } catch (error) {
-
-      console.warn(
-        'Unable to save payment history:',
-        error
-      );
-    }
+  private currentUsername(): string {
+    return this.authService.getCurrentUser()?.username ?? 'guest';
   }
 
 
-  /*
-   * PAYMENT HISTORY STORAGE KEY
-   */
-  private getPaymentHistoryStorageKey(
-    username: string
-  ): string {
-
-    const normalizedUsername =
-      username
-        .trim()
-        .toLowerCase();
-
-
-    return (
-      `merchantPayments_` +
-      `${normalizedUsername || 'guest'}`
-    );
-  }
-
-
-  /*
-   * FINANCE STORAGE KEY
-   */
-  private getStorageKeyForUsername(
-    username: string
-  ): string {
-
-    const normalizedUsername =
-      username
-        .trim()
-        .toLowerCase();
-
-
-    return (
-      `financeData_${
-        normalizedUsername ||
-        'guest'
-      }`
-    );
-  }
-
-
-  /*
-   * YOUR ORIGINAL STORAGE KEY METHOD
-   */
-  private getStorageKey(): string {
-
-    const currentUser =
-      this.authService
-        .getCurrentUser();
-
-
-    const username =
-      currentUser
-        ?.username
-        .trim()
-        .toLowerCase()
-      ??
-      'guest';
-
-
-    return (
-      `financeData_${username}`
-    );
+  private normalizeUsername(username: string): string {
+    return (username || '').trim().toLowerCase() || 'guest';
   }
 
 
   /*
    * DEFAULT USER ACCOUNT
    */
-  private createDefaultFinanceData():
-    FinanceData {
-
+  private createDefaultFinanceData(): FinanceData {
     return {
-
       /*
        * Starting demo balance
        */
-      balance:
-        900000,
-
+      balance: 900000,
 
       goals: [
-
         {
-          id:
-            'emergency-fund',
-
-          name:
-            'Emergency Fund',
-
-          targetAmount:
-            2000,
-
-          savedAmount:
-            500,
-
-          color:
-            'success',
+          id: 'emergency-fund',
+          name: 'Emergency Fund',
+          targetAmount: 2000,
+          savedAmount: 500,
+          color: 'success',
         },
-
-
         {
-          id:
-            'vacation',
-
-          name:
-            'Vacation',
-
-          targetAmount:
-            2000,
-
-          savedAmount:
-            500,
-
-          color:
-            'warning',
+          id: 'vacation',
+          name: 'Vacation',
+          targetAmount: 2000,
+          savedAmount: 500,
+          color: 'warning',
         },
-
-
         {
-          id:
-            'new-laptop',
-
-          name:
-            'New Laptop',
-
-          targetAmount:
-            2000,
-
-          savedAmount:
-            500,
-
-          color:
-            'tertiary',
+          id: 'new-laptop',
+          name: 'New Laptop',
+          targetAmount: 2000,
+          savedAmount: 500,
+          color: 'tertiary',
         },
-
       ],
     };
   }
@@ -1426,104 +573,8 @@ export class SavingsService {
 
   /*
    * MONEY ROUNDING
-   *
-   * Prevents values such as:
-   *
-   * 499.9999999997
-   *
-   * instead of:
-   *
-   * 500.00
    */
-  private roundMoney(
-    amount: number
-  ): number {
-
-    return (
-      Math.round(
-        (
-          amount +
-          Number.EPSILON
-        ) * 100
-      ) / 100
-    );
-  }
-
-
-  /*
-   * CHECK SAVED FINANCE DATA
-   */
-  private isFinanceData(
-    value: unknown
-  ): value is FinanceData {
-
-    if (
-      !value ||
-      typeof value !== 'object'
-    ) {
-
-      return false;
-    }
-
-
-    const financeData =
-      value as
-        Partial<FinanceData>;
-
-
-    if (
-
-      typeof financeData.balance !==
-        'number'
-
-      ||
-
-      !Array.isArray(
-        financeData.goals
-      )
-
-    ) {
-
-      return false;
-    }
-
-
-    return financeData
-      .goals
-      .every(
-        (goal) => {
-
-          return Boolean(
-
-            goal
-
-            &&
-
-            typeof goal.id ===
-              'string'
-
-            &&
-
-            typeof goal.name ===
-              'string'
-
-            &&
-
-            typeof goal.targetAmount ===
-              'number'
-
-            &&
-
-            typeof goal.savedAmount ===
-              'number'
-
-            &&
-
-            typeof goal.color ===
-              'string'
-
-          );
-        }
-      );
+  private roundMoney(amount: number): number {
+    return Math.round((amount + Number.EPSILON) * 100) / 100;
   }
 }

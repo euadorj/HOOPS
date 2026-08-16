@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" class="bill-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="bill-header">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab1" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-content">
       <ion-title class="header-title">Bill Splitting</ion-title>
@@ -12,10 +12,12 @@
 
 <ion-content fullscreen class="bill-content">
   <div class="bill-container">
-    <!-- Join Session Card -->
+    <!-- Join Session -->
     <div class="join-card">
       <div class="card-header">
-        <div class="card-icon join-icon">#</div>
+        <div class="card-icon join-icon">
+          <ion-icon name="keypad-outline"></ion-icon>
+        </div>
         <div class="card-text">
           <h2>Join Session</h2>
           <p>Enter the session code</p>
@@ -23,54 +25,79 @@
       </div>
 
       <div class="input-label">Session Code</div>
-      <input 
-        type="text" 
-        class="session-input" 
-        placeholder="Enter 6-digit code" 
-        [(ngModel)]="joinCode" 
-        maxlength="6" 
+      <input
+        type="text"
+        class="session-input"
+        placeholder="Enter 6-digit code"
+        [(ngModel)]="joinCode"
+        maxlength="6"
         inputmode="numeric"
         name="joinCode"
       />
 
       <p class="join-error" *ngIf="joinError">{{ joinError }}</p>
-      <button class="join-button" (click)="joinSession()">Join Session</button>
+      <button class="join-button" [disabled]="joining" (click)="joinSession()">
+        {{ joining ? 'Joining...' : 'Join Session' }}
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </button>
     </div>
 
-    <!-- OR Divider -->
-    <div class="divider">OR</div>
+    <div class="divider"><span>OR</span></div>
 
-    <!-- Create Session Card -->
+    <!-- Create Session -->
     <div class="create-card">
       <div class="card-header">
-        <div class="card-icon create-icon">👥</div>
+        <div class="card-icon create-icon">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
         <div class="card-text-white">
           <h2>Create New Session</h2>
           <p>Start a new bill split</p>
         </div>
       </div>
 
-      <button class="create-button" (click)="createSession()">Create Session</button>
+      <button class="create-button" (click)="createSession()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        Create Session
+      </button>
     </div>
 
     <!-- Active Sessions -->
     <div class="active-sessions">
-      <h3>Active Sessions</h3>
+      <div class="section-heading">
+        <h3>Active Sessions</h3>
+        <span class="session-count" *ngIf="sessions.length">{{ sessions.length }}</span>
+      </div>
+
       <div class="session-item" *ngFor="let session of sessions" (click)="openSession(session.id)">
-        <div class="session-avatar">👤</div>
+        <div class="session-avatar">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </div>
         <div class="session-details">
           <h4>{{ session.title }}</h4>
           <p class="restaurant-name">{{ session.restaurant }}</p>
           <div class="session-meta">
-            <span class="meta-item">{{ session.menuCategories.length }} categories</span>
-            <span class="meta-item">Code {{ session.id }}</span>
+            <span class="meta-item">
+              <ion-icon name="list-outline"></ion-icon>
+              {{ session.menuCategories.length }} categories
+            </span>
+            <span class="meta-item">
+              <ion-icon name="key-outline"></ion-icon>
+              {{ session.id }}
+            </span>
           </div>
         </div>
-        <div class="session-total">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </div>
+        <ion-icon class="chevron" name="chevron-forward-outline"></ion-icon>
+      </div>
+
+      <div class="empty-state" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Loading sessions...</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && !sessions.length">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <p>No active sessions yet. Join a session with a code or create your own.</p>
       </div>
     </div>
   </div>

@@ -1,11 +1,11 @@
-<ion-header [translucent]="true" class="shared-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="shared-header">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab1"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab1" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-content">
       <ion-title class="header-title">Shared Wallet</ion-title>
-      <p class="header-subtitle">Pool funds with friends</p>
+      <p class="header-subtitle">Pull funds together</p>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -14,7 +14,9 @@
   <div class="shared-container">
     <div class="hero-card join-wallet">
       <div class="card-top">
-        <div class="icon">#</div>
+        <div class="icon">
+          <ion-icon name="keypad-outline"></ion-icon>
+        </div>
         <div class="text">
           <h3>Join Wallet</h3>
           <p>Enter the wallet code</p>
@@ -25,28 +27,37 @@
         <input [(ngModel)]="walletCode" maxlength="6" inputmode="numeric" name="walletCode" placeholder="Enter wallet code" />
         <p class="form-error" *ngIf="joinError">{{ joinError }}</p>
         <p class="form-message" *ngIf="joinMessage">{{ joinMessage }}</p>
-        <button class="primary" type="button" (click)="joinWallet()">Join Wallet</button>
+        <button class="primary" type="button" (click)="joinWallet()">
+          Join Wallet
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
       </div>
     </div>
 
-    <div class="or">OR</div>
+    <div class="or"><span>OR</span></div>
 
     <div class="hero-card create-wallet">
       <div class="card-top">
-        <div class="icon">+</div>
+        <div class="icon">
+          <ion-icon name="wallet-outline"></ion-icon>
+        </div>
         <div class="text white">
           <h3>Create New Wallet</h3>
           <p>Start a group wallet</p>
         </div>
       </div>
-      <button class="outline" type="button" (click)="createWallet()">+ Create Wallet</button>
+      <button class="outline" type="button" (click)="createWallet()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        Create Wallet
+      </button>
     </div>
 
     <div class="access-message" *ngIf="accessMessage">{{ accessMessage }}</div>
     <h4 class="recent-title">Recent Wallets</h4>
     <div class="state-message" *ngIf="loading">Loading wallets...</div>
-    <div class="state-message" *ngIf="!loading && !wallets.length">
-      You have not created or joined any shared wallets yet.
+    <div class="empty-state" *ngIf="!loading && !wallets.length">
+      <ion-icon name="wallet-outline"></ion-icon>
+      <p>You have not created or joined any shared wallets yet.</p>
     </div>
     <div class="wallet-list" *ngIf="!loading && wallets.length">
       <button class="wallet-item" type="button" *ngFor="let wallet of wallets" (click)="openWallet(wallet)">
@@ -55,7 +66,7 @@
           <h5>{{ wallet.name }}</h5>
           <p>{{ wallet.memberIds.length }} members • {{ formatBalance(wallet.balanceCents) }}</p>
         </div>
-        <div class="chev">›</div>
+        <ion-icon class="chev" name="chevron-forward-outline"></ion-icon>
       </button>
     </div>
   </div>

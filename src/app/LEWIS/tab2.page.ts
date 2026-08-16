@@ -12,12 +12,22 @@ export class Tab2Page {
   joinCode: string = '';
   sessions: BillSession[] = [];
   joinError = '';
+  joining = false;
+  loading = true;
 
-  constructor(private router: Router, private billSessionService: BillSessionService) {
-    this.sessions = this.billSessionService.getSessions();
+  constructor(private router: Router, private billSessionService: BillSessionService) {}
+
+  ionViewWillEnter() {
+    this.refreshSessions();
   }
 
-  joinSession() {
+  async refreshSessions() {
+    this.loading = true;
+    this.sessions = await this.billSessionService.getSessions();
+    this.loading = false;
+  }
+
+  async joinSession() {
     const code = (this.joinCode || '').trim();
     this.joinError = '';
     if (!/^\d{6}$/.test(code)) {
@@ -25,12 +35,16 @@ export class Tab2Page {
       return;
     }
 
-    if (!this.billSessionService.joinSession(code)) {
+    this.joining = true;
+    const joined = await this.billSessionService.joinSession(code);
+    this.joining = false;
+
+    if (!joined) {
       this.joinError = 'Session not found. Check the code and try again.';
       return;
     }
 
-    this.sessions = this.billSessionService.getSessions();
+    await this.refreshSessions();
     this.router.navigate([`/tabs/tab2/session/${code}`]);
   }
 

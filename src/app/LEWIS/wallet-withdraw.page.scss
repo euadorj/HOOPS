@@ -1,21 +1,55 @@
 :host { display: block; min-height: 100%; }
-.wallet-header { --background: linear-gradient(135deg, #2939b8 0%, #1989ef 100%); color: white; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; }
-.header-content { display: flex; flex-direction: column; gap: 5px; }
+.wallet-header {
+  --background: linear-gradient(135deg, #2f1fae 0%, #4d3df4 100%);
+  --color: white;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  box-shadow: 0 12px 28px rgba(47, 31, 174, 0.18);
+}
+.header-content { display: flex; flex-direction: column; gap: 5px; color: white; }
 .header-title { font-size: 1.35rem; font-weight: 700; }
-.wallet-content { --background: #f6f7fb; }
+.wallet-content { --background: #f4f6ff; background: #f4f6ff; }
 .wallet-container { padding: 20px 16px 96px; }
-.amount-card { background: linear-gradient(135deg, #ff9e43, #f95aa7); color: white; border-radius: 18px; padding: 18px; box-shadow: 0 12px 28px rgba(249, 90, 167, .2); }
-.amount-card p { margin: 0; opacity: .92; font-size: .8rem; text-align: center; }
+.amount-card {
+  background: linear-gradient(135deg, #2f1fae, #4d3df4);
+  color: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 14px 30px rgba(47, 31, 174, .22);
+}
+.amount-card p { margin: 0; opacity: .85; font-size: .82rem; text-align: center; }
 .amount-symbol { text-align: center; margin-top: 10px; font-size: 1.7rem; }
 .amount-card input { display: block; width: 100%; text-align: center; margin-top: 2px; border: 0; background: transparent; color: white; font-size: 1.5rem; font-weight: 700; outline: 0; }
-.amount-card input::placeholder { color: rgba(255,255,255,.86); }
-.amount-meta { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; text-align: center; }
-.amount-meta span { font-size: .78rem; font-weight: 600; opacity: .95; }
-.card-block { margin-top: 16px; border-radius: 18px; background: white; padding: 16px; box-shadow: 0 8px 20px rgba(15,23,42,.05); }
-.card-block h3 { margin: 0 0 12px; font-size: .95rem; color: #334155; }
+.amount-card input::placeholder { color: rgba(255,255,255,.7); }
+.amount-meta { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; text-align: center; }
+.amount-meta span { font-size: .8rem; font-weight: 600; opacity: .9; }
+.card-block { margin-top: 16px; border-radius: 18px; background: white; padding: 16px; box-shadow: 0 8px 22px rgba(15,23,42,.05); }
+.card-block h3 { margin: 0 0 12px; font-size: .95rem; font-weight: 700; color: #26334c; }
 .category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.category-item { border: 1px solid #e5ebf4; background: #f8fbff; border-radius: 12px; min-height: 48px; font-weight: 700; color: #334155; font-size: .78rem; }
-.category-item.selected { border-color: #4c7cff; color: #1f4dd7; background: #eef3ff; }
-.card-block textarea { width: 100%; min-height: 90px; border: 0; border-radius: 12px; padding: 12px; box-sizing: border-box; background: #f4f5fb; color: #0f172a; resize: vertical; }
-.error-message { color: #dc2626; font-weight: 700; font-size: .85rem; margin: 10px 0 12px; }
-.submit-button { --background: linear-gradient(90deg, #9187d3, #82c6f5); --border-radius: 14px; --box-shadow: none; }
+.category-item { border: 1px solid #dce1ec; background: #f8f9fd; border-radius: 12px; min-height: 48px; font-weight: 700; color: #3e4a61; font-size: .78rem; cursor: pointer; }
+.category-item.selected { border-color: #4938dc; color: #4938dc; background: #eeecff; }
+.card-block textarea { width: 100%; min-height: 90px; border: 1px solid #dce1ec; border-radius: 13px; padding: 13px; box-sizing: border-box; background: #f8f9fd; color: #111827; resize: vertical; font: inherit;
+
+  &:focus { outline: none; border-color: #4938dc; background: white; }
+}
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 650;
+  font-size: .87rem;
+
+  ion-icon { flex-shrink: 0; font-size: 1.1rem; }
+}
+.submit-button {
+  --background: #4432d7;
+  --border-radius: 13px;
+  --box-shadow: 0 10px 24px rgba(68, 50, 215, 0.25);
+  min-height: 50px;
+  font-weight: 700;
+}

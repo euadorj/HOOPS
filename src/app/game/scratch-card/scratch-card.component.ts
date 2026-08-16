@@ -1103,7 +1103,7 @@ export class ScratchCardComponent
    * =====================================
    */
 
-  private completeScratch(): void {
+  private async completeScratch(): Promise<void> {
 
     /*
      * Prevent duplicate rewards.
@@ -1145,7 +1145,7 @@ export class ScratchCardComponent
     /*
      * Actually give user reward.
      */
-    this.applyReward(
+    await this.applyReward(
       this.selectedReward
     );
 
@@ -1229,9 +1229,9 @@ export class ScratchCardComponent
    * =====================================
    */
 
-  private applyReward(
+  private async applyReward(
     reward: ScratchReward
-  ): void {
+  ): Promise<void> {
 
     switch (
       reward.type
@@ -1245,7 +1245,7 @@ export class ScratchCardComponent
       case 'coins': {
 
         const newCoinBalance =
-          this.coinService
+          await this.coinService
             .addCoins(
               reward.amount
             );
@@ -1324,7 +1324,7 @@ export class ScratchCardComponent
          * No coins are deducted.
          */
         const voucherResult =
-          this.rewardsService
+          await this.rewardsService
             .awardRandomVoucher();
 
 

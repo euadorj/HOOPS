@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" class="wallet-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="wallet-header">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/shared-wallets"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/shared-wallets" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-content">
       <ion-title class="header-title">Create Wallet</ion-title>
@@ -28,10 +28,17 @@
         <textarea [(ngModel)]="description" name="description" placeholder="What is this wallet for?"></textarea>
       </div>
 
-      <p class="validation-error" *ngIf="validationMessage">{{ validationMessage }}</p>
-      <p class="validation-error" *ngIf="creationError">{{ creationError }}</p>
+      <div class="validation-error" *ngIf="validationMessage">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ validationMessage }}
+      </div>
+      <div class="validation-error" *ngIf="creationError">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ creationError }}
+      </div>
       <ion-button expand="block" class="create-button" [disabled]="submitting" (click)="create()">
         {{ submitting ? 'Creating...' : 'Create Wallet' }}
+        <ion-icon *ngIf="!submitting" name="arrow-forward-outline" slot="end"></ion-icon>
       </ion-button>
     </div>
   </div>

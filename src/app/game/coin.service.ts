@@ -1,128 +1,94 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Firestore, doc, getDoc, runTransaction } from '@angular/fire/firestore';
 import { AuthService } from '../auth/auth.service';
+
+/*
+ * Shared with RewardsService, which needs to spend coins and award a
+ * voucher as a single atomic transaction when redeeming.
+ */
+export const GAME_COINS_COLLECTION = 'gameCoins';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CoinService {
-  private readonly coinSubject = new BehaviorSubject<number>(0);
+  constructor(private authService: AuthService, private firestore: Firestore) {}
 
-  readonly coins$ = this.coinSubject.asObservable();
-
-  constructor(private authService: AuthService) {
-    this.refreshCoins();
+  async getCoins(): Promise<number> {
+    const snapshot = await getDoc(this.coinsRef());
+    return snapshot.exists() && typeof snapshot.data()['coins'] === 'number'
+      ? (snapshot.data()['coins'] as number)
+      : 0;
   }
 
-  getCoins(): number {
-    const coins = this.readCoins();
-    this.coinSubject.next(coins);
-
-    return coins;
-  }
-
-  addCoins(amount: number): number {
+  async addCoins(amount: number): Promise<number> {
     if (!Number.isFinite(amount) || amount <= 0) {
       return this.getCoins();
     }
 
-    const currentCoins = this.readCoins();
-    const updatedCoins = currentCoins + Math.floor(amount);
+    const amountToAdd = Math.floor(amount);
+    const ref = this.coinsRef();
 
-    this.saveCoins(updatedCoins);
-    this.coinSubject.next(updatedCoins);
+    return runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      const currentCoins = snapshot.exists() && typeof snapshot.data()['coins'] === 'number'
+        ? (snapshot.data()['coins'] as number)
+        : 0;
 
-    return updatedCoins;
+      const updatedCoins = currentCoins + amountToAdd;
+      transaction.set(ref, { coins: updatedCoins });
+
+      return updatedCoins;
+    });
   }
 
-  spendCoins(amount: number): {
+  async spendCoins(amount: number): Promise<{
     success: boolean;
     remainingCoins: number;
     message: string;
-  } {
+  }> {
     if (!Number.isFinite(amount) || amount <= 0) {
       return {
         success: false,
-        remainingCoins: this.getCoins(),
+        remainingCoins: await this.getCoins(),
         message: 'Enter a valid coin amount.',
       };
     }
 
-    const currentCoins = this.readCoins();
     const amountToSpend = Math.floor(amount);
+    const ref = this.coinsRef();
 
-    if (amountToSpend > currentCoins) {
+    return runTransaction(this.firestore, async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      const currentCoins = snapshot.exists() && typeof snapshot.data()['coins'] === 'number'
+        ? (snapshot.data()['coins'] as number)
+        : 0;
+
+      if (amountToSpend > currentCoins) {
+        return {
+          success: false,
+          remainingCoins: currentCoins,
+          message: 'You do not have enough coins.',
+        };
+      }
+
+      const updatedCoins = currentCoins - amountToSpend;
+      transaction.set(ref, { coins: updatedCoins });
+
       return {
-        success: false,
-        remainingCoins: currentCoins,
-        message: 'You do not have enough coins.',
+        success: true,
+        remainingCoins: updatedCoins,
+        message: `${amountToSpend} coins were used.`,
       };
-    }
-
-    const updatedCoins = currentCoins - amountToSpend;
-
-    this.saveCoins(updatedCoins);
-    this.coinSubject.next(updatedCoins);
-
-    return {
-      success: true,
-      remainingCoins: updatedCoins,
-      message: `${amountToSpend} coins were used.`,
-    };
+    });
   }
 
-  refreshCoins(): void {
-    this.coinSubject.next(this.readCoins());
+  private coinsRef() {
+    return doc(this.firestore, GAME_COINS_COLLECTION, this.normalizeUsername());
   }
 
-  private readCoins(): number {
-    if (typeof window === 'undefined') {
-      return 0;
-    }
-
-    try {
-      const storedValue = localStorage.getItem(
-        this.getCoinStorageKey()
-      );
-
-      if (!storedValue) {
-        return 0;
-      }
-
-      const parsedCoins = Number(storedValue);
-
-      if (!Number.isFinite(parsedCoins) || parsedCoins < 0) {
-        return 0;
-      }
-
-      return Math.floor(parsedCoins);
-    } catch (error) {
-      console.warn('Unable to read user coins:', error);
-      return 0;
-    }
-  }
-
-  private saveCoins(coins: number): void {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        this.getCoinStorageKey(),
-        String(Math.max(0, Math.floor(coins)))
-      );
-    } catch (error) {
-      console.warn('Unable to save user coins:', error);
-    }
-  }
-
-  private getCoinStorageKey(): string {
+  private normalizeUsername(): string {
     const currentUser = this.authService.getCurrentUser();
-
-    const username =
-      currentUser?.username.trim().toLowerCase() ?? 'guest';
-
-    return `gameCoins_${username}`;
+    return currentUser?.username.trim().toLowerCase() ?? 'guest';
   }
 }

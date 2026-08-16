@@ -175,7 +175,7 @@ export class SavingsChallengeComponent
       customEvent.detail?.value ?? '';
   }
 
-  addToSavings(): void {
+  async addToSavings(): Promise<void> {
     this.clearMessages();
 
     if (!this.challengeState.active) {
@@ -207,7 +207,7 @@ export class SavingsChallengeComponent
     }
 
     const result =
-      this.savingsService.depositToGoal(
+      await this.savingsService.depositToGoal(
         this.selectedGoalId,
         amount
       );
@@ -224,10 +224,10 @@ export class SavingsChallengeComponent
       `$${amount.toFixed(2)} was moved into savings.`;
 
     this.saveChallengeState();
-    this.loadFinanceData();
+    await this.loadFinanceData();
   }
 
-  claimReward(): void {
+  async claimReward(): Promise<void> {
     if (
       !this.isChallengeComplete ||
       this.challengeState.rewardClaimed
@@ -236,7 +236,7 @@ export class SavingsChallengeComponent
     }
 
     const newCoinBalance =
-      this.coinService.addCoins(
+      await this.coinService.addCoins(
         this.challengeReward
       );
 
@@ -259,9 +259,9 @@ export class SavingsChallengeComponent
     this.close.emit();
   }
 
-  private loadFinanceData(): void {
+  private async loadFinanceData(): Promise<void> {
     this.financeData =
-      this.savingsService.getFinanceData();
+      await this.savingsService.getFinanceData();
   }
 
   private updateCooldown(): void {

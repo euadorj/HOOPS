@@ -64,7 +64,7 @@ export class TransferPage implements OnInit {
     this.loadBalance();
   }
 
-  transferMoney(): void {
+  async transferMoney(): Promise<void> {
     this.submitted = true;
     this.successMessage = '';
     this.errorMessage = '';
@@ -87,7 +87,7 @@ export class TransferPage implements OnInit {
       );
 
     const result =
-      this.savingsService.transferMoney(
+      await this.savingsService.transferMoney(
         recipientUsername,
         amount
       );
@@ -118,8 +118,8 @@ export class TransferPage implements OnInit {
     return this.transferForm.get('amount');
   }
 
-  private loadBalance(): void {
+  private async loadBalance(): Promise<void> {
     this.financeData =
-      this.savingsService.getFinanceData();
+      await this.savingsService.getFinanceData();
   }
 }

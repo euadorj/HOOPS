@@ -1,7 +1,7 @@
-<ion-header [translucent]="true" class="payment-header">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="payment-header">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab2"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab2" text="" color="light"></ion-back-button>
     </ion-buttons>
     <div class="header-rows">
       <ion-title>{{ headerTitle }}</ion-title>
@@ -11,7 +11,14 @@
 </ion-header>
 
 <ion-content fullscreen class="payment-content">
-  <div class="page-container">
+  <div class="page-container" *ngIf="loading">
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading session...</p>
+    </div>
+  </div>
+
+  <div class="page-container" *ngIf="!loading && session">
     <div *ngIf="step === 'order'">
       <div class="selecting-card">
         <div class="top-row">
@@ -40,7 +47,9 @@
           </div>
           <div class="item-meta">
             <span class="item-price">{{ formatPrice(item.price) }}</span>
-            <span class="item-check" *ngIf="item.selected">✓</span>
+            <span class="item-check" *ngIf="item.selected">
+              <ion-icon name="checkmark"></ion-icon>
+            </span>
           </div>
         </div>
       </div>
@@ -88,12 +97,16 @@
         </button>
       </div>
 
-      <ion-button expand="block" (click)="pay()">Pay {{ formatPrice(totalAmount) }}</ion-button>
+      <ion-button expand="block" [disabled]="paying" (click)="pay()">
+        {{ paying ? 'Processing...' : 'Pay ' + formatPrice(totalAmount) }}
+      </ion-button>
     </div>
 
     <div *ngIf="step === 'complete'">
       <div class="success-card">
-        <div class="success-icon">✓</div>
+        <div class="success-icon">
+          <ion-icon name="checkmark"></ion-icon>
+        </div>
         <h2>Payment Successful!</h2>
         <p>Your payment has been processed.</p>
         <div class="paid-amount">{{ formatPrice(paidAmount) }}</div>

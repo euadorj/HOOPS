@@ -538,10 +538,9 @@ export class PayPage
     const voucherText =
       this.selectedVoucher
         ?
-          `<br><br>` +
-          `Voucher: ${this.selectedVoucher.title}` +
-          `<br>` +
-          `Discount: $${this.discountAmount.toFixed(2)}`
+          ` You're saving $${this.discountAmount.toFixed(2)} with your ` +
+          `${this.selectedVoucher.title} voucher (original price ` +
+          `$${this.originalAmount.toFixed(2)}).`
         :
           '';
 
@@ -555,12 +554,8 @@ export class PayPage
             'Confirm Payment',
 
           message:
-            `Merchant: ${merchantName}` +
-            `<br>` +
-            `Original amount: $${this.originalAmount.toFixed(2)}` +
-            voucherText +
-            `<br><br>` +
-            `<strong>Final payment: $${this.finalAmount.toFixed(2)}</strong>`,
+            `Pay $${this.finalAmount.toFixed(2)} to ${merchantName}?` +
+            voucherText,
 
           buttons: [
 
@@ -648,9 +643,9 @@ export class PayPage
    * =====================================
    */
 
-  private completePayment(
+  private async completePayment(
     merchantName: string
-  ): void {
+  ): Promise<void> {
 
     const voucher =
       this.selectedVoucher;
@@ -680,7 +675,7 @@ export class PayPage
      * Pay final discounted amount.
      */
     const result =
-      this.savingsService
+      await this.savingsService
         .payMerchant(
           merchantName,
           this.finalAmount
@@ -710,7 +705,7 @@ export class PayPage
     if (voucher) {
 
       const voucherResult =
-        this.rewardsService
+        await this.rewardsService
           .markVoucherUsed(
             voucher.id
           );
@@ -804,8 +799,8 @@ export class PayPage
    * =====================================
    */
 
-  private refreshMerchantVouchers():
-    void {
+  private async refreshMerchantVouchers():
+    Promise<void> {
 
     if (
       !this.paymentForm
@@ -834,7 +829,7 @@ export class PayPage
      * Minimum spend does NOT hide them.
      */
     this.merchantVouchers =
-      this.rewardsService
+      await this.rewardsService
         .getMerchantVouchers(
           merchantName
         );
@@ -900,16 +895,16 @@ export class PayPage
    * =====================================
    */
 
-  private loadPageData():
-    void {
+  private async loadPageData():
+    Promise<void> {
 
     this.financeData =
-      this.savingsService
+      await this.savingsService
         .getFinanceData();
 
 
     this.paymentHistory =
-      this.savingsService
+      await this.savingsService
         .getPaymentHistory();
 
 

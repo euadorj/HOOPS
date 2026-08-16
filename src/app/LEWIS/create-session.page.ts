@@ -13,12 +13,11 @@ export class CreateSessionPage {
   sessionTitle = '';
   restaurantName = '';
   validationMessage = '';
+  submitting = false;
   categories: MenuCategory[] = [
     {
       title: 'Appetizers',
-      items: [
-        { id: 'item-1', title: 'Caesar Salad', description: 'Romaine, parmesan, house dressing', price: 12.99 }
-      ]
+      items: []
     }
   ];
 
@@ -40,7 +39,11 @@ export class CreateSessionPage {
     category.items.splice(index, 1);
   }
 
-  create() {
+  async create() {
+    if (this.submitting) {
+      return;
+    }
+
     const code = (this.sessionCode || '').trim();
     const errors: string[] = [];
 
@@ -48,7 +51,7 @@ export class CreateSessionPage {
       errors.push('Enter a session code.');
     } else if (!/^\d{6}$/.test(code)) {
       errors.push('Session code must be 6 digits.');
-    } else if (this.billSessionService.hasSession(code)) {
+    } else if (await this.billSessionService.hasSession(code)) {
       errors.push('That session code is already in use. Choose another one.');
     }
 
@@ -77,7 +80,15 @@ export class CreateSessionPage {
       }))
     };
 
-    this.billSessionService.addSession(session);
+    this.submitting = true;
+    const created = await this.billSessionService.addSession(session);
+    this.submitting = false;
+
+    if (!created) {
+      this.validationMessage = 'That session code was just taken. Choose another one.';
+      return;
+    }
+
     this.router.navigate([`/tabs/tab2/session/${code}`]);
   }
 }

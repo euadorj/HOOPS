@@ -117,7 +117,7 @@ export class GamePage implements OnInit, OnDestroy {
   /*
    * Daily check-in
    */
-  checkIn(): void {
+  async checkIn(): Promise<void> {
     this.rewardMessage = '';
 
     this.updateCheckInAvailability();
@@ -155,7 +155,7 @@ export class GamePage implements OnInit, OnDestroy {
      * logged-in user's individual account.
      */
     this.totalCoins =
-      this.coinService.addCoins(reward);
+      await this.coinService.addCoins(reward);
 
     this.currentStreak++;
     this.lastCheckInAt = currentTime;
@@ -185,9 +185,9 @@ export class GamePage implements OnInit, OnDestroy {
    * Refreshes the displayed coin balance after a game
    * awards coins.
    */
-  refreshCoinBalance(): void {
+  async refreshCoinBalance(): Promise<void> {
     this.totalCoins =
-      this.coinService.getCoins();
+      await this.coinService.getCoins();
   }
 
   /*
@@ -241,11 +241,9 @@ export class GamePage implements OnInit, OnDestroy {
   /*
    * Loads all information needed by the Games page.
    */
-  private loadPageData(): void {
-    this.coinService.refreshCoins();
-
+  private async loadPageData(): Promise<void> {
     this.totalCoins =
-      this.coinService.getCoins();
+      await this.coinService.getCoins();
 
     this.loadCheckInData();
     this.initializeDays();

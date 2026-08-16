@@ -69,9 +69,9 @@ export class DiscountsPage implements OnInit {
     await alert.present();
   }
 
-  redeemVoucher(voucherId: string): void {
+  async redeemVoucher(voucherId: string): Promise<void> {
     const result =
-      this.rewardsService.redeemVoucher(voucherId);
+      await this.rewardsService.redeemVoucher(voucherId);
 
     if (!result.success) {
       this.errorMessage = result.message;
@@ -115,14 +115,14 @@ export class DiscountsPage implements OnInit {
     return voucher.id;
   }
 
-  private loadPageData(): void {
-    this.coinBalance = this.coinService.getCoins();
+  private async loadPageData(): Promise<void> {
+    this.coinBalance = await this.coinService.getCoins();
 
     this.voucherCatalog =
       this.rewardsService.getVoucherCatalog();
 
     this.userVouchers =
-      this.rewardsService.getUserVouchers();
+      await this.rewardsService.getUserVouchers();
   }
 
   private clearMessages(): void {

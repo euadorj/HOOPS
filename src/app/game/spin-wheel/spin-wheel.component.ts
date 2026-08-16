@@ -84,11 +84,11 @@ export class SpinWheelComponent implements OnInit, OnDestroy {
 
     this.rotation += additionalRotation;
 
-    this.spinTimer = window.setTimeout(() => {
+    this.spinTimer = window.setTimeout(async () => {
       const reward = this.rewards[selectedIndex];
 
       const newBalance =
-        this.coinService.addCoins(reward);
+        await this.coinService.addCoins(reward);
 
       localStorage.setItem(
         this.getLastSpinStorageKey(),

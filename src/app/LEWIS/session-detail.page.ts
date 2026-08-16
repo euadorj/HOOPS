@@ -23,6 +23,9 @@ export class SessionDetailPage implements OnInit {
   paidAt = new Date();
   paidAmount = 0;
   session: BillSession | null = null;
+  sessionMembers: { memberId: string; displayName: string; initial: string; isCurrentUser: boolean }[] = [];
+  loading = true;
+  paying = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -37,14 +40,35 @@ export class SessionDetailPage implements OnInit {
     this.loadSession();
   }
 
-  loadSession() {
+  async loadSession() {
     if (!this.id) {
       return;
     }
-    this.session = this.billSessionService.getSessionById(this.id) || null;
+    this.loading = true;
+    this.session = await this.billSessionService.getSessionById(this.id);
+
     if (!this.session) {
+      this.sessionMembers = [];
+      this.loading = false;
       this.router.navigate(['/tabs/tab2']);
+      return;
     }
+
+    this.sessionMembers = await this.resolveSessionMembers(this.session);
+    this.loading = false;
+  }
+
+  private async resolveSessionMembers(session: BillSession) {
+    const currentUserId = this.authService.getCurrentUser()?.id;
+    return Promise.all(session.memberIds.map(async (memberId) => {
+      const displayName = (await this.authService.getUsernameById(memberId)) || memberId;
+      return {
+        memberId,
+        displayName,
+        initial: displayName.charAt(0).toUpperCase(),
+        isCurrentUser: memberId === currentUserId
+      };
+    }));
   }
 
   get selectedItems() {
@@ -58,25 +82,6 @@ export class SessionDetailPage implements OnInit {
 
   get selectedCount() {
     return this.selectedItems.length;
-  }
-
-  get sessionMembers() {
-    if (!this.session) {
-      return [];
-    }
-
-    const currentUserId = this.authService.getCurrentUser()?.id;
-    return this.session.memberIds.map((memberId) => {
-      const displayName = this.authService.getAccountDisplayName(
-        this.authService.getAccountUsername(memberId) || memberId
-      );
-      return {
-        memberId,
-        displayName,
-        initial: displayName.charAt(0).toUpperCase(),
-        isCurrentUser: memberId === currentUserId
-      };
-    });
   }
 
   get totalAmount() {
@@ -142,7 +147,7 @@ export class SessionDetailPage implements OnInit {
       return;
     }
 
-    const result = this.billSessionService.leaveSession(this.id);
+    const result = await this.billSessionService.leaveSession(this.id);
     if (!result.success) {
       const alert = await this.alertController.create({
         header: 'Unable to Leave Session',
@@ -160,15 +165,17 @@ export class SessionDetailPage implements OnInit {
     this.selectedPaymentMethodId = methodId;
   }
 
-  pay() {
-    if (!this.selectedCount || !this.id) {
+  async pay() {
+    if (!this.selectedCount || !this.id || this.paying) {
       return;
     }
+    this.paying = true;
     this.paidAmount = this.totalAmount;
     this.transactionId = 'TXN' + Math.floor(100000000 + Math.random() * 900000000).toString();
     this.paidAt = new Date();
-    this.billSessionService.removeSelectedItems(this.id);
-    this.loadSession();
+    await this.billSessionService.removeSelectedItems(this.id);
+    await this.loadSession();
+    this.paying = false;
     this.step = 'complete';
   }
 

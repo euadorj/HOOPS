@@ -124,17 +124,17 @@ export class InvestingPage
    * LOAD PORTFOLIO
    * =====================================
    */
-  loadPortfolio():
-    void {
+  async loadPortfolio():
+    Promise<void> {
 
     this.investments =
-      this.dashboardService
+      await this.dashboardService
         .getInvestments();
 
 
     this.availableBalance =
-      this.savingsService
-        .getFinanceData()
+      (await this.savingsService
+        .getFinanceData())
         .balance;
 
 
@@ -229,7 +229,7 @@ export class InvestingPage
        * Update holdings with
        * latest prices
        */
-      this.dashboardService
+      await this.dashboardService
         .updateInvestmentPrices(
 
           quotes.map(
@@ -247,7 +247,7 @@ export class InvestingPage
         );
 
 
-      this.loadPortfolio();
+      await this.loadPortfolio();
 
 
       /*
@@ -376,7 +376,7 @@ export class InvestingPage
                 'Buy',
 
               handler:
-                (data) => {
+                async (data) => {
 
                   const units =
                     Number(
@@ -434,7 +434,7 @@ export class InvestingPage
 
 
                   const result =
-                    this.dashboardService
+                    await this.dashboardService
                       .buyStockUnits(
 
                         stock.symbol,
@@ -599,7 +599,7 @@ export class InvestingPage
                 'destructive',
 
               handler:
-                (data) => {
+                async (data) => {
 
                   const units =
                     Number(
@@ -658,7 +658,7 @@ export class InvestingPage
 
 
                   const result =
-                    this.dashboardService
+                    await this.dashboardService
                       .sellStockUnits(
 
                         investment.symbol,
