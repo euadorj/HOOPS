@@ -79,7 +79,11 @@
 
     </div>
 
-    <div class="shop-card" *ngFor="let shop of filteredShops">
+    <div
+  class="shop-card"
+  *ngFor="let shop of filteredShops"
+  (click)="openShop(shop)"
+>
 
       <div class="shop-left">
 

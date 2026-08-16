@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { ShopService, Shop } from './services/shop';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tab3',
@@ -8,7 +10,7 @@ import { Component } from '@angular/core';
 })
 export class Tab3Page {
 
-  constructor() {}
+  constructor(private shopService: ShopService, private router: Router) {}
 
   searchText = '';
 
@@ -26,29 +28,18 @@ export class Tab3Page {
     { name: 'Sports', icon: 'football-outline', type: 'Sports' }
   ];
 
-  shops = [
-  {
-    name: 'Starbucks',
-    category: 'Food',
-    rating: 4.8,
-    cashback: '10% Cashback',
-    image: 'assets/shops/starbucks.png'
-  },
-  {
-    name: 'FairPrice',
-    category: 'Groceries',
-    rating: 4.7,
-    cashback: '5% Cashback',
-    image: 'assets/shops/fairprice.png'
-  },
-  {
-    name: 'Courts',
-    category: 'Technology',
-    rating: 4.6,
-    cashback: '15% Cashback',
-    image: 'assets/shops/courts.png'
-  }
-];
+shops: Shop[] = [];
+
+ngOnInit() {
+  this.shopService.getShops().subscribe({
+    next: (shops) => {
+      this.shops = shops;
+    },
+    error: (error) => {
+      console.error('Error loading shops:', error);
+    }
+  });
+}
 
 get filteredShops() {
 
@@ -81,6 +72,11 @@ get filteredShops() {
     this.selectedCategory = category;
   }
 
+}
+openShop(shop: Shop) {
+  if (shop.id) {
+    this.router.navigate(['/shop-details', shop.id]);
+  }
 }
 
 }

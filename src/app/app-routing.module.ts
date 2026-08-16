@@ -35,6 +35,18 @@ const routes: Routes = [
     path: 'membership-tiers',
     loadChildren: () => import('./benedict-membership-tiers/membership-tiers.module').then( m => m.MembershipTiersPageModule)
   },
+  {
+  path: 'shop-details/:id',
+  loadChildren: () =>
+    import('./HIDAYAT/shop-details/shop-details.module')
+      .then(m => m.ShopDetailsPageModule)
+},
+{
+  path: 'cart',
+  loadChildren: () =>
+    import('./HIDAYAT/cart/cart.module').then(m => m.CartPageModule)
+},
+
 ];
 @NgModule({
   imports: [

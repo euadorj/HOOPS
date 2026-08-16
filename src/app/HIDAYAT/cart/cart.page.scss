@@ -1,0 +1,211 @@
+ion-content {
+  --background: #f8f9fc;
+}
+
+ion-toolbar {
+  --background: #3629B7;
+  --color: white;
+}
+
+ion-title {
+  font-weight: 600;
+}
+
+.cart-container {
+  padding: 24px;
+}
+
+/* EMPTY CART */
+
+.empty-cart {
+  min-height: 70vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.empty-cart ion-icon {
+  font-size: 72px;
+  color: #3629B7;
+  margin-bottom: 16px;
+}
+
+.empty-cart h2 {
+  margin: 0 0 8px;
+
+  font-size: 22px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.empty-cart p {
+  margin: 0;
+  color: #6b7280;
+}
+
+/* CART ITEMS */
+
+.cart-item {
+  display: flex;
+  align-items: center;
+
+  padding: 16px;
+  margin-bottom: 14px;
+
+  background: white;
+  border-radius: 18px;
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.product-image {
+  width: 70px;
+  height: 70px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f4f6fb;
+  border-radius: 16px;
+}
+
+.product-image img {
+  width: 55px;
+  height: 55px;
+
+  object-fit: contain;
+}
+
+.product-info {
+  flex: 1;
+  margin-left: 14px;
+}
+
+.product-info h3 {
+  margin: 0 0 5px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #1f2937;
+}
+
+.product-info p {
+  margin: 0 0 5px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #3629B7;
+}
+
+.product-info span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.cart-item ion-button {
+  --color: #9ca3af;
+  margin: 0;
+}
+
+/* ORDER SUMMARY */
+
+.summary {
+  margin-top: 28px;
+
+  padding: 20px;
+
+  background: white;
+  border-radius: 20px;
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 14px;
+
+  font-size: 14px;
+
+  color: #6b7280;
+}
+
+.summary-row strong {
+  color: #1f2937;
+}
+
+.summary hr {
+  border: none;
+  border-top: 1px solid #eee;
+
+  margin: 18px 0;
+}
+
+.summary-row.total {
+  margin-bottom: 0;
+
+  font-size: 19px;
+  font-weight: 600;
+
+  color: #1f2937;
+}
+
+.summary-row.total strong {
+  color: #3629B7;
+}
+
+/* CHECKOUT */
+
+.checkout-button {
+  margin-top: 24px;
+
+  --background: #3629B7;
+  --background-hover: #2d229e;
+  --border-radius: 15px;
+
+  height: 52px;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+
+  margin-top: 6px;
+}
+
+.quantity-controls ion-button {
+  --color: #3629B7;
+
+  --padding-start: 0;
+  --padding-end: 0;
+
+  margin: 0;
+
+  width: 28px;
+  height: 28px;
+}
+
+.quantity-controls span {
+  min-width: 24px;
+
+  text-align: center;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #1f2937;
+}

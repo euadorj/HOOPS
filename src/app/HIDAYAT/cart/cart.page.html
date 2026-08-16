@@ -1,0 +1,105 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>My Cart</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div class="cart-container">
+
+    <div *ngIf="items.length === 0" class="empty-cart">
+      <ion-icon name="cart-outline"></ion-icon>
+      <h2>Your cart is empty</h2>
+      <p>Add some products to get started.</p>
+    </div>
+
+    <div *ngIf="items.length > 0">
+
+      <div class="cart-item" *ngFor="let item of items">
+
+        <div class="product-image">
+          <img
+            [src]="item.product.image"
+            [alt]="item.product.name"
+          >
+        </div>
+
+        <div class="product-info">
+
+          <h3>{{ item.product.name }}</h3>
+
+          <p>${{ item.product.price | number:'1.2-2' }}</p>
+
+          <div class="quantity-controls">
+
+  <ion-button
+    fill="clear"
+    size="small"
+    (click)="decreaseItem(item.product.id)"
+  >
+    <ion-icon name="remove-outline"></ion-icon>
+  </ion-button>
+
+  <span>{{ item.quantity }}</span>
+
+  <ion-button
+    fill="clear"
+    size="small"
+    (click)="increaseItem(item.product.id)"
+  >
+    <ion-icon name="add-outline"></ion-icon>
+  </ion-button>
+
+</div>
+
+        </div>
+
+        <ion-button
+          fill="clear"
+          color="danger"
+          (click)="removeItem(item.product.id)"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+
+      </div>
+
+      <div class="summary">
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <strong>${{ total | number:'1.2-2' }}</strong>
+        </div>
+
+        <div class="summary-row">
+          <span>Delivery</span>
+          <strong>FREE</strong>
+        </div>
+
+        <hr>
+
+        <div class="summary-row total">
+          <span>Total</span>
+          <strong>${{ total | number:'1.2-2' }}</strong>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="checkout-button"
+          (click)="checkout()"
+        >
+          Proceed to Checkout
+        </ion-button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>

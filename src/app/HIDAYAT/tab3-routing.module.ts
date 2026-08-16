@@ -6,7 +6,15 @@ const routes: Routes = [
   {
     path: '',
     component: Tab3Page,
+  },  {
+    path: 'shop-details',
+    loadChildren: () => import('./shop-details/shop-details.module').then( m => m.ShopDetailsPageModule)
+  },
+  {
+    path: 'cart',
+    loadChildren: () => import('./cart/cart.module').then( m => m.CartPageModule)
   }
+
 ];
 
 @NgModule({

@@ -1,0 +1,111 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/tab3"></ion-back-button>
+    </ion-buttons>
+    
+
+    <ion-title>Shop Details</ion-title>
+
+    <ion-button
+  slot="end"
+  fill="clear"
+  routerLink="/cart"
+>
+  <ion-icon name="cart-outline"></ion-icon>
+</ion-button>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <div *ngIf="shop" class="shop-details">
+
+    <div class="shop-hero">
+      <div class="shop-logo">
+        <img [src]="shop.image" [alt]="shop.name">
+      </div>
+
+      <h1>{{ shop.name }}</h1>
+
+      <p>{{ shop.category }}</p>
+
+      <div class="rating">
+        ⭐ {{ shop.rating }}
+      </div>
+    </div>
+
+    <div class="cashback-card">
+      <div>
+        <span>Cashback</span>
+        <h2>{{ shop.cashback }}</h2>
+      </div>
+
+      <ion-icon name="wallet-outline"></ion-icon>
+    </div>
+
+    <div class="info-section">
+      <h2>About this shop</h2>
+
+      <p>
+        Shop with {{ shop.name }} and enjoy exclusive rewards
+        and cashback through HOOPS.
+      </p>
+    </div>
+    <div class="products-section">
+
+  <h2>Featured Products</h2>
+
+  <div class="product-grid">
+
+    <div class="product-card" *ngFor="let product of products">
+
+      <div class="product-image">
+        <img
+          [src]="product.image"
+          [alt]="product.name"
+        >
+      </div>
+
+      <div class="product-info">
+
+        <h3>{{ product.name }}</h3>
+
+        <p>{{ product.description }}</p>
+
+        <div class="product-bottom">
+
+          <span class="price">
+            ${{ product.price | number:'1.2-2' }}
+          </span>
+
+          <ion-button 
+          size="small"
+          (click)="addToCart(product); $event.stopPropagation()"
+          >
+            + Cart
+          </ion-button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+    <ion-button expand="block" class="shop-button">
+      Shop Now
+    </ion-button>
+
+  </div>
+
+  <div *ngIf="!shop" class="loading">
+    <ion-spinner></ion-spinner>
+    <p>Loading shop...</p>
+  </div>
+
+</ion-content>
