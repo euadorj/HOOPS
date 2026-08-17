@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { CartService, CartItem } from '../services/cart';
 
 @Component({
@@ -9,7 +10,10 @@ import { CartService, CartItem } from '../services/cart';
 })
 export class CartPage {
 
-  constructor(public cartService: CartService) {}
+  constructor(
+    public cartService: CartService,
+    private router: Router
+  ) {}
 
   get items(): CartItem[] {
     return this.cartService.getItems();
@@ -33,8 +37,29 @@ export class CartPage {
     }
   }
 
-  checkout() {
-    console.log('Checkout:', this.items);
-    console.log('Total:', this.total);
+ checkout() {
+
+  if (this.items.length === 0) {
+    return;
   }
+
+  const shopId =
+    this.items[0].product.shopId;
+
+  const total =
+    this.cartService.getTotal();
+
+  console.log('Checkout shop:', shopId);
+  console.log('Checkout total:', total);
+
+  this.router.navigate(
+    ['/tabs/pay'],
+    {
+      queryParams: {
+        shopId: shopId,
+        amount: total
+      }
+    }
+  );
+}
 }

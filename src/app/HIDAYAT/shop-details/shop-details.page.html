@@ -1,111 +1,222 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab3"></ion-back-button>
-    </ion-buttons>
-    
+<ion-content [fullscreen]="true" class="shop-details-page">
 
-    <ion-title>Shop Details</ion-title>
+  <!-- Purple top section -->
+  <div class="top-shell">
 
-    <ion-button
-  slot="end"
-  fill="clear"
-  routerLink="/cart"
->
-  <ion-icon name="cart-outline"></ion-icon>
-</ion-button>
+    <!-- Top bar -->
+    <div class="top-bar">
 
-  </ion-toolbar>
-</ion-header>
+      <ion-buttons>
+        <ion-back-button
+          defaultHref="/tabs/tab3"
+          text=""
+          color="light"
+        ></ion-back-button>
+      </ion-buttons>
 
-<ion-content [fullscreen]="true">
+      <h2>Shop Details</h2>
 
-  <div *ngIf="shop" class="shop-details">
+      <button
+        type="button"
+        class="cart-button"
+        routerLink="/cart"
+      >
+        <ion-icon name="cart-outline"></ion-icon>
+      </button>
 
-    <div class="shop-hero">
+    </div>
+
+    <!-- Shop header -->
+    <div
+      class="shop-header"
+      *ngIf="shop"
+    >
+
       <div class="shop-logo">
-        <img [src]="shop.image" [alt]="shop.name">
-      </div>
-
-      <h1>{{ shop.name }}</h1>
-
-      <p>{{ shop.category }}</p>
-
-      <div class="rating">
-        ⭐ {{ shop.rating }}
-      </div>
-    </div>
-
-    <div class="cashback-card">
-      <div>
-        <span>Cashback</span>
-        <h2>{{ shop.cashback }}</h2>
-      </div>
-
-      <ion-icon name="wallet-outline"></ion-icon>
-    </div>
-
-    <div class="info-section">
-      <h2>About this shop</h2>
-
-      <p>
-        Shop with {{ shop.name }} and enjoy exclusive rewards
-        and cashback through HOOPS.
-      </p>
-    </div>
-    <div class="products-section">
-
-  <h2>Featured Products</h2>
-
-  <div class="product-grid">
-
-    <div class="product-card" *ngFor="let product of products">
-
-      <div class="product-image">
         <img
-          [src]="product.image"
-          [alt]="product.name"
+          [src]="shop.image"
+          [alt]="shop.name"
         >
       </div>
 
-      <div class="product-info">
+      <h1>
+        {{ shop.name }}
+      </h1>
 
-        <h3>{{ product.name }}</h3>
+      <p>
+        {{ shop.category }}
+      </p>
 
-        <p>{{ product.description }}</p>
+      <div class="rating">
+        <ion-icon name="star"></ion-icon>
+        <span>{{ shop.rating }}</span>
+      </div>
 
-        <div class="product-bottom">
+    </div>
 
-          <span class="price">
-            ${{ product.price | number:'1.2-2' }}
-          </span>
+  </div>
 
-          <ion-button 
-          size="small"
-          (click)="addToCart(product); $event.stopPropagation()"
-          >
-            + Cart
-          </ion-button>
+
+  <!-- Main white content -->
+  <div
+    class="content-card"
+    *ngIf="shop"
+  >
+
+    <!-- Cashback -->
+    <div class="cashback-card">
+
+      <div>
+
+        <span>
+          Cashback
+        </span>
+
+        <h2>
+          {{ shop.cashback }}
+        </h2>
+
+        <p>
+          Earn cashback when you shop with {{ shop.name }}
+        </p>
+
+      </div>
+
+      <div class="cashback-icon">
+        <ion-icon name="wallet-outline"></ion-icon>
+      </div>
+
+    </div>
+
+
+    <!-- About -->
+    <section class="info-section">
+
+      <div class="section-heading">
+
+        <h2>
+          About this shop
+        </h2>
+
+      </div>
+
+      <p>
+        Shop with {{ shop.name }} and enjoy exclusive
+        rewards and cashback through HOOPS.
+      </p>
+
+    </section>
+
+
+    <!-- Products -->
+    <section class="products-section">
+
+      <div class="section-heading">
+
+        <h2>
+          Featured Products
+        </h2>
+
+        <span>
+          {{ products.length }} items
+        </span>
+
+      </div>
+
+
+      <div class="product-grid">
+
+        <div
+          class="product-card"
+          *ngFor="let product of products"
+        >
+
+          <!-- Product image -->
+          <div class="product-image">
+
+            <img
+              [src]="product.image"
+              [alt]="product.name"
+            >
+
+          </div>
+
+
+          <!-- Product information -->
+          <div class="product-info">
+
+            <h3>
+              {{ product.name }}
+            </h3>
+
+            <p>
+              {{ product.description }}
+            </p>
+
+
+            <div class="product-bottom">
+
+              <span class="price">
+                ${{ product.price | number:'1.2-2' }}
+              </span>
+
+              <button
+                type="button"
+                class="add-cart-button"
+                (click)="
+                  addToCart(product);
+                  $event.stopPropagation()
+                "
+              >
+
+                <ion-icon
+                  name="add-outline"
+                ></ion-icon>
+
+                <span>
+                  Cart
+                </span>
+
+              </button>
+
+            </div>
+
+          </div>
 
         </div>
 
       </div>
 
-    </div>
+    </section>
 
-  </div>
 
-</div>
+    <!-- Shop button -->
+    <button
+      type="button"
+      class="shop-button"
+    >
 
-    <ion-button expand="block" class="shop-button">
+      <ion-icon name="storefront-outline"></ion-icon>
+
       Shop Now
-    </ion-button>
+
+    </button>
 
   </div>
 
-  <div *ngIf="!shop" class="loading">
+
+  <!-- Loading -->
+  <div
+    *ngIf="!shop"
+    class="loading"
+  >
+
     <ion-spinner></ion-spinner>
-    <p>Loading shop...</p>
+
+    <p>
+      Loading shop...
+    </p>
+
   </div>
 
 </ion-content>
