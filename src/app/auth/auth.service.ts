@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import {
   Auth,
   User as FirebaseUser,
@@ -6,8 +7,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
-  signOut
+  signOut,
 } from '@angular/fire/auth';
+
 import {
   Firestore,
   collection,
@@ -16,8 +18,9 @@ import {
   getDocs,
   query,
   setDoc,
-  where
+  where,
 } from '@angular/fire/firestore';
+
 
 export interface User {
   id?: string;
@@ -27,6 +30,7 @@ export interface User {
   phoneNumber?: string;
 }
 
+
 export interface CurrentUser {
   id: string;
   username: string;
@@ -34,186 +38,739 @@ export interface CurrentUser {
   phoneNumber?: string;
 }
 
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+
   private readonly emailDomain = 'hoops.app';
+
   private readonly usernamesCollection = 'usernames';
+
   private readonly profilesCollection = 'userProfiles';
+
+  private readonly financeCollection = 'financeAccounts';
+
+  private readonly dashboardCollection = 'dashboards';
+
 
   private currentUser: CurrentUser | null = null;
 
-  /** Resolves once the initial Firebase Auth session (if any) has been rehydrated. */
+
   readonly authReady: Promise<void>;
 
-  constructor(private auth: Auth, private firestore: Firestore) {
-    this.authReady = new Promise((resolve) => {
-      let settled = false;
-      onAuthStateChanged(this.auth, async (firebaseUser) => {
-        await this.syncCurrentUser(firebaseUser);
-        if (!settled) {
-          settled = true;
-          resolve();
+
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore
+  ) {
+
+    this.authReady = new Promise<void>((resolve) => {
+
+      let initialAuthResolved = false;
+
+
+      onAuthStateChanged(
+        this.auth,
+        async (firebaseUser) => {
+
+          await this.syncCurrentUser(firebaseUser);
+
+
+          if (!initialAuthResolved) {
+
+            initialAuthResolved = true;
+
+            resolve();
+          }
         }
-      });
+      );
     });
   }
 
-  async login(username: string, password: string): Promise<{ success: boolean; message?: string; user?: CurrentUser }> {
-    const normalizedUsername = this.normalizeUsername(username);
+
+  /*
+   * =====================================
+   * LOGIN
+   * =====================================
+   */
+
+  async login(
+    username: string,
+    password: string
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    user?: CurrentUser;
+  }> {
+
+    const normalizedUsername =
+      this.normalizeUsername(username);
+
+
     if (!normalizedUsername || !password) {
-      return { success: false, message: 'Incorrect username or password' };
+
+      return {
+        success: false,
+        message: 'Incorrect username or password',
+      };
     }
+
 
     try {
-      const credential = await signInWithEmailAndPassword(this.auth, this.toEmail(normalizedUsername), password);
-      await this.syncCurrentUser(credential.user);
-      return { success: true, user: this.currentUser ?? undefined };
-    } catch {
-      return { success: false, message: 'Incorrect username or password' };
-    }
-  }
 
-  async register(user: User): Promise<{ success: boolean; message?: string }> {
-    const normalizedUsername = this.normalizeUsername(user.username);
-    if (!normalizedUsername) {
-      return { success: false, message: 'Username is required' };
-    }
+      const credential =
+        await signInWithEmailAndPassword(
+          this.auth,
+          this.toEmail(normalizedUsername),
+          password
+        );
 
-    try {
-      const credential = await createUserWithEmailAndPassword(this.auth, this.toEmail(normalizedUsername), user.password);
-      const cleanUsername = user.username.trim();
 
-      await updateProfile(credential.user, { displayName: cleanUsername });
+      await this.syncCurrentUser(
+        credential.user
+      );
 
-      await setDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername), {
-        uid: credential.user.uid,
-        username: cleanUsername
-      });
 
-      await setDoc(doc(this.firestore, this.profilesCollection, credential.user.uid), {
-        countryCode: user.countryCode || '',
-        phoneNumber: user.phoneNumber || ''
-      });
+      return {
+        success: true,
+        user: this.currentUser ?? undefined,
+      };
 
-      await this.syncCurrentUser(credential.user);
-      return { success: true };
     } catch (error) {
-      const code = this.firebaseErrorCode(error);
-      if (code === 'auth/email-already-in-use') {
-        return { success: false, message: 'Username already exists' };
-      }
-      if (code === 'auth/operation-not-allowed') {
-        return { success: false, message: 'Sign-up is temporarily unavailable. Please try again later.' };
-      }
-      if (code === 'auth/weak-password') {
-        return { success: false, message: 'Password is too weak. Use at least 6 characters.' };
-      }
-      return { success: false, message: 'Unable to create account. Please try again.' };
+
+      console.warn(
+        'Login failed:',
+        error
+      );
+
+
+      return {
+        success: false,
+        message: 'Incorrect username or password',
+      };
     }
   }
+
+
+  /*
+   * =====================================
+   * REGISTER
+   * =====================================
+   */
+
+  async register(
+    user: User
+  ): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+
+    const normalizedUsername =
+      this.normalizeUsername(
+        user.username
+      );
+
+
+    if (!normalizedUsername) {
+
+      return {
+        success: false,
+        message: 'Username is required',
+      };
+    }
+
+
+    try {
+
+      /*
+       * Firebase Authentication account.
+       */
+      const credential =
+        await createUserWithEmailAndPassword(
+          this.auth,
+          this.toEmail(normalizedUsername),
+          user.password
+        );
+
+
+      const cleanUsername =
+        user.username.trim();
+
+
+      await updateProfile(
+        credential.user,
+        {
+          displayName: cleanUsername,
+        }
+      );
+
+
+      /*
+       * =================================
+       * USERNAME LOOKUP
+       * =================================
+       */
+
+      await setDoc(
+        doc(
+          this.firestore,
+          this.usernamesCollection,
+          normalizedUsername
+        ),
+        {
+          uid: credential.user.uid,
+          username: cleanUsername,
+        }
+      );
+
+
+      /*
+       * =================================
+       * PROFILE
+       * =================================
+       */
+
+      await setDoc(
+        doc(
+          this.firestore,
+          this.profilesCollection,
+          credential.user.uid
+        ),
+        {
+          countryCode: user.countryCode || '',
+          phoneNumber: user.phoneNumber || '',
+        }
+      );
+
+
+      /*
+       * =================================
+       * FINANCE ACCOUNT
+       * =================================
+       *
+       * NEW USERS START AT ZERO.
+       */
+
+      await setDoc(
+        doc(
+          this.firestore,
+          this.financeCollection,
+          normalizedUsername
+        ),
+        {
+          balance: 0,
+          goals: [],
+        }
+      );
+
+
+      /*
+       * =================================
+       * DASHBOARD
+       * =================================
+       *
+       * NO Apple
+       * NO NVIDIA
+       * NO Tesla
+       * NO fake bills
+       * NO fake budget
+       */
+
+      await setDoc(
+        doc(
+          this.firestore,
+          this.dashboardCollection,
+          normalizedUsername
+        ),
+        {
+          selectedItems: [
+            'savings-goals',
+            'investment-tracking',
+          ],
+
+          investments: [],
+
+          monthlyBudget: 0,
+
+          upcomingBills: [],
+        }
+      );
+
+
+      /*
+       * User is sent to Sign In after
+       * registration, so log out the
+       * Firebase account created above.
+       */
+      await signOut(
+        this.auth
+      );
+
+
+      this.currentUser = null;
+
+
+      return {
+        success: true,
+      };
+
+    } catch (error) {
+
+      console.error(
+        'Registration error:',
+        error
+      );
+
+
+      const code =
+        this.firebaseErrorCode(
+          error
+        );
+
+
+      if (
+        code ===
+        'auth/email-already-in-use'
+      ) {
+
+        return {
+          success: false,
+          message: 'Username already exists',
+        };
+      }
+
+
+      if (
+        code ===
+        'auth/operation-not-allowed'
+      ) {
+
+        return {
+          success: false,
+          message:
+            'Sign-up is temporarily unavailable. Please try again later.',
+        };
+      }
+
+
+      if (
+        code ===
+        'auth/weak-password'
+      ) {
+
+        return {
+          success: false,
+          message:
+            'Password is too weak. Use at least 6 characters.',
+        };
+      }
+
+
+      return {
+        success: false,
+        message:
+          'Unable to create account. Please try again.',
+      };
+    }
+  }
+
+
+  /*
+   * =====================================
+   * AUTH STATUS
+   * =====================================
+   */
 
   isAuthenticated(): boolean {
+
     return this.currentUser !== null;
   }
 
+
   getCurrentUser(): CurrentUser | null {
+
     return this.currentUser;
   }
 
+
+  /*
+   * =====================================
+   * LOGOUT
+   * =====================================
+   */
+
   async logout(): Promise<void> {
-    await signOut(this.auth);
+
+    await signOut(
+      this.auth
+    );
+
+
     this.currentUser = null;
   }
 
-  async getAccountDisplayName(username: string): Promise<string> {
-    return (await this.getAccountUsername(username)) ?? username;
+
+  /*
+   * =====================================
+   * ACCOUNT DISPLAY NAME
+   * =====================================
+   */
+
+  async getAccountDisplayName(
+    username: string
+  ): Promise<string> {
+
+    const result =
+      await this.getAccountUsername(
+        username
+      );
+
+
+    return result ?? username;
   }
 
-  async getAccountId(username: string): Promise<string | null> {
-    const normalizedUsername = this.normalizeUsername(username);
+
+  /*
+   * =====================================
+   * GET ACCOUNT UID
+   * =====================================
+   */
+
+  async getAccountId(
+    username: string
+  ): Promise<string | null> {
+
+    const normalizedUsername =
+      this.normalizeUsername(
+        username
+      );
+
+
     if (!normalizedUsername) {
+
       return null;
     }
 
-    const snapshot = await getDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername));
+
+    const snapshot =
+      await getDoc(
+        doc(
+          this.firestore,
+          this.usernamesCollection,
+          normalizedUsername
+        )
+      );
+
+
     if (!snapshot.exists()) {
+
       return null;
     }
-    return (snapshot.data()['uid'] as string) || null;
+
+
+    const data =
+      snapshot.data();
+
+
+    const uid =
+      data['uid'];
+
+
+    return typeof uid === 'string'
+      ? uid
+      : null;
   }
 
-  async getUsernameById(id: string): Promise<string | null> {
+
+  /*
+   * =====================================
+   * GET USERNAME FROM UID
+   * =====================================
+   */
+
+  async getUsernameById(
+    id: string
+  ): Promise<string | null> {
+
     if (!id) {
+
       return null;
     }
 
-    const lookupQuery = query(collection(this.firestore, this.usernamesCollection), where('uid', '==', id));
-    const snapshot = await getDocs(lookupQuery);
+
+    const lookupQuery =
+      query(
+        collection(
+          this.firestore,
+          this.usernamesCollection
+        ),
+
+        where(
+          'uid',
+          '==',
+          id
+        )
+      );
+
+
+    const snapshot =
+      await getDocs(
+        lookupQuery
+      );
+
+
     if (snapshot.empty) {
+
       return null;
     }
-    return (snapshot.docs[0].data()['username'] as string) || null;
+
+
+    const data =
+      snapshot.docs[0]
+        .data();
+
+
+    const username =
+      data['username'];
+
+
+    return typeof username === 'string'
+      ? username
+      : null;
   }
 
-  async accountExists(username: string): Promise<boolean> {
-    return (await this.getAccountUsername(username)) !== null;
+
+  /*
+   * =====================================
+   * ACCOUNT EXISTS
+   * =====================================
+   */
+
+  async accountExists(
+    username: string
+  ): Promise<boolean> {
+
+    const existingUsername =
+      await this.getAccountUsername(
+        username
+      );
+
+
+    return existingUsername !== null;
   }
 
-  async getAccountUsername(username: string): Promise<string | null> {
-    const normalizedUsername = this.normalizeUsername(username);
+
+  /*
+   * =====================================
+   * USERNAME LOOKUP
+   * =====================================
+   */
+
+  async getAccountUsername(
+    username: string
+  ): Promise<string | null> {
+
+    const normalizedUsername =
+      this.normalizeUsername(
+        username
+      );
+
+
     if (!normalizedUsername) {
+
       return null;
     }
 
-    const snapshot = await getDoc(doc(this.firestore, this.usernamesCollection, normalizedUsername));
+
+    const snapshot =
+      await getDoc(
+        doc(
+          this.firestore,
+          this.usernamesCollection,
+          normalizedUsername
+        )
+      );
+
+
     if (!snapshot.exists()) {
+
       return null;
     }
-    return (snapshot.data()['username'] as string) || null;
+
+
+    const data =
+      snapshot.data();
+
+
+    const storedUsername =
+      data['username'];
+
+
+    return typeof storedUsername === 'string'
+      ? storedUsername
+      : null;
   }
 
-  private async syncCurrentUser(firebaseUser: FirebaseUser | null): Promise<void> {
+
+  /*
+   * =====================================
+   * SYNC CURRENT FIREBASE USER
+   * =====================================
+   */
+
+  private async syncCurrentUser(
+    firebaseUser: FirebaseUser | null
+  ): Promise<void> {
+
     if (!firebaseUser) {
+
       this.currentUser = null;
+
       return;
     }
 
-    let countryCode: string | undefined;
-    let phoneNumber: string | undefined;
+
+    let countryCode:
+      string | undefined;
+
+
+    let phoneNumber:
+      string | undefined;
+
 
     try {
-      const profileSnapshot = await getDoc(doc(this.firestore, this.profilesCollection, firebaseUser.uid));
-      if (profileSnapshot.exists()) {
-        const data = profileSnapshot.data();
-        countryCode = (data['countryCode'] as string) || undefined;
-        phoneNumber = (data['phoneNumber'] as string) || undefined;
+
+      const profileSnapshot =
+        await getDoc(
+          doc(
+            this.firestore,
+            this.profilesCollection,
+            firebaseUser.uid
+          )
+        );
+
+
+      if (
+        profileSnapshot.exists()
+      ) {
+
+        const data =
+          profileSnapshot.data();
+
+
+        const storedCountryCode =
+          data['countryCode'];
+
+
+        const storedPhoneNumber =
+          data['phoneNumber'];
+
+
+        countryCode =
+          typeof storedCountryCode === 'string' &&
+          storedCountryCode
+            ? storedCountryCode
+            : undefined;
+
+
+        phoneNumber =
+          typeof storedPhoneNumber === 'string' &&
+          storedPhoneNumber
+            ? storedPhoneNumber
+            : undefined;
       }
+
     } catch (error) {
-      console.warn('Unable to load user profile:', error);
+
+      console.warn(
+        'Unable to load user profile:',
+        error
+      );
     }
 
+
+    const username =
+      firebaseUser.displayName ||
+      firebaseUser.email?.split('@')[0] ||
+      'user';
+
+
     this.currentUser = {
+
       id: firebaseUser.uid,
-      username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'user',
+
+      username,
+
       countryCode,
-      phoneNumber
+
+      phoneNumber,
     };
   }
 
-  private toEmail(normalizedUsername: string): string {
-    return `${normalizedUsername}@${this.emailDomain}`;
+
+  /*
+   * =====================================
+   * EMAIL
+   * =====================================
+   */
+
+  private toEmail(
+    normalizedUsername: string
+  ): string {
+
+    return (
+      `${normalizedUsername}` +
+      `@${this.emailDomain}`
+    );
   }
 
-  private normalizeUsername(username: string): string {
-    return (username || '').trim().toLowerCase();
+
+  /*
+   * =====================================
+   * NORMALIZE USERNAME
+   * =====================================
+   */
+
+  private normalizeUsername(
+    username: string
+  ): string {
+
+    return (
+      username || ''
+    )
+      .trim()
+      .toLowerCase();
   }
 
-  private firebaseErrorCode(error: unknown): string | null {
-    if (error && typeof error === 'object' && 'code' in error && typeof (error as { code: unknown }).code === 'string') {
-      return (error as { code: string }).code;
+
+  /*
+   * =====================================
+   * FIREBASE ERROR CODE
+   * =====================================
+   */
+
+  private firebaseErrorCode(
+    error: unknown
+  ): string | null {
+
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error
+    ) {
+
+      const code =
+        (error as { code?: unknown }).code;
+
+
+      return typeof code === 'string'
+        ? code
+        : null;
     }
+
+
     return null;
   }
 }

@@ -60,38 +60,20 @@ interface QuickTab {
 export class Tab1Page
   implements OnInit, OnDestroy {
 
-  userName =
-    'Guest';
+  userName = 'Guest';
 
-  userInitial =
-    'G';
-
-
-  /*
-   * Listen for buy / sell /
-   * price refresh changes.
-   */
-  private portfolioUpdatedHandler =
-    (): void => {
-
-      this.loadFinanceData();
-
-      this.loadDashboardInformation();
-    };
+  userInitial = 'G';
 
 
   currentUser:
     CurrentUser | null = null;
 
 
-  totalSaved =
-    0;
+  totalSaved = 0;
 
-  netWorth =
-    0;
+  netWorth = 0;
 
-  balance =
-    0;
+  balance = 0;
 
 
   savingGoals:
@@ -106,41 +88,31 @@ export class Tab1Page
     DashboardInvestment[] = [];
 
 
-  investmentTotalValue =
-    0;
+  investmentTotalValue = 0;
 
-  investmentProfitLoss =
-    0;
+  investmentProfitLoss = 0;
 
 
-  spendingThisMonth =
-    0;
+  spendingThisMonth = 0;
 
-  monthlyTransactionCount =
-    0;
+  monthlyTransactionCount = 0;
 
   topSpendingMerchant =
     'No spending yet';
 
 
-  monthlyBudget =
-    0;
+  monthlyBudget = 0;
 
-  budgetRemaining =
-    0;
+  budgetRemaining = 0;
 
-  budgetProgress =
-    0;
+  budgetProgress = 0;
 
 
-  rewardCoins =
-    0;
+  rewardCoins = 0;
 
-  cashbackBalance =
-    0;
+  cashbackBalance = 0;
 
-  activeVoucherCount =
-    0;
+  activeVoucherCount = 0;
 
 
   upcomingBills:
@@ -155,77 +127,68 @@ export class Tab1Page
     string[] = [];
 
 
+  /*
+   * =====================================
+   * EVENTS
+   * =====================================
+   */
+
+  private portfolioUpdatedHandler =
+    (): void => {
+
+      void this.loadPageData();
+    };
+
+
+  private rewardsUpdatedHandler =
+    (): void => {
+
+      void this.loadPageData();
+    };
+
+
+  /*
+   * =====================================
+   * ACTIONS
+   * =====================================
+   */
+
   actions = [
 
     {
-      icon:
-        'card-outline',
-
-      title:
-        'Pay',
-
-      route:
-        '/tabs/pay',
+      icon: 'card-outline',
+      title: 'Pay',
+      route: '/tabs/pay',
     },
 
-
     {
-      icon:
-        'swap-horizontal-outline',
-
-      title:
-        'Transfer',
-
-      route:
-        '/tabs/transfer',
+      icon: 'swap-horizontal-outline',
+      title: 'Transfer',
+      route: '/tabs/transfer',
     },
 
-
     {
-      icon:
-        'game-controller-outline',
-
-      title:
-        'Games',
-
-      route:
-        '/game',
+      icon: 'game-controller-outline',
+      title: 'Games',
+      route: '/game',
     },
 
-
     {
-      icon:
-        'receipt-outline',
-
-      title:
-        'Bill Split',
-
-      route:
-        '/tabs/tab2',
+      icon: 'receipt-outline',
+      title: 'Bill Split',
+      route: '/tabs/tab2',
     },
 
-
     {
-      icon:
-        'wallet-outline',
-
-      title:
-        'Shared Wallets',
-
-      route:
-        '/tabs/shared-wallets',
+      icon: 'wallet-outline',
+      title: 'Shared Wallets',
+      route: '/tabs/shared-wallets',
     },
 
-
     {
-      icon:
-        'pricetag-outline',
-
-      title:
-        'Discounts',
-
-      route:
-        '/tabs/discounts',
+      icon: 'pricetag-outline',
+      title: 'Discounts',
+      route: '/tabs/discounts',
     },
 
   ];
@@ -235,104 +198,72 @@ export class Tab1Page
     QuickTab[] = [
 
     {
-      icon:
-        'save-outline',
-
-      title:
-        'Savings',
-
-      route:
-        '/tabs/savings',
+      icon: 'save-outline',
+      title: 'Savings',
+      route: '/tabs/savings',
     },
 
-
     {
-      icon:
-        'storefront-outline',
-
-      title:
-        'Merchant Deals',
-
-      route:
-        '/tabs/tab1',
+      icon: 'storefront-outline',
+      title: 'Merchant Deals',
+      route: '/tabs/tab1',
     },
 
-
     {
-      icon:
-        'cash-outline',
-
-      title:
-        'Cashback',
-
-      route:
-        '/tabs/tab1',
+      icon: 'cash-outline',
+      title: 'Cashback',
+      route: '/tabs/tab1',
     },
 
-
     {
-      icon:
-        'trending-up-outline',
-
-      title:
-        'Investing',
-
-      route:
-        '/investing',
+      icon: 'trending-up-outline',
+      title: 'Investing',
+      route: '/investing',
     },
 
   ];
 
 
   constructor(
-
-    private modalController:
-      ModalController,
-
-    private alertController:
-      AlertController,
-
-    private authService:
-      AuthService,
-
-    private savingsService:
-      SavingsService,
-
-    private dashboardService:
-      DashboardService,
-
-    private coinService:
-      CoinService,
-
-    private rewardsService:
-      RewardsService,
-
-    private router:
-      Router
-
+    private modalController: ModalController,
+    private alertController: AlertController,
+    private authService: AuthService,
+    private savingsService: SavingsService,
+    private dashboardService: DashboardService,
+    private coinService: CoinService,
+    private rewardsService: RewardsService,
+    private router: Router
   ) {}
 
 
+  /*
+   * =====================================
+   * INIT
+   * =====================================
+   */
+
   ngOnInit(): void {
 
-    this.loadPageData();
+    void this.loadPageData();
 
 
     window.addEventListener(
       'portfolio-updated',
       this.portfolioUpdatedHandler
     );
+
+
+    window.addEventListener(
+      'rewards-updated',
+      this.rewardsUpdatedHandler
+    );
   }
 
 
-  /*
-   * Ionic calls this whenever
-   * homepage becomes active again.
-   */
-  ionViewWillEnter():
-    void {
+  async ionViewWillEnter():
+    Promise<void> {
 
-    this.loadPageData();
+    await this.loadPageData();
   }
 
 
@@ -342,11 +273,22 @@ export class Tab1Page
       'portfolio-updated',
       this.portfolioUpdatedHandler
     );
+
+
+    window.removeEventListener(
+      'rewards-updated',
+      this.rewardsUpdatedHandler
+    );
   }
 
 
-  loadCurrentUser():
-    void {
+  /*
+   * =====================================
+   * USER
+   * =====================================
+   */
+
+  loadCurrentUser(): void {
 
     this.currentUser =
       this.authService
@@ -355,11 +297,9 @@ export class Tab1Page
 
     if (!this.currentUser) {
 
-      this.userName =
-        'Guest';
+      this.userName = 'Guest';
 
-      this.userInitial =
-        'G';
+      this.userInitial = 'G';
 
       return;
     }
@@ -370,12 +310,17 @@ export class Tab1Page
 
 
     this.userInitial =
-      this.currentUser
-        .username
+      this.currentUser.username
         .charAt(0)
         .toUpperCase();
   }
 
+
+  /*
+   * =====================================
+   * FINANCE
+   * =====================================
+   */
 
   async loadFinanceData():
     Promise<void> {
@@ -401,6 +346,12 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * DASHBOARD SELECTION
+   * =====================================
+   */
+
   async loadDashboardSettings():
     Promise<void> {
 
@@ -410,12 +361,17 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * DASHBOARD DATA
+   * =====================================
+   */
+
   async loadDashboardInformation():
     Promise<void> {
 
     /*
-     * Get latest investment values
-     * every time dashboard reloads.
+     * Investments
      */
     this.investments =
       await this.dashboardService
@@ -451,14 +407,22 @@ export class Tab1Page
       totalInvested;
 
 
+    /*
+     * Budget
+     */
     this.monthlyBudget =
       await this.dashboardService
         .getMonthlyBudget();
 
 
+    /*
+     * Bills
+     */
     this.upcomingBills =
-      (await this.dashboardService
-        .getUpcomingBills())
+      (
+        await this.dashboardService
+          .getUpcomingBills()
+      )
         .filter(
           (bill) =>
             !bill.paid
@@ -468,15 +432,13 @@ export class Tab1Page
             firstBill,
             secondBill
           ) =>
-
             new Date(
               firstBill.dueDate
-            ).getTime() -
-
+            ).getTime()
+            -
             new Date(
               secondBill.dueDate
             ).getTime()
-
         )
         .slice(
           0,
@@ -484,27 +446,48 @@ export class Tab1Page
         );
 
 
+    /*
+     * Tips
+     */
     this.financialTips =
       this.dashboardService
         .getFinancialTips();
 
 
+    /*
+     * Coins
+     *
+     * await works whether your CoinService
+     * returns number or Promise<number>.
+     */
     this.rewardCoins =
       await this.coinService
         .getCoins();
 
 
+    /*
+     * Cashback
+     */
     this.cashbackBalance =
       this.dashboardService
         .getCashbackBalance();
 
 
+    /*
+     * Vouchers
+     */
+    const activeVouchers =
+      await this.rewardsService
+        .getActiveVouchers();
+
+
     this.activeVoucherCount =
-      (await this.rewardsService
-        .getActiveVouchers())
-        .length;
+      activeVouchers.length;
 
 
+    /*
+     * Transactions
+     */
     const paymentHistory =
       await this.savingsService
         .getPaymentHistory();
@@ -560,8 +543,7 @@ export class Tab1Page
       this.monthlyBudget <= 0
     ) {
 
-      this.budgetProgress =
-        0;
+      this.budgetProgress = 0;
 
     } else {
 
@@ -575,9 +557,10 @@ export class Tab1Page
 
 
     /*
-     * Latest balance +
-     * savings +
-     * latest investment value.
+     * Net Worth
+     *
+     * loadFinanceData() is completed
+     * before this function runs.
      */
     this.netWorth =
       this.balance +
@@ -586,14 +569,20 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * SAVINGS HELPERS
+   * =====================================
+   */
+
   getGoalProgress(
-    goal:
-      SavingsGoal
+    goal: SavingsGoal
   ): number {
 
     if (
       goal.targetAmount <= 0
     ) {
+
       return 0;
     }
 
@@ -607,8 +596,7 @@ export class Tab1Page
 
 
   getGoalPercent(
-    goal:
-      SavingsGoal
+    goal: SavingsGoal
   ): number {
 
     return Math.round(
@@ -618,6 +606,12 @@ export class Tab1Page
     );
   }
 
+
+  /*
+   * =====================================
+   * INVESTMENT PROFIT
+   * =====================================
+   */
 
   getInvestmentProfit(
     investment:
@@ -631,19 +625,29 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * DASHBOARD ITEM CHECK
+   * =====================================
+   */
+
   isDashboardItemSelected(
-    itemId:
-      DashboardItemId
+    itemId: DashboardItemId
   ): boolean {
 
-    return (
-      this.selectedDashboardItems
-        .includes(
-          itemId
-        )
-    );
+    return this
+      .selectedDashboardItems
+      .includes(
+        itemId
+      );
   }
 
+
+  /*
+   * =====================================
+   * CHANGE BUDGET
+   * =====================================
+   */
 
   async changeMonthlyBudget():
     Promise<void> {
@@ -661,18 +665,11 @@ export class Tab1Page
           inputs: [
 
             {
-              name:
-                'budget',
-
-              type:
-                'number',
-
-              min:
-                1,
-
+              name: 'budget',
+              type: 'number',
+              min: 1,
               value:
                 this.monthlyBudget,
-
               placeholder:
                 'Monthly budget',
             },
@@ -682,17 +679,12 @@ export class Tab1Page
           buttons: [
 
             {
-              text:
-                'Cancel',
-
-              role:
-                'cancel',
+              text: 'Cancel',
+              role: 'cancel',
             },
 
-
             {
-              text:
-                'Save',
+              text: 'Save',
 
               handler:
                 async (data) => {
@@ -711,6 +703,7 @@ export class Tab1Page
 
 
                   if (!saved) {
+
                     return false;
                   }
 
@@ -731,9 +724,14 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * MARK BILL PAID
+   * =====================================
+   */
+
   async markBillPaid(
-    billId:
-      string
+    billId: string
   ): Promise<void> {
 
     const updated =
@@ -751,22 +749,34 @@ export class Tab1Page
   }
 
 
+  /*
+   * =====================================
+   * QUICK TAB
+   * =====================================
+   */
+
   openQuickTab(
-    tab:
-      QuickTab
+    tab: QuickTab
   ): void {
 
     if (!tab.route) {
+
       return;
     }
 
 
-    this.router
+    void this.router
       .navigateByUrl(
         tab.route
       );
   }
 
+
+  /*
+   * =====================================
+   * LOGOUT
+   * =====================================
+   */
 
   async logout():
     Promise<void> {
@@ -775,12 +785,18 @@ export class Tab1Page
       .logout();
 
 
-    this.router
+    await this.router
       .navigate([
-        '/sign-in'
+        '/sign-in',
       ]);
   }
 
+
+  /*
+   * =====================================
+   * DASHBOARD SELECTOR
+   * =====================================
+   */
 
   async openDashboardSelector():
     Promise<void> {
@@ -800,31 +816,33 @@ export class Tab1Page
     await modal.present();
 
 
-    const {
-      data,
-    } =
+    const result =
       await modal
         .onDidDismiss();
 
 
     if (
-      data?.saved
+      result.data?.saved
     ) {
 
-      this
+      await this
         .loadDashboardSettings();
 
 
-      this
+      await this
         .loadDashboardInformation();
     }
   }
 
 
-  trackByInvestmentId(
-    index:
-      number,
+  /*
+   * =====================================
+   * TRACK BY
+   * =====================================
+   */
 
+  trackByInvestmentId(
+    index: number,
     investment:
       DashboardInvestment
   ): string {
@@ -834,9 +852,7 @@ export class Tab1Page
 
 
   trackByBillId(
-    index:
-      number,
-
+    index: number,
     bill:
       DashboardBill
   ): string {
@@ -846,9 +862,7 @@ export class Tab1Page
 
 
   trackByPaymentId(
-    index:
-      number,
-
+    index: number,
     payment:
       MerchantPayment
   ): string {
@@ -857,28 +871,103 @@ export class Tab1Page
   }
 
 
-  private loadPageData():
-    void {
+  /*
+   * =====================================
+   * LOAD EVERYTHING
+   * =====================================
+   */
+
+  private async loadPageData():
+    Promise<void> {
 
     /*
-     * IMPORTANT ORDER:
-     *
-     * Balance first,
-     * then dashboard calculations.
+     * Wait for Firebase user first.
      */
+    await this.authService
+      .authReady;
+
+
     this.loadCurrentUser();
 
-    this.loadFinanceData();
 
-    this.loadDashboardSettings();
+    if (!this.currentUser) {
 
-    this.loadDashboardInformation();
+      this.resetDashboard();
+
+      return;
+    }
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Run these in order.
+     *
+     * Do NOT run them all at the same time.
+     */
+    await this.loadFinanceData();
+
+    await this.loadDashboardSettings();
+
+    await this.loadDashboardInformation();
   }
 
 
+  /*
+   * =====================================
+   * RESET
+   * =====================================
+   */
+
+  private resetDashboard(): void {
+
+    this.balance = 0;
+
+    this.totalSaved = 0;
+
+    this.netWorth = 0;
+
+    this.savingGoals = [];
+
+    this.investments = [];
+
+    this.investmentTotalValue = 0;
+
+    this.investmentProfitLoss = 0;
+
+    this.monthlyBudget = 0;
+
+    this.budgetRemaining = 0;
+
+    this.budgetProgress = 0;
+
+    this.upcomingBills = [];
+
+    this.recentTransactions = [];
+
+    this.spendingThisMonth = 0;
+
+    this.monthlyTransactionCount = 0;
+
+    this.topSpendingMerchant =
+      'No spending yet';
+
+    this.rewardCoins = 0;
+
+    this.cashbackBalance = 0;
+
+    this.activeVoucherCount = 0;
+  }
+
+
+  /*
+   * =====================================
+   * CURRENT MONTH
+   * =====================================
+   */
+
   private isCurrentMonth(
-    timestamp:
-      number
+    timestamp: number
   ): boolean {
 
     const transactionDate =
@@ -892,22 +981,20 @@ export class Tab1Page
 
 
     return (
-
-      transactionDate
-        .getMonth() ===
-      today
-        .getMonth()
-
+      transactionDate.getMonth() ===
+        today.getMonth()
       &&
-
-      transactionDate
-        .getFullYear() ===
-      today
-        .getFullYear()
-
+      transactionDate.getFullYear() ===
+        today.getFullYear()
     );
   }
 
+
+  /*
+   * =====================================
+   * TOP MERCHANT
+   * =====================================
+   */
 
   private calculateTopMerchant(
     payments:
@@ -918,17 +1005,12 @@ export class Tab1Page
       payments.length === 0
     ) {
 
-      return (
-        'No spending yet'
-      );
+      return 'No spending yet';
     }
 
 
     const totals:
-      Record<
-        string,
-        number
-      > = {};
+      Record<string, number> = {};
 
 
     payments.forEach(
@@ -941,31 +1023,27 @@ export class Tab1Page
             totals[
               payment.merchantName
             ] ?? 0
-          ) +
+          )
+          +
           payment.amount;
       }
     );
 
 
-    const topMerchant =
+    const sorted =
       Object
         .entries(
           totals
         )
         .sort(
-          (
-            firstMerchant,
-            secondMerchant
-          ) =>
-
-            secondMerchant[1] -
-            firstMerchant[1]
-
-        )[0];
+          (a, b) =>
+            b[1] -
+            a[1]
+        );
 
 
     return (
-      topMerchant?.[0] ??
+      sorted[0]?.[0] ??
       'No spending yet'
     );
   }

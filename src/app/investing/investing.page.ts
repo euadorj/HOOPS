@@ -9,6 +9,10 @@ import {
 } from '@ionic/angular';
 
 import {
+  AuthService,
+} from '../auth/auth.service';
+
+import {
   DashboardInvestment,
   DashboardService,
 } from '../THIERRY/dashboard.service';
@@ -24,18 +28,10 @@ import {
 
 
 @Component({
-  selector:
-    'app-investing',
-
-  templateUrl:
-    './investing.page.html',
-
-  styleUrls: [
-    './investing.page.scss',
-  ],
-
-  standalone:
-    false,
+  selector: 'app-investing',
+  templateUrl: './investing.page.html',
+  styleUrls: ['./investing.page.scss'],
+  standalone: false,
 })
 export class InvestingPage
   implements OnInit {
@@ -48,36 +44,32 @@ export class InvestingPage
     StockQuote[] = [];
 
 
-  totalInvestmentValue =
-    0;
+  totalInvestmentValue = 0;
 
-  totalInvestedAmount =
-    0;
+  totalInvestedAmount = 0;
 
-  totalProfitLoss =
-    0;
+  totalProfitLoss = 0;
 
-  totalProfitLossPercent =
-    0;
+  totalProfitLossPercent = 0;
 
 
-  availableBalance =
-    0;
+  availableBalance = 0;
 
 
-  loadingPrices =
-    false;
+  loadingPrices = false;
 
 
   priceStatus =
     'Loading stock prices...';
 
 
-  usdToSgdRate =
-    1.35;
+  usdToSgdRate = 1.35;
 
 
   constructor(
+    private authService:
+      AuthService,
+
     private dashboardService:
       DashboardService,
 
@@ -95,25 +87,37 @@ export class InvestingPage
   ) {}
 
 
-  ngOnInit():
-    void {
+  /*
+   * =====================================
+   * INIT
+   * =====================================
+   */
+
+  ngOnInit(): void {
 
     this.usdToSgdRate =
       this.stockService
         .getUsdToSgdRate();
-
-
-    this.loadPortfolio();
   }
 
 
-  ionViewWillEnter():
-    void {
+  /*
+   * =====================================
+   * ENTER PAGE
+   * =====================================
+   */
 
-    this.loadPortfolio();
+  async ionViewWillEnter():
+    Promise<void> {
+
+    await this.authService
+      .authReady;
 
 
-    void this.refreshPrices(
+    await this.loadPortfolio();
+
+
+    await this.refreshPrices(
       false
     );
   }
@@ -124,6 +128,7 @@ export class InvestingPage
    * LOAD PORTFOLIO
    * =====================================
    */
+
   async loadPortfolio():
     Promise<void> {
 
@@ -132,36 +137,37 @@ export class InvestingPage
         .getInvestments();
 
 
+    const financeData =
+      await this.savingsService
+        .getFinanceData();
+
+
     this.availableBalance =
-      (await this.savingsService
-        .getFinanceData())
-        .balance;
+      financeData.balance;
 
 
     this.totalInvestmentValue =
-      this.investments
-        .reduce(
-          (
-            total,
-            investment
-          ) =>
-            total +
-            investment.currentValue,
-          0
-        );
+      this.investments.reduce(
+        (
+          total,
+          investment
+        ) =>
+          total +
+          investment.currentValue,
+        0
+      );
 
 
     this.totalInvestedAmount =
-      this.investments
-        .reduce(
-          (
-            total,
-            investment
-          ) =>
-            total +
-            investment.investedAmount,
-          0
-        );
+      this.investments.reduce(
+        (
+          total,
+          investment
+        ) =>
+          total +
+          investment.investedAmount,
+        0
+      );
 
 
     this.totalProfitLoss =
@@ -173,8 +179,7 @@ export class InvestingPage
       this.totalInvestedAmount <= 0
     ) {
 
-      this.totalProfitLossPercent =
-        0;
+      this.totalProfitLossPercent = 0;
 
     } else {
 
@@ -189,9 +194,10 @@ export class InvestingPage
 
   /*
    * =====================================
-   * REFRESH STOCK PRICES
+   * REFRESH PRICES
    * =====================================
    */
+
   async refreshPrices(
     forceRefresh = true
   ): Promise<void> {
@@ -204,8 +210,7 @@ export class InvestingPage
     }
 
 
-    this.loadingPrices =
-      true;
+    this.loadingPrices = true;
 
 
     this.priceStatus =
@@ -225,10 +230,6 @@ export class InvestingPage
         quotes;
 
 
-      /*
-       * Update holdings with
-       * latest prices
-       */
       await this.dashboardService
         .updateInvestmentPrices(
 
@@ -250,9 +251,6 @@ export class InvestingPage
       await this.loadPortfolio();
 
 
-      /*
-       * Update homepage dashboard
-       */
       this.notifyDashboardUpdate();
 
 
@@ -264,8 +262,8 @@ export class InvestingPage
 
 
       if (
-        liveCount ===
-        quotes.length
+        quotes.length > 0 &&
+        liveCount === quotes.length
       ) {
 
         this.priceStatus =
@@ -305,25 +303,23 @@ export class InvestingPage
 
     } finally {
 
-      this.loadingPrices =
-        false;
+      this.loadingPrices = false;
     }
   }
 
 
   /*
    * =====================================
-   * BUY UNITS
+   * BUY WHOLE UNITS
    * =====================================
    */
+
   async buyUnits(
-    stock:
-      StockQuote
+    stock: StockQuote
   ): Promise<void> {
 
     const alert =
-      await this
-        .alertController
+      await this.alertController
         .create({
 
           header:
@@ -333,47 +329,34 @@ export class InvestingPage
             stock.name,
 
           message:
-            `Price per unit: S$${stock.priceSgd.toFixed(2)}. ` +
-            `Available balance: S$${this.availableBalance.toFixed(2)}. ` +
-            'Enter the number of whole units you want to buy.',
-
+            `Price per unit: ` +
+            `S$${stock.priceSgd.toFixed(2)}. ` +
+            `Available balance: ` +
+            `S$${this.availableBalance.toFixed(2)}. ` +
+            `Enter the number of whole units you want to buy.`,
 
           inputs: [
 
             {
-              name:
-                'units',
-
-              type:
-                'number',
-
-              min:
-                1,
-
-              value:
-                1,
-
+              name: 'units',
+              type: 'number',
+              min: 1,
+              value: 1,
               placeholder:
                 'Number of units',
             },
 
           ],
 
-
           buttons: [
 
             {
-              text:
-                'Cancel',
-
-              role:
-                'cancel',
+              text: 'Cancel',
+              role: 'cancel',
             },
 
-
             {
-              text:
-                'Buy',
+              text: 'Buy',
 
               handler:
                 async (data) => {
@@ -384,20 +367,13 @@ export class InvestingPage
                     );
 
 
-                  /*
-                   * Whole units only
-                   */
                   if (
-                    !Number.isFinite(
-                      units
-                    ) ||
-                    !Number.isInteger(
-                      units
-                    ) ||
+                    !Number.isFinite(units) ||
+                    !Number.isInteger(units) ||
                     units <= 0
                   ) {
 
-                    void this
+                    await this
                       .presentToast(
                         'Please enter a whole number of units, such as 1, 2 or 3.',
                         'danger'
@@ -413,18 +389,16 @@ export class InvestingPage
                     stock.priceSgd;
 
 
-                  /*
-                   * Balance check
-                   */
                   if (
                     totalCost >
                     this.availableBalance
                   ) {
 
-                    void this
+                    await this
                       .presentToast(
                         `You need S$${totalCost.toFixed(2)}, ` +
-                        `but your available balance is S$${this.availableBalance.toFixed(2)}.`,
+                        `but your balance is only ` +
+                        `S$${this.availableBalance.toFixed(2)}.`,
                         'danger'
                       );
 
@@ -436,27 +410,19 @@ export class InvestingPage
                   const result =
                     await this.dashboardService
                       .buyStockUnits(
-
                         stock.symbol,
-
                         stock.name,
-
                         units,
-
                         stock.priceSgd
-
                       );
 
 
-                  void this
+                  await this
                     .presentToast(
-
                       result.message,
-
                       result.success
                         ? 'success'
                         : 'danger'
-
                     );
 
 
@@ -464,15 +430,10 @@ export class InvestingPage
                     result.success
                   ) {
 
-                    /*
-                     * Refresh Investing page
-                     */
-                    this.loadPortfolio();
+                    await this
+                      .loadPortfolio();
 
 
-                    /*
-                     * Refresh homepage
-                     */
                     this.notifyDashboardUpdate();
 
 
@@ -494,20 +455,15 @@ export class InvestingPage
 
   /*
    * =====================================
-   * SELL SELECTED UNITS
+   * SELL WHOLE UNITS
    * =====================================
    */
+
   async sellUnits(
     investment:
       DashboardInvestment
   ): Promise<void> {
 
-    /*
-     * Try current market price first.
-     *
-     * If unavailable, use last saved
-     * market price.
-     */
     const quote =
       this.getQuoteForSymbol(
         investment.symbol
@@ -526,11 +482,10 @@ export class InvestingPage
       currentPrice <= 0
     ) {
 
-      await this
-        .presentToast(
-          'Unable to get the current stock price.',
-          'danger'
-        );
+      await this.presentToast(
+        'Unable to get the current stock price.',
+        'danger'
+      );
 
 
       return;
@@ -538,8 +493,7 @@ export class InvestingPage
 
 
     const alert =
-      await this
-        .alertController
+      await this.alertController
         .create({
 
           header:
@@ -551,52 +505,35 @@ export class InvestingPage
           message:
             `You own ${investment.shares} ` +
             `${investment.shares === 1 ? 'unit' : 'units'}. ` +
-            `Current price: S$${currentPrice.toFixed(2)} per unit. ` +
-            'Enter the number of whole units you want to sell.',
-
+            `Current price: ` +
+            `S$${currentPrice.toFixed(2)} per unit. ` +
+            `Enter how many units you want to sell.`,
 
           inputs: [
 
             {
-              name:
-                'units',
-
-              type:
-                'number',
-
-              min:
-                1,
-
+              name: 'units',
+              type: 'number',
+              min: 1,
               max:
                 investment.shares,
-
-              value:
-                1,
-
+              value: 1,
               placeholder:
                 'Number of units to sell',
             },
 
           ],
 
-
           buttons: [
 
             {
-              text:
-                'Cancel',
-
-              role:
-                'cancel',
+              text: 'Cancel',
+              role: 'cancel',
             },
 
-
             {
-              text:
-                'Sell',
-
-              role:
-                'destructive',
+              text: 'Sell',
+              role: 'destructive',
 
               handler:
                 async (data) => {
@@ -607,20 +544,13 @@ export class InvestingPage
                     );
 
 
-                  /*
-                   * Must be whole units
-                   */
                   if (
-                    !Number.isFinite(
-                      units
-                    ) ||
-                    !Number.isInteger(
-                      units
-                    ) ||
+                    !Number.isFinite(units) ||
+                    !Number.isInteger(units) ||
                     units <= 0
                   ) {
 
-                    void this
+                    await this
                       .presentToast(
                         'Please enter a whole number of units to sell.',
                         'danger'
@@ -631,16 +561,12 @@ export class InvestingPage
                   }
 
 
-                  /*
-                   * Cannot sell more
-                   * than currently owned.
-                   */
                   if (
                     units >
                     investment.shares
                   ) {
 
-                    void this
+                    await this
                       .presentToast(
                         `You only own ${investment.shares} ` +
                         `${investment.shares === 1 ? 'unit' : 'units'}.`,
@@ -652,33 +578,21 @@ export class InvestingPage
                   }
 
 
-                  const saleValue =
-                    units *
-                    currentPrice;
-
-
                   const result =
                     await this.dashboardService
                       .sellStockUnits(
-
                         investment.symbol,
-
                         units,
-
                         currentPrice
-
                       );
 
 
-                  void this
+                  await this
                     .presentToast(
-
                       result.message,
-
                       result.success
                         ? 'success'
                         : 'danger'
-
                     );
 
 
@@ -686,15 +600,10 @@ export class InvestingPage
                     result.success
                   ) {
 
-                    /*
-                     * Refresh Investing page
-                     */
-                    this.loadPortfolio();
+                    await this
+                      .loadPortfolio();
 
 
-                    /*
-                     * Refresh homepage dashboard
-                     */
                     this.notifyDashboardUpdate();
 
 
@@ -716,16 +625,15 @@ export class InvestingPage
 
   /*
    * =====================================
-   * FIND MARKET QUOTE
+   * QUOTE
    * =====================================
    */
+
   getQuoteForSymbol(
-    symbol:
-      string
+    symbol: string
   ): StockQuote | undefined {
 
-    return this
-      .marketStocks
+    return this.marketStocks
       .find(
         (stock) =>
           stock.symbol
@@ -738,9 +646,10 @@ export class InvestingPage
 
   /*
    * =====================================
-   * PROFIT / LOSS
+   * PROFIT
    * =====================================
    */
+
   getInvestmentProfit(
     investment:
       DashboardInvestment
@@ -767,13 +676,11 @@ export class InvestingPage
 
 
     return (
-      (
-        this.getInvestmentProfit(
-          investment
-        ) /
-        investment.investedAmount
-      ) * 100
-    );
+      this.getInvestmentProfit(
+        investment
+      ) /
+      investment.investedAmount
+    ) * 100;
   }
 
 
@@ -782,10 +689,9 @@ export class InvestingPage
    * TRACK BY
    * =====================================
    */
-  trackByInvestmentId(
-    index:
-      number,
 
+  trackByInvestmentId(
+    index: number,
     investment:
       DashboardInvestment
   ): string {
@@ -795,9 +701,7 @@ export class InvestingPage
 
 
   trackByStockSymbol(
-    index:
-      number,
-
+    index: number,
     stock:
       StockQuote
   ): string {
@@ -808,9 +712,10 @@ export class InvestingPage
 
   /*
    * =====================================
-   * UPDATE HOMEPAGE
+   * UPDATE DASHBOARD
    * =====================================
    */
+
   private notifyDashboardUpdate():
     void {
 
@@ -827,26 +732,21 @@ export class InvestingPage
    * TOAST
    * =====================================
    */
-  private async presentToast(
-    message:
-      string,
 
-    color:
-      string
+  private async presentToast(
+    message: string,
+    color: string
   ): Promise<void> {
 
     const toast =
-      await this
-        .toastController
+      await this.toastController
         .create({
 
           message,
 
-          duration:
-            2500,
+          duration: 2500,
 
-          position:
-            'bottom',
+          position: 'bottom',
 
           color,
         });
