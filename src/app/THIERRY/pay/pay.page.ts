@@ -4,6 +4,10 @@ import {
 } from '@angular/core';
 
 import {
+  ActivatedRoute
+} from '@angular/router';
+
+import {
   FormBuilder,
   FormGroup,
   Validators,
@@ -23,6 +27,11 @@ import {
   RewardsService,
   UserVoucher,
 } from '../../game/rewards.service';
+
+import {
+  Shop,
+  ShopService,
+} from '../../HIDAYAT/services/shop';
 
 
 interface MerchantOption {
@@ -94,6 +103,12 @@ export class PayPage
   selectedMerchant:
     MerchantOption | null = null;
 
+  cartShopId = ' ';
+
+  cartAmount = 0;
+
+  cartShop: Shop | undefined;
+
 
   paymentHistory:
     MerchantPayment[] = [];
@@ -130,7 +145,13 @@ export class PayPage
       RewardsService,
 
     private alertController:
-      AlertController
+      AlertController,
+    
+    private route:
+      ActivatedRoute,
+
+    private shopService:
+      ShopService
   ) {}
 
 
@@ -142,6 +163,47 @@ export class PayPage
 
   ngOnInit(): void {
 
+   this.route.queryParams.subscribe(params => {
+
+  this.cartShopId = params['shopId'] || '';
+
+  this.cartAmount = Number(params['amount']) || 0;
+
+  if (this.cartShopId) {
+
+    this.shopService
+      .getShopById(this.cartShopId)
+      .subscribe(shop => {
+
+        this.cartShop = shop;
+
+console.log('Cart shop:', shop);
+
+if (shop) {
+
+  this.selectedMerchant = {
+    name: shop.name,
+    category: shop.category,
+    icon: 'storefront-outline'
+  };
+
+  this.paymentForm
+    ?.get('merchantName')
+    ?.setValue(shop.name);
+
+  console.log(
+    '✅ Merchant selected:',
+    shop.name
+  );
+
+}
+
+      });
+
+  }
+
+});
+
     this.paymentForm =
       this.formBuilder.group({
 
@@ -151,7 +213,7 @@ export class PayPage
         ],
 
         amount: [
-          null,
+          this.cartAmount || null,
           [
             Validators.required,
             Validators.min(
@@ -165,6 +227,26 @@ export class PayPage
         ],
 
       });
+
+      if (this.cartAmount > 0) {
+  this.paymentForm
+    .get('amount')
+    ?.setValue(this.cartAmount);
+}
+
+if (this.cartShop) {
+
+  this.paymentForm
+    .get('merchantName')
+    ?.setValue(this.cartShop.name);
+
+  this.selectedMerchant = {
+    name: this.cartShop.name,
+    category: this.cartShop.category,
+    icon: 'storefront-outline'
+  };
+
+}
 
 
     /*

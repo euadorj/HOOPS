@@ -206,7 +206,7 @@ export class Tab1Page
     {
       icon: 'storefront-outline',
       title: 'Merchant Deals',
-      route: '/tabs/tab1',
+      route: '/tabs/tab3',
     },
 
     {

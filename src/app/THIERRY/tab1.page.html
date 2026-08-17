@@ -1044,7 +1044,8 @@
         *ngFor="let tab of quickTabs"
         [disabled]="!tab.route"
         [class.coming-soon]="!tab.route"
-        (click)="openQuickTab(tab)"
+        [routerLink]="tab.route"
+        routerDirection="forward"
       >
 
         <ion-icon
