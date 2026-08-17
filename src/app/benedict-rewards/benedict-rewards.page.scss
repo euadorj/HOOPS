@@ -1,3 +1,12 @@
+:host {
+  --ion-background-color: #f4f6ff;
+}
+
+.app-toolbar {
+  --background: linear-gradient(135deg, #3722c5, #4938e8);
+  --color: #ffffff;
+}
+
 .top-toggle {
   display: flex;
   gap: 10px;
@@ -12,16 +21,17 @@
   }
 
   .toggle-btn.active {
-    --background: #4f46e5; /* purple */
-    --background-activated: #4338ca;
-    --background-hover: #5b4be6;
+    --background: #4432d7; /* purple */
+    --background-activated: #3720b8;
+    --background-hover: #5342e0;
   }
 }
 
 .profile-card {
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   background: #9aa9c0;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
 
   &.tier-blue {
     background: #60a5fa;
@@ -175,68 +185,119 @@
   }
 }
 
-.promo-card {
+.telegram-card {
   margin-top: 14px;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   background: #ffffff;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
 
-  .promo-title {
-    padding: 14px 14px 0 14px;
+  .telegram-row {
     display: flex;
-    gap: 10px;
     align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    text-decoration: none;
 
-    .promo-badge {
-      background: #2f7bff20;
-      color: #2f7bff;
-      border: 1px solid #2f7bff33;
-      font-weight: 900;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 999px;
+    .row-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #4432d7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 18px;
+        color: #fff;
+      }
     }
 
-    .promo-text {
-      font-weight: 900;
-      color: #2b2f3a;
-      font-size: 13px;
-    }
-  }
+    .telegram-meta {
+      flex: 1;
 
-  .promo-stats {
-    padding: 12px 14px;
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+      .row-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #26334c;
+      }
 
-    .stat {
-      font-weight: 900;
-    }
-
-    .big {
-      font-size: 22px;
-      color: #0f172a;
+      .row-subtitle {
+        margin-top: 3px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #77829a;
+      }
     }
 
-    .mult,
-    .small {
-      font-size: 14px;
-      color: #64748b;
-    }
-
-    .result {
+    .row-chevron {
       font-size: 18px;
-      color: #4f46e5;
-      margin-left: 8px;
+      color: #77829a;
     }
-  }
-
-  .promo-image {
-    height: 80px;
-    background: linear-gradient(135deg, #dbeafe, #fce7f3);
   }
 }
+
+.calendar-card {
+  margin-top: 14px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
+
+  ion-card-header {
+    padding: 16px 16px 10px 16px;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 4px 12px 16px 12px;
+  }
+
+  .calendar-weekday {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #77829a;
+    padding-bottom: 4px;
+  }
+
+  .calendar-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .day-number {
+      font-size: 12px;
+      font-weight: 700;
+      color: #26334c;
+    }
+
+    &.visited .day-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #4432d7;
+      background: rgba(68, 50, 215, 0.08);
+      color: #4432d7;
+    }
+
+    // today wins over the outline styling above when both apply
+    &.today .day-number {
+      border-color: #4432d7;
+      background: #4432d7;
+      color: #fff;
+    }
+  }
+}
+
+
 
 .chart-bars-wrap {
   padding: 10px 14px 0 14px;

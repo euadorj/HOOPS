@@ -1,7 +1,7 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar class="app-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab4" color="light"></ion-back-button>
     </ion-buttons>
     <ion-title>BENEDICT_REWARDS</ion-title>
   </ion-toolbar>
@@ -73,21 +73,41 @@
     </div>
   </div>
 </ion-card>
-  <!-- Promo / carousel card (simple) -->
-  <ion-card class="promo-card">
-    <div class="promo-title">
-      <div class="promo-badge">New</div>
-      <div class="promo-text">Join our Telegram Challenge!</div>
-    </div>
+  <!-- Telegram community card -->
+  <ion-card class="telegram-card">
+    <a class="telegram-row" [href]="telegramUrl" target="_blank" rel="noopener">
+      <ion-avatar class="row-avatar">
+        <ion-icon name="paper-plane-outline" aria-hidden="true"></ion-icon>
+      </ion-avatar>
 
-    <div class="promo-stats">
-      <div class="stat big">{{ promoCount }}</div>
-      <div class="stat mult">×</div>
-      <div class="stat big">{{ promoMult }}</div>
-      <div class="stat small">=</div>
-      <div class="stat result">1522</div>
-    </div>
+      <div class="telegram-meta">
+        <div class="row-title">Join our Telegram community</div>
+        <div class="row-subtitle">Chat with other members &amp; get updates</div>
+      </div>
 
-    <div class="promo-image"></div>
+      <ion-icon name="chevron-forward-outline" class="row-chevron" aria-hidden="true"></ion-icon>
+    </a>
+  </ion-card>
+
+  <!-- Usage calendar card -->
+  <ion-card class="calendar-card">
+    <ion-card-header>
+      <ion-card-title class="earnings-title">App activity</ion-card-title>
+      <div class="earnings-amount">{{ monthLabel }}</div>
+    </ion-card-header>
+
+    <div class="calendar-grid">
+      <div class="calendar-weekday" *ngFor="let w of weekdayLabels">{{ w }}</div>
+
+      <div class="calendar-cell blank" *ngFor="let b of calendarLeadingBlanks"></div>
+
+      <div
+        class="calendar-cell"
+        *ngFor="let d of calendarDays"
+        [ngClass]="{ visited: d.isVisited, today: d.isToday }"
+      >
+        <span class="day-number">{{ d.day }}</span>
+      </div>
+    </div>
   </ion-card>
 </ion-content>

@@ -1,5 +1,10 @@
 :host {
-  --ion-background-color: #f4f6fb;
+  --ion-background-color: #f4f6ff;
+}
+
+.app-toolbar {
+  --background: linear-gradient(135deg, #3722c5, #4938e8);
+  --color: #ffffff;
 }
 
 .easy-view-toggle {
@@ -83,9 +88,9 @@ ion-content.elderly-friendly {
 }
 
 .top-card {
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #4432d7 0%, #6497f0 100%);
   color: #fff;
   margin: 6px 0 14px 0;
 }
@@ -170,9 +175,10 @@ ion-content.elderly-friendly {
 }
 
 .chart-card {
-  border-radius: 18px;
+  border-radius: 20px;
   background: #ffffff;
   overflow: visible;
+  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
 }
 
 .chart-bars-wrap {
