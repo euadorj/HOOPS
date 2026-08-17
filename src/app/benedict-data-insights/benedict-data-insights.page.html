@@ -4,10 +4,20 @@
       <ion-back-button defaultHref="/tabs/tab4"></ion-back-button>
     </ion-buttons>
     <ion-title>BENEDICT_DATA_INSIGHTS</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        class="easy-view-toggle"
+        (click)="toggleElderlyFriendlyMode()"
+        [attr.aria-pressed]="elderlyFriendlyMode"
+      >
+        <ion-icon slot="start" name="accessibility-outline"></ion-icon>
+        {{ elderlyFriendlyMode ? 'Standard view' : 'Easy view' }}
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" [class.elderly-friendly]="elderlyFriendlyMode">
   <!-- Blue account card -->
   <ion-card class="top-card">
     <div class="card-top">
@@ -19,8 +29,8 @@
     </div>
 
     <div class="card-mid">
-      <div class="card-name">{{ accountTitle }}</div>
-      <div class="card-mask">{{ masked }}</div>
+      <div class="card-name" *ngIf="!elderlyFriendlyMode">{{ accountTitle }}</div>
+      <div class="card-mask" *ngIf="!elderlyFriendlyMode">{{ masked }}</div>
       <div class="card-balance"> ${{ balanceUSD.toFixed(2) }}</div>
     </div>
 
@@ -35,7 +45,7 @@
   <!-- Bar chart area -->
   <ion-card class="chart-card">
     <div class="chart-bars-wrap">
-      <div *ngIf="selectedToolTipMonthIndex !== null" class="money-tooltip-panel" role="status">
+      <div *ngIf="!elderlyFriendlyMode && selectedToolTipMonthIndex !== null" class="money-tooltip-panel" role="status">
         <div class="tooltip-month">{{ months[selectedToolTipMonthIndex] }}</div>
         <div class="tooltip-row">
           <span>Total income:</span>
@@ -104,16 +114,16 @@
         </button>
 
       </div>
-      <div class="legend-head">Legend ({{ selectedMonthLabel }} categories)</div>
+      <div class="legend-head" *ngIf="!elderlyFriendlyMode">Legend ({{ selectedMonthLabel }} categories)</div>
       <div class="legend-grid">
         <div class="legend-item" *ngFor="let category of selectedMonthCategories">
           <span class="legend-swatch" [style.backgroundColor]="category.color"></span>
           <span class="legend-name">{{ category.name }}</span>
-          <span class="legend-type" [ngClass]="category.type">{{ category.type === 'in' ? 'Money in' : 'Money out' }}</span>
+          <span class="legend-type" [ngClass]="category.type" *ngIf="!elderlyFriendlyMode">{{ category.type === 'in' ? 'Money in' : 'Money out' }}</span>
         </div>
       </div>
 
-      <div class="category-editor">
+      <div class="category-editor" *ngIf="!elderlyFriendlyMode">
         <div class="editor-title">Manage categories (Create / Update / Delete)</div>
 
         <div class="editor-grid">
@@ -192,3 +202,8 @@
   </ion-card>
 
 </ion-content>
+
+<a class="customer-helpline" href="tel:+65 89270944" aria-label="Call customer helpline">
+  <ion-icon name="call-outline"></ion-icon>
+  <span>Help</span>
+</a>

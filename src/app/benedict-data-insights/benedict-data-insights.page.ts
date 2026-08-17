@@ -41,6 +41,7 @@ export class BENEDICTDATAINSIGHTSPage implements OnInit {
   accountTitle = 'Amazon Protium';
   masked = '4758 •••• •••• 9018';
   balanceUSD = 3469.52;
+  elderlyFriendlyMode = false;
 
   todayTransactions: TxItem[] = [
     { title: 'Water Bill', subtitle: 'Today', amount: -280, color: '#ef4444' },
@@ -152,6 +153,10 @@ export class BENEDICTDATAINSIGHTSPage implements OnInit {
 
   fmtMoneyIn(n: number) {
     return `$${Math.abs(n).toFixed(0)}`;
+  }
+
+  toggleElderlyFriendlyMode(): void {
+    this.elderlyFriendlyMode = !this.elderlyFriendlyMode;
   }
 
   fmtMoneyOut(n: number) {

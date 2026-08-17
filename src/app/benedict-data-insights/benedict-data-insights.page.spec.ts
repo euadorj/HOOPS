@@ -14,4 +14,12 @@ describe('BENEDICTDATAINSIGHTSPage', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('toggles elderly-friendly mode', () => {
+    expect(component.elderlyFriendlyMode).toBeFalse();
+
+    component.toggleElderlyFriendlyMode();
+
+    expect(component.elderlyFriendlyMode).toBeTrue();
+  });
 });
