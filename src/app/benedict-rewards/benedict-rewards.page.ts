@@ -23,7 +23,7 @@ const VISITED_DATES_KEY = 'benedict-rewards-visited-dates';
   standalone: false,
 })
 export class BENEDICTREWARDSPage implements OnInit {
-  name = 'John Smith';
+  name = 'Thierry';
 
   totalSavings = 110.54;
   points = 84.06;

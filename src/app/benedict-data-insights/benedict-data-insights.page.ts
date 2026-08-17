@@ -37,7 +37,7 @@ export class BENEDICTDATAINSIGHTSPage implements OnInit {
     this.recalculateAllMonths();
   }
 
-  name = 'John Smith';
+  name = 'Thierry';
   accountTitle = 'Amazon Protium';
   masked = '4758 •••• •••• 9018';
   balanceUSD = 3469.52;
