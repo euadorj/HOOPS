@@ -212,7 +212,7 @@ export class Tab1Page
     {
       icon: 'cash-outline',
       title: 'Cashback',
-      route: '/tabs/tab1',
+      route: '/tabs/tab4',
     },
 
     {

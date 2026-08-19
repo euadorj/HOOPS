@@ -5,11 +5,19 @@
 
     <div class="top-row">
 
-      <div class="profile">
+      <div class="top-row-left">
 
-        <img src="assets/avatar.png" alt="Avatar">
+        <button type="button" class="back-button" (click)="goBack()" aria-label="Back">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
 
-        <span>Hi, Thierry</span>
+        <div class="profile">
+
+          <img src="assets/avatar.png" alt="Avatar">
+
+          <span>Hi, {{ userName }}</span>
+
+        </div>
 
       </div>
 

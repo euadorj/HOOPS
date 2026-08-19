@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
+import { BenedictLoyaltyService } from './benedict-loyalty.service';
 import {
   BENEDICT_MAX_POINTS,
   BENEDICT_TIERS,
@@ -14,8 +16,6 @@ type CalendarDay = {
   isVisited: boolean;
 };
 
-const VISITED_DATES_KEY = 'benedict-rewards-visited-dates';
-
 @Component({
   selector: 'app-benedict-rewards',
   templateUrl: './benedict-rewards.page.html',
@@ -23,11 +23,12 @@ const VISITED_DATES_KEY = 'benedict-rewards-visited-dates';
   standalone: false,
 })
 export class BENEDICTREWARDSPage implements OnInit {
-  name = 'Thierry';
+  name = 'Guest';
+  loading = true;
 
-  totalSavings = 110.54;
-  points = 84.06;
-  pointsGold = 5.94;
+  totalSavings = 0;
+  points = 0;
+  pointsGold = 0;
 
   tiers = BENEDICT_TIERS;
   tierPercent = 0;
@@ -43,22 +44,40 @@ export class BENEDICTREWARDSPage implements OnInit {
   calendarLeadingBlanks: number[] = [];
   calendarDays: CalendarDay[] = [];
 
-  constructor(private router: Router) {}
+  private visitedDates: Set<string> = new Set();
 
-  ngOnInit() {
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private loyaltyService: BenedictLoyaltyService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    await this.authService.authReady;
+    this.name = this.authService.getCurrentUser()?.username ?? 'Guest';
+
+    const data = await this.loyaltyService.getLoyaltyData();
+    this.totalSavings = data.totalSavings;
+    this.points = data.points;
+    this.pointsGold = data.pointsGold;
+    this.visitedDates = new Set(data.visitedDates);
+
     this.syncTierFromPoints();
-    this.recordTodayVisit();
+    await this.recordTodayVisit();
     this.buildCalendar();
+    this.loading = false;
   }
 
-  increasePoints() {
+  async increasePoints(): Promise<void> {
     this.points += 5;
     this.syncTierFromPoints();
+    await this.loyaltyService.savePoints(this.points);
   }
 
-  decreasePoints() {
+  async decreasePoints(): Promise<void> {
     this.points -= 5;
     this.syncTierFromPoints();
+    await this.loyaltyService.savePoints(this.points);
   }
 
   get tier(): string {
@@ -111,31 +130,20 @@ export class BENEDICTREWARDSPage implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  private getVisitedDates(): Set<string> {
-    try {
-      const raw = localStorage.getItem(VISITED_DATES_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return new Set<string>(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      return new Set<string>();
-    }
-  }
-
   // Logs today's date so its calendar cell stays circled from now on
-  private recordTodayVisit() {
-    const visited = this.getVisitedDates();
-    visited.add(this.toIsoDate(new Date()));
+  private async recordTodayVisit(): Promise<void> {
+    const todayIso = this.toIsoDate(new Date());
 
-    try {
-      localStorage.setItem(VISITED_DATES_KEY, JSON.stringify([...visited]));
-    } catch {
-      // storage unavailable (e.g. private browsing) - visited days won't persist across sessions
+    if (this.visitedDates.has(todayIso)) {
+      return;
     }
+
+    await this.loyaltyService.recordVisit(todayIso);
+    this.visitedDates.add(todayIso);
   }
 
   private buildCalendar() {
     const today = new Date();
-    const visited = this.getVisitedDates();
 
     this.monthLabel = today.toLocaleDateString('en-US', {
       month: 'long',
@@ -160,7 +168,7 @@ export class BENEDICTREWARDSPage implements OnInit {
         day,
         iso,
         isToday: iso === this.toIsoDate(today),
-        isVisited: visited.has(iso),
+        isVisited: this.visitedDates.has(iso),
       };
     });
   }

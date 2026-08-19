@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ShopService, Shop } from './services/shop';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-tab3',
@@ -8,9 +9,19 @@ import { Router } from '@angular/router';
   styleUrls: ['tab3.page.scss'],
   standalone: false,
 })
-export class Tab3Page {
+export class Tab3Page implements OnInit {
 
-  constructor(private shopService: ShopService, private router: Router) {}
+  constructor(
+    private shopService: ShopService,
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  goBack() {
+    this.router.navigate(['/tabs/tab1']);
+  }
+
+  userName = 'Guest';
 
   searchText = '';
 
@@ -30,7 +41,10 @@ export class Tab3Page {
 
 shops: Shop[] = [];
 
-ngOnInit() {
+async ngOnInit() {
+  await this.authService.authReady;
+  this.userName = this.authService.getCurrentUser()?.username ?? 'Guest';
+
   this.shopService.getShops().subscribe({
     next: (shops) => {
       this.shops = shops;

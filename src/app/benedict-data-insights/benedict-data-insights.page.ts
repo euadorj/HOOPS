@@ -1,21 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
+import { MerchantPayment, SavingsService } from '../THIERRY/savings.service';
+import { BenedictInsightsService, CategoryEntry, TxItem } from './benedict-insights.service';
 
 type CategoryType = 'in' | 'out';
-
-type CategoryEntry = {
-  id: string;
-  name: string;
-  color: string;
-  amount: number;
-  type: CategoryType;
-};
-
-type TxItem = {
-  title: string;
-  subtitle: string;
-  amount: number;
-  color: string;
-};
 
 type BarSegment = {
   name: string;
@@ -31,45 +19,51 @@ type BarSegment = {
   standalone: false,
 })
 export class BENEDICTDATAINSIGHTSPage implements OnInit {
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    await this.authService.authReady;
+
+    this.name = this.authService.getCurrentUser()?.username ?? 'Guest';
+
+    const [financeData, insightsData, paymentHistory] = await Promise.all([
+      this.savingsService.getFinanceData(),
+      this.insightsService.getInsightsData(),
+      this.savingsService.getPaymentHistory(),
+    ]);
+
+    this.balanceUSD = financeData.balance;
+    this.accountTitle = insightsData.accountTitle;
+    this.masked = insightsData.masked;
+    this.categoriesByMonth = insightsData.categoriesByMonth;
+
+    const todaysPayments = this.buildTodayTransactionsFromPayments(paymentHistory);
+    this.todayTransactions = todaysPayments.length ? todaysPayments : insightsData.todayTransactions;
+
+    if (todaysPayments.length) {
+      await this.insightsService.saveTodayTransactions(this.todayTransactions);
+    }
+
     this.hydrateCategoryColorMap();
     this.applyCategoryColorsAcrossMonths();
     this.recalculateAllMonths();
+
+    this.loading = false;
   }
 
-  name = 'Thierry';
-  accountTitle = 'Amazon Protium';
-  masked = '4758 •••• •••• 9018';
-  balanceUSD = 3469.52;
+  constructor(
+    private authService: AuthService,
+    private savingsService: SavingsService,
+    private insightsService: BenedictInsightsService
+  ) {}
+
+  loading = true;
+
+  name = 'Guest';
+  accountTitle = '';
+  masked = '';
+  balanceUSD = 0;
   elderlyFriendlyMode = false;
 
-  todayTransactions: TxItem[] = [
-    { title: 'Water Bill', subtitle: 'Today', amount: -280, color: '#ef4444' },
-    {
-      title: 'Income: Salary October',
-      subtitle: 'Today',
-      amount: 1200,
-      color: '#22c55e',
-    },
-    {
-      title: 'Groceries - Family Mart',
-      subtitle: 'Today',
-      amount: -84,
-      color: '#f59e0b',
-    },
-    {
-      title: 'Ride Share Rebate',
-      subtitle: 'Today',
-      amount: 36,
-      color: '#3b82f6',
-    },
-    {
-      title: 'Mobile Plan Auto Debit',
-      subtitle: 'Today',
-      amount: -58,
-      color: '#a855f7',
-    },
-  ];
+  todayTransactions: TxItem[] = [];
 
   months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 
@@ -80,49 +74,12 @@ export class BENEDICTDATAINSIGHTSPage implements OnInit {
   expandedMonthIndexIn: number | null = null;
 
   // Red bar = money out, Green bar = money in
-  monthTotalsOut = [60, 68, 74, 78, 62, 70];
-  monthTotalsIn = [48, 58, 54, 64, 50, 56];
-  moneyInByMonth = [220, 320, 260, 340, 290, 310];
-  moneyOutByMonth = [280, 450, 390, 500, 360, 430];
+  monthTotalsOut = [0, 0, 0, 0, 0, 0];
+  monthTotalsIn = [0, 0, 0, 0, 0, 0];
+  moneyInByMonth = [0, 0, 0, 0, 0, 0];
+  moneyOutByMonth = [0, 0, 0, 0, 0, 0];
 
-  categoriesByMonth: Record<number, CategoryEntry[]> = {
-    0: [
-      { id: 'jan-shopping', name: 'Shopping', color: '#f59e0b', amount: 90, type: 'out' },
-      { id: 'jan-telemarket', name: 'Telemarket', color: '#ef4444', amount: 70, type: 'out' },
-      { id: 'jan-groceries', name: 'Groceries', color: '#22c55e', amount: 120, type: 'in' },
-      { id: 'jan-transport', name: 'Transport', color: '#3b82f6', amount: 100, type: 'in' },
-    ],
-    1: [
-      { id: 'feb-shopping', name: 'Shopping', color: '#f59e0b', amount: 140, type: 'out' },
-      { id: 'feb-telemarket', name: 'Telemarket', color: '#ef4444', amount: 180, type: 'out' },
-      { id: 'feb-groceries', name: 'Groceries', color: '#22c55e', amount: 190, type: 'in' },
-      { id: 'feb-transport', name: 'Transport', color: '#3b82f6', amount: 130, type: 'in' },
-    ],
-    2: [
-      { id: 'mar-rent', name: 'Rent', color: '#a855f7', amount: 210, type: 'out' },
-      { id: 'mar-shopping', name: 'Shopping', color: '#f59e0b', amount: 180, type: 'out' },
-      { id: 'mar-salary', name: 'Salary', color: '#22c55e', amount: 260, type: 'in' },
-      { id: 'mar-freelance', name: 'Freelance', color: '#10b981', amount: 80, type: 'in' },
-    ],
-    3: [
-      { id: 'apr-food', name: 'Food', color: '#ef4444', amount: 220, type: 'out' },
-      { id: 'apr-subs', name: 'Subscriptions', color: '#f97316', amount: 100, type: 'out' },
-      { id: 'apr-salary', name: 'Salary', color: '#22c55e', amount: 290, type: 'in' },
-      { id: 'apr-bonus', name: 'Bonus', color: '#3b82f6', amount: 50, type: 'in' },
-    ],
-    4: [
-      { id: 'may-dining', name: 'Dining', color: '#ef4444', amount: 170, type: 'out' },
-      { id: 'may-shopping', name: 'Shopping', color: '#f59e0b', amount: 190, type: 'out' },
-      { id: 'may-salary', name: 'Salary', color: '#22c55e', amount: 210, type: 'in' },
-      { id: 'may-refund', name: 'Refund', color: '#60a5fa', amount: 80, type: 'in' },
-    ],
-    5: [
-      { id: 'jun-travel', name: 'Travel', color: '#f43f5e', amount: 240, type: 'out' },
-      { id: 'jun-shopping', name: 'Shopping', color: '#f59e0b', amount: 190, type: 'out' },
-      { id: 'jun-salary', name: 'Salary', color: '#22c55e', amount: 260, type: 'in' },
-      { id: 'jun-cashback', name: 'Cashback', color: '#3b82f6', amount: 50, type: 'in' },
-    ],
-  };
+  categoriesByMonth: Record<number, CategoryEntry[]> = {};
 
   categoryForm = {
     id: '',
@@ -234,11 +191,12 @@ export class BENEDICTDATAINSIGHTSPage implements OnInit {
     const abs = Math.abs(n);
     return `${sign}$${abs}`;
   }
-getNetProfitForMonth(i: number): number {
-  const moneyIn = this.moneyInByMonth[i] ?? 0;
-  const moneyOut = this.moneyOutByMonth[i] ?? 0;
-  return moneyIn - moneyOut;
-}
+
+  getNetProfitForMonth(i: number): number {
+    const moneyIn = this.moneyInByMonth[i] ?? 0;
+    const moneyOut = this.moneyOutByMonth[i] ?? 0;
+    return moneyIn - moneyOut;
+  }
 
   isTooltipVisibleFor(i: number): boolean {
     return this.selectedToolTipMonthIndex === i;
@@ -258,26 +216,26 @@ getNetProfitForMonth(i: number): number {
     return moneyIn - moneyOut;
   }
 
-// Single click: show tooltip (but delay slightly so dblclick can cancel)
-onMonthSingleClickTooltip(i: number): void {
-  if (this.tooltipClickTimer) {
-    clearTimeout(this.tooltipClickTimer);
+  // Single click: show tooltip (but delay slightly so dblclick can cancel)
+  onMonthSingleClickTooltip(i: number): void {
+    if (this.tooltipClickTimer) {
+      clearTimeout(this.tooltipClickTimer);
+    }
+
+    this.tooltipClickTimer = setTimeout(() => {
+      this.selectedToolTipMonthIndex = i;
+      this.tooltipClickTimer = null;
+    }, 250);
   }
 
-  this.tooltipClickTimer = setTimeout(() => {
-    this.selectedToolTipMonthIndex = i;
-    this.tooltipClickTimer = null;
-  }, 250);
-}
-
-// Double click: hide tooltip and cancel pending single-click
-onMonthDoubleClickTooltip(): void {
-  if (this.tooltipClickTimer) {
-    clearTimeout(this.tooltipClickTimer);
-    this.tooltipClickTimer = null;
+  // Double click: hide tooltip and cancel pending single-click
+  onMonthDoubleClickTooltip(): void {
+    if (this.tooltipClickTimer) {
+      clearTimeout(this.tooltipClickTimer);
+      this.tooltipClickTimer = null;
+    }
+    this.selectedToolTipMonthIndex = null;
   }
-  this.selectedToolTipMonthIndex = null;
-}
 
   getCategoriesForMonth(index: number): CategoryEntry[] {
     return this.categoriesByMonth[index] ?? [];
@@ -289,7 +247,7 @@ onMonthDoubleClickTooltip(): void {
       .reduce((sum, category) => sum + category.amount, 0);
   }
 
-  saveCategory(): void {
+  async saveCategory(): Promise<void> {
     const name = this.categoryForm.name.trim();
     const amount = Number(this.categoryForm.amount);
 
@@ -328,6 +286,8 @@ onMonthDoubleClickTooltip(): void {
     this.applyCategoryColorForName(name, this.categoryForm.type, this.categoryForm.color);
     this.resetCategoryForm(monthIndex);
     this.recalculateAllMonths();
+
+    await this.insightsService.saveCategoriesByMonth(this.categoriesByMonth);
   }
 
   editCategory(monthIndex: number, category: CategoryEntry): void {
@@ -342,7 +302,7 @@ onMonthDoubleClickTooltip(): void {
     };
   }
 
-  deleteCategory(monthIndex: number, categoryId: string): void {
+  async deleteCategory(monthIndex: number, categoryId: string): Promise<void> {
     const monthCategories = this.categoriesByMonth[monthIndex] ?? [];
     this.categoriesByMonth[monthIndex] = monthCategories.filter(
       (category) => category.id !== categoryId,
@@ -353,6 +313,8 @@ onMonthDoubleClickTooltip(): void {
     }
 
     this.recalculateAllMonths();
+
+    await this.insightsService.saveCategoriesByMonth(this.categoriesByMonth);
   }
 
   private resetCategoryForm(monthIndex: number): void {
@@ -444,6 +406,27 @@ onMonthDoubleClickTooltip(): void {
     );
 
     this.selectedMonthIndex = Math.min(this.selectedMonthIndex, this.months.length - 1);
+  }
+
+  private buildTodayTransactionsFromPayments(payments: MerchantPayment[]): TxItem[] {
+    const now = new Date();
+
+    return payments
+      .filter((payment) => {
+        const paidAt = new Date(payment.paidAt);
+        return (
+          paidAt.getFullYear() === now.getFullYear() &&
+          paidAt.getMonth() === now.getMonth() &&
+          paidAt.getDate() === now.getDate()
+        );
+      })
+      .sort((a, b) => b.paidAt - a.paidAt)
+      .map((payment) => ({
+        title: `Payment - ${payment.merchantName}`,
+        subtitle: 'Today',
+        amount: -Math.abs(payment.amount),
+        color: '#ef4444',
+      }));
   }
 
   private toBarHeightPercent(value: number, max: number): number {

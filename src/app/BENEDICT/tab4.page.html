@@ -1,10 +1,13 @@
 <ion-header>
   <ion-toolbar class="app-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/" color="light"></ion-back-button>
+      <ion-back-button defaultHref="/tabs/tab1" text="" color="light"></ion-back-button>
     </ion-buttons>
 
-    <ion-title>Cashback</ion-title>
+    <div class="header-content">
+      <ion-title class="header-title">Cashback</ion-title>
+      <p class="header-subtitle">Track your rewards and vouchers</p>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -46,6 +49,9 @@
         *ngFor="let item of todayItems"
         class="cashback-row"
         lines="none"
+        [button]="isRedeemable(item)"
+        [detail]="false"
+        (click)="redeemItem('today', item)"
       >
         <ion-avatar slot="start" class="row-avatar">
           <ion-icon
@@ -101,6 +107,9 @@
         *ngFor="let item of yesterdayItems"
         class="cashback-row"
         lines="none"
+        [button]="isRedeemable(item)"
+        [detail]="false"
+        (click)="redeemItem('yesterday', item)"
       >
         <ion-avatar slot="start" class="row-avatar">
           <ion-icon

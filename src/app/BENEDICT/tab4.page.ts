@@ -1,14 +1,6 @@
-import { Component } from '@angular/core';
-
-type ExpiringItem = {
-  id: string;
-  title: string;
-  amount?: number ;
-  badgeText?: string;
-  badgeColor?: 'danger' | 'warning' | 'primary' | 'success' | 'medium';
-  icon: string; // use Ionicons names
-  tone?: 'danger' | 'warning' | 'primary' | 'success' | 'medium';
-};
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
+import { BenedictCashbackService, ExpiringItem } from './benedict-cashback.service';
 
 @Component({
   selector: 'app-tab4',
@@ -16,10 +8,11 @@ type ExpiringItem = {
   styleUrls: ['./tab4.page.scss'],
   standalone: false
 })
-export class Tab4Page {
+export class Tab4Page implements OnInit {
   activeSegment: 'vouchers' | 'rewards' = 'vouchers';
 
-  lifetimeEarnings = 154.23;
+  lifetimeEarnings = 0;
+  loading = true;
 
   // Top mini sections
   expiringSummary = {
@@ -27,54 +20,21 @@ export class Tab4Page {
     yesterdayCountText: 'Yesterday',
   };
 
-  todayItems: ExpiringItem[] = [
-    {
-      id: 'toastbox',
-      title: 'ToastBox',
-      badgeText: 'Yet to redeem',
-      badgeColor: 'primary',
-      icon: 'ticket-outline',
-      tone: 'primary',
-    },
-  ];
+  todayItems: ExpiringItem[] = [];
+  yesterdayItems: ExpiringItem[] = [];
 
-  yesterdayItems: ExpiringItem[] = [
-    {
-      id: 'ntuc',
-      title: 'NTUC Fairprice',
-      amount: 43.47,
-      badgeText: 'Yet to redeem',
-      badgeColor: 'medium',
-      icon: 'cart-outline',
-      tone: 'medium',
-    },
-    {
-      id: 'kopitiam',
-      title: 'Kopitiam',
-      amount: 0,
-      badgeText: 'Yet to redeem',
-      badgeColor: 'warning',
-      icon: 'restaurant-outline',
-      tone: 'warning',
-    },
-    {
-      id: 'simplygo',
-      title: 'SimplyGo',
-      amount: 25.21,
-      badgeText: 'Confirmed',
-      badgeColor: 'success',
-      icon: 'card-outline',
-      tone: 'success',
-    },
-    {
-      id: 'mlimited',
-      title: 'ML Limited',
-      badgeText: "Oops! We can’t verify this.",
-      badgeColor: 'danger',
-      icon: 'shield-checkmark-outline',
-      tone: 'danger',
-    },
-  ];
+  constructor(
+    private authService: AuthService,
+    private cashbackService: BenedictCashbackService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    await this.loadCashbackData();
+  }
+
+  async ionViewWillEnter(): Promise<void> {
+    await this.loadCashbackData();
+  }
 
   get formattedLifetime(): string {
     return `$${this.lifetimeEarnings.toFixed(2)}`;
@@ -87,5 +47,30 @@ export class Tab4Page {
   // If you want the red “danger” triangle only on one item
   isDangerItem(item: ExpiringItem): boolean {
     return item.id === 'mlimited';
+  }
+
+  isRedeemable(item: ExpiringItem): boolean {
+    return item.badgeText === 'Yet to redeem';
+  }
+
+  async redeemItem(period: 'today' | 'yesterday', item: ExpiringItem): Promise<void> {
+    if (!this.isRedeemable(item)) {
+      return;
+    }
+
+    await this.cashbackService.redeemItem(period, item.id);
+    await this.loadCashbackData();
+  }
+
+  private async loadCashbackData(): Promise<void> {
+    await this.authService.authReady;
+
+    this.loading = true;
+    const data = await this.cashbackService.getCashbackData();
+
+    this.lifetimeEarnings = data.lifetimeEarnings;
+    this.todayItems = data.todayItems;
+    this.yesterdayItems = data.yesterdayItems;
+    this.loading = false;
   }
 }

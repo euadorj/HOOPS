@@ -5,16 +5,38 @@
 }
 
 .app-toolbar {
-  --background: linear-gradient(135deg, #3722c5, #4938e8);
+  --background: linear-gradient(135deg, #2f1fae 0%, #4d3df4 100%);
   --color: #ffffff;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  box-shadow: 0 12px 28px rgba(47, 31, 174, 0.18);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: white;
+}
+
+.header-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  font-weight: 500;
 }
 
 /* Card + header */
 .earnings-card {
   margin: 0;
-  border-radius: 20px;
+  border-radius: 22px;
   background: #ffffff;
-  box-shadow: 0 7px 20px rgba(31, 41, 75, 0.08);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
   overflow: hidden;
 
   ion-card-header {
@@ -24,7 +46,7 @@
 
 .earnings-title {
   font-size: 14px;
-  color: #666b7a;
+  color: #7c869a;
   font-weight: 600;
 }
 
@@ -32,19 +54,22 @@
   margin-top: 6px;
   font-size: 22px;
   font-weight: 800;
-  color: #1b1f2a;
+  color: #0f172a;
 }
 
 /* Segmented control */
 .cashback-segment {
   margin: 12px 10px 14px 10px;
-  background: #f2f4ff;
+  background: #eeecff;
   border-radius: 14px;
 
   ion-segment-button {
-    --indicator-color: #4432d7; /* purple */
+    --indicator-color: #4432d7;
     --indicator-color-2: #4432d7;
     --background: transparent;
+    --background-checked: transparent;
+    --color: #64748b;
+    --color-checked: #4432d7;
 
     height: 38px;
     border-radius: 14px;
@@ -67,27 +92,42 @@
   margin-top: 14px;
 }
 
+/*
+ * ion-list and ion-item pull their default background from Ionic's
+ * dark-palette variables independently of --ion-background-color, so a
+ * visitor with system dark mode on would otherwise see a near-black list
+ * regardless of this page's light theme. Pin it explicitly.
+ */
+ion-list {
+  --ion-item-background: transparent;
+  background: transparent;
+}
+
 ion-item-divider {
   --background: transparent;
+  --color: #7c869a;
   padding: 10px 4px 6px 12px;
 }
 
 .divider-label {
   font-size: 12px;
   font-weight: 800;
-  color: #7a7f93;
+  color: #7c869a;
 }
 
 /* Rows */
 .cashback-row {
-  --background: transparent;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  border-radius: 14px;
-  margin: 0 6px 8px 6px;
+  --background: #ffffff;
+  --ion-item-background: #ffffff;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --min-height: 64px;
+  border-radius: 16px;
+  margin: 0 4px 10px 4px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
 
   ion-label {
-    margin: 0;
+    margin: 10px 0;
   }
 
   .row-avatar {
@@ -107,7 +147,7 @@ ion-item-divider {
   .row-title {
     font-size: 14px;
     font-weight: 800;
-    color: #1b1f2a;
+    color: #0f172a;
     line-height: 1.2;
   }
 
@@ -128,7 +168,7 @@ ion-item-divider {
   .row-amount {
     font-size: 13px;
     font-weight: 900;
-    color: #1b1f2a;
+    color: #0f172a;
   }
 
 }
@@ -149,14 +189,14 @@ ion-icon.tone-warning {
 }
 
 ion-icon.tone-danger {
-  background: #ef4444;
+  background: #dc2626;
   color: #fff;
   padding: 6px;
   border-radius: 10px;
 }
 
 ion-icon.tone-success {
-  background: #10b981;
+  background: #16a34a;
   color: #fff;
   padding: 6px;
   border-radius: 10px;
@@ -179,11 +219,11 @@ ion-icon.tone-medium {
 }
 
 .sub-danger {
-  color: #ef4444;
+  color: #dc2626;
 }
 
 .sub-success {
-  color: #10b981;
+  color: #16a34a;
 }
 
 .sub-medium {
@@ -192,14 +232,13 @@ ion-icon.tone-medium {
 
 /* Red warning triangle */
 .danger-triangle {
-  color: #ef4444;
+  color: #dc2626;
   font-size: 18px;
   margin-left: 6px;
 }
 
-/* Make list feel like screenshot */
 ion-item.cashback-row {
-  --border-radius: 14px;
+  --border-radius: 16px;
 }
 .toggle-buttons {
   display: grid;
